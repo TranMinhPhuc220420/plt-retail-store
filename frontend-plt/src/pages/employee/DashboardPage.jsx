@@ -1,8 +1,19 @@
 import DemoChartTooltip from '@/components/chart/DemoDefaultTooltip';
 import DemoSegmentedLine from '@/components/chart/DemoSegmentedLine';
 import DemoMemo from '@/components/chart/DemoMemo';
+import { useEffect } from 'react';
+import { getAllProducts } from '@/request/product';
 
 const DashboardEmployeePage = () => {
+
+  const loadTest = () => {
+    getAllProducts()
+  }
+
+  useEffect(() => {
+    loadTest();
+  }, []);
+
   return (
     <div className="h-full mt-2 p-4 bg-gray-100 overflow-auto">
       <div className='grid gap-4'>

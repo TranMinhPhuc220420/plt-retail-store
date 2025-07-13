@@ -1,10 +1,29 @@
 import 'tsconfig-paths/register';
 import { NestFactory } from '@nestjs/core';
+
+import * as cookieParser from 'cookie-parser';
+
 import { AppModule } from './app.module';
 import { PrismaService } from '@/database/prisma.service';
 
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+
+import { STORAGE_CONFIG } from '@/config';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Use cookie parser to handle cookies
+  app.use(cookieParser());
+
+  // Serve static files
+  for (const [key, config] of Object.entries(STORAGE_CONFIG)) {
+    app.useStaticAssets(
+      join(__dirname, '..', '..', config.disk),
+      { prefix: config.prefix }
+    );
+  }
   
   // Enable shutdown hooks for Prisma
   const prismaService = app.get(PrismaService);

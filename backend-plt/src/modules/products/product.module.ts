@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AuthMiddleware } from '../auth/auth.middleware';
+import { AuthMiddleware } from '@/modules/auth/auth.service';
 import { ProductController } from './product.controller';
 
 @Module({

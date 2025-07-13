@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_VERCEL_SERVER_URL || 'http://localhost:5000/api',
+  withCredentials: true, // Include credentials for cross-origin requests
   headers: {
     'Content-Type': 'application/json',
   },

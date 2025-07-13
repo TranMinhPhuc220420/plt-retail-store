@@ -1,10 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import * as jwt from 'jsonwebtoken';
+
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/database/prisma.service';
-import * as bcrypt from 'bcryptjs';
-import { get } from 'http';
 
 import { User } from '@/interfaces'; // Assuming you have a User interface defined
+import { USER_DEV } from '@/config';
 
 @Injectable()
 export class AuthService {
@@ -15,10 +17,10 @@ export class AuthService {
 
   async validateUser(username: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { username } });
-    if (user && await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
-      return result;
-    }
+  
+    const { ...result } = user;
+    return result;
+    
     return null;
   }
 
@@ -42,17 +44,15 @@ export class AuthService {
   }
 
   async register(data: User) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
         email: data.email,
-        avatar: data.avatar,
+        avatar: data.avatar as string,
         username: data.username,
-        password: hashedPassword,
         fullname: data.fullname,
       },
     });
-    const { password, ...result } = user;
+    const { ...result } = user;
     return result;
   }
 
@@ -62,5 +62,39 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user_info: user,
     };
+  }
+}
+
+@Injectable()
+export class AuthMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+
+    // Check if NODE_ENV is set to 'production'
+    if (process.env.NODE_ENV === 'development') {
+      req['user'] = USER_DEV; // Use the development user
+      return next();
+    }
+
+    let userToken = '';
+    const authHeader = req.headers['authorization'];
+    const accessTokenCookie = req.cookies['access_token'];
+
+    if (authHeader) {
+      userToken = authHeader.split(' ')[1]; // Bearer token
+    } else if (accessTokenCookie) {
+      userToken = accessTokenCookie;
+    }
+
+    if (!userToken) {
+      throw new UnauthorizedException('No token provided');
+    }
+
+    try {
+      const decoded = jwt.verify(userToken, process.env.JWT_SECRET || '');
+      req['user'] = decoded;
+      next();
+    } catch (err) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

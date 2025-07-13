@@ -84,7 +84,7 @@ function AuthProvider({ children }) {
       
       if (user) {
         const idToken = await user.getIdToken();
-        const { access_token, user_info } = await verifyUserToken(idToken)
+        const { user_info } = await verifyUserToken(idToken)
 
         if (user_info) {
           const role = user_info.role || USER_ROLE;
@@ -101,7 +101,7 @@ function AuthProvider({ children }) {
 
           dispatch({
             type: INITIALIZE,
-            payload: { isAuthenticated: true, user: { ...user, ...user_info, access_token } },
+            payload: { isAuthenticated: true, user: { ...user, ...user_info } },
           });
 
           if (isLoginPage) {
