@@ -69,6 +69,8 @@ export class AuthService {
 export class AuthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
 
+    console.log(`AuthMiddleware: ${req.method} ${req.url}`);
+    
     // Check if NODE_ENV is set to 'production'
     if (process.env.NODE_ENV === 'development') {
       req['user'] = USER_DEV; // Use the development user

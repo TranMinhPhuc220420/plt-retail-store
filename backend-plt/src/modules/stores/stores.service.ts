@@ -9,17 +9,35 @@ export class StoresService {
     private readonly prisma: PrismaService,
   ) {}
 
-  // Example method to get all stores
   async getAllStores() {
     return this.prisma.store.findMany();
   }
 
-  // Example method to get a store by ID
   async getStoreById(id: string) {
     return this.prisma.store.findUnique({ where: { id } });
   }
 
-  // Additional methods for creating, updating, and deleting stores can be added here
+  async getMyStores(user: User) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('user_not_authenticated');
+    } 
+
+    return this.prisma.store.findMany({ where: { ownerId: user.id } });
+  }
+
+  async getMyStoreById(user: User, storeId: string) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('user_not_authenticated');
+    }
+
+    return this.prisma.store.findFirst({
+      where: {
+        id: storeId,
+        ownerId: user.id,
+      },
+    });
+  }
+
   async createStore(data: Store) {
     return this.prisma.store.create({
       data: {
@@ -32,5 +50,18 @@ export class StoresService {
         ownerId: data.ownerId,
       },
     });
+  }
+
+  async updateStore(id: string, data: Partial<any>) {
+    // Exclude ownerId from update data
+    const { ownerId, ...updateData } = data;
+    return this.prisma.store.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async deleteStore(id: string) {
+    return this.prisma.store.delete({ where: { id } });
   }
 }
