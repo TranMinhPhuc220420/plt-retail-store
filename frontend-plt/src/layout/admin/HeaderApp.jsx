@@ -5,10 +5,6 @@ import clsx from 'clsx';
 // Hook components
 import useAuth from "@/hooks/useAuth";
 
-// Redux
-import { useDispatch, useSelector } from "react-redux";
-import { toggleSider } from '@/store/features/app';
-
 // Ant Design
 import { MenuUnfoldOutlined, MenuFoldOutlined, LoadingOutlined, BellOutlined } from '@ant-design/icons';
 import { Layout, Button, Dropdown, Badge } from 'antd';
@@ -18,11 +14,8 @@ const SiderApp = ({ isLoading }) => {
   // Hook components
   const { user, signOut } = useAuth();
 
-  // Redux
-  const dispatch = useDispatch();
-  const collapsed = useSelector((state) => state.app.collapsedSider);
-
   // State
+  const [collapsed, setCollapsed] = React.useState(false);
 
   // Classes - clsx
   const classes = {
@@ -32,8 +25,6 @@ const SiderApp = ({ isLoading }) => {
 
   // Handler
   const handleCollapse = () => {
-    // Dispatch action to collapse the sider
-    dispatch(toggleSider());
   };
   const handlerOnSelectMenuItem = () => {
     // Call signOut function from auth provider

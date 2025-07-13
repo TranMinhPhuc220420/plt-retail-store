@@ -3,8 +3,12 @@ import React from "react";
 import { Routes, Route, createBrowserRouter } from "react-router";
 
 // Layouts
+import LayoutOverview from "@/layout/overview";
 import LayoutAdmin from "@/layout/admin";
 import LayoutEmployee from "@/layout/employee";
+
+// Pages
+import StoreManagerPage from "@/pages/admin/store/manager";
 
 import DashboardPage from "@/pages/admin/DashboardPage";
 import RevenueManagerPage from "@/pages/admin/revenue/manager";
@@ -36,14 +40,6 @@ const router = createBrowserRouter([
         path: 'dashboard',
         element: <DashboardPage />,
       },
-      // {
-      //   path: 'bao-cao',
-      //   element: <ReportPage />,
-      // },
-      // {
-      //   path: 'doanh-thu',
-      //   element: <RevenueManagerPage />,
-      // },
       {
         path: 'quan-ly-san-pham',
         element: <ProductManagerPage />,
@@ -60,6 +56,18 @@ const router = createBrowserRouter([
             element: <ManagerEmployeePage />,
           },
         ],
+      },
+    ],
+  },
+
+  // Store management routes
+  {
+    path: '/overview',
+    element: <LayoutOverview />,
+    children: [
+      {
+        index: true,
+        element: <StoreManagerPage />,
       },
     ],
   },

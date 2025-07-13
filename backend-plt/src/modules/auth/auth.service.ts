@@ -67,15 +67,18 @@ export class AuthService {
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
+
+  async use(req: Request, res: Response, next: NextFunction) {
 
     console.log(`AuthMiddleware: ${req.method} ${req.url}`);
-    
     // Check if NODE_ENV is set to 'production'
-    if (process.env.NODE_ENV === 'development') {
-      req['user'] = USER_DEV; // Use the development user
-      return next();
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //   req['user'] = USER_DEV; // Use the development user
+    //   return next();
+    // }
 
     let userToken = '';
     const authHeader = req.headers['authorization'];
@@ -93,7 +96,22 @@ export class AuthMiddleware implements NestMiddleware {
 
     try {
       const decoded = jwt.verify(userToken, process.env.JWT_SECRET || '');
-      req['user'] = decoded;
+      const { sub, username, email } = decoded as { sub: string; username: string; email: string };
+
+      if (!sub || !username || !email) {
+        throw new UnauthorizedException('Invalid token payload');
+      }
+
+      // Attach user information to the request object
+      const userEntry = await this.prisma.user.findUnique({
+        where: { id: sub },
+      });
+
+      if (!userEntry) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      req['user'] = userEntry;
       next();
     } catch (err) {
       throw new UnauthorizedException('Invalid token');

@@ -16,18 +16,12 @@ import '@/locales'
 // Firebase
 import '@/firebase';
 
-// Redux
-import { store } from '@/store'
-import { Provider } from 'react-redux'
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Provider store={store}>
 
-      <FirebaseAuthProvider>
-        <RouterProvider router={router} />
-      </FirebaseAuthProvider>
+    <FirebaseAuthProvider>
+      <RouterProvider router={router} />
+    </FirebaseAuthProvider>
 
-    </Provider>
   </StrictMode>,
 )

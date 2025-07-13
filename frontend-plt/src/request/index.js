@@ -9,6 +9,14 @@ const apiClient = axios.create({
   },
 });
 
+const apiFormDataClient = axios.create({
+  baseURL: import.meta.env.VITE_VERCEL_SERVER_URL || 'http://localhost:5000/api',
+  withCredentials: true, // Include credentials for cross-origin requests
+  headers: {
+    'Content-Type': 'multipart/form-data',
+  },
+});
+
 // Interceptor to handle request errors
 apiClient.interceptors.response.use(
   response => response,
@@ -36,5 +44,9 @@ export const get = (url, params = {}) => {
 }
 
 export const post = (url, data, headers={}) => {
+  if (headers['Content-Type'] === 'multipart/form-data') {
+    return apiFormDataClient.post(url, data, { headers });
+  }
+
   return apiClient.post(url, data, { headers });
 }

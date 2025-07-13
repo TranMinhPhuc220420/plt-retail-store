@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useNavigate } from "react-router";
 
 // Redux
-import { useSelector, } from "react-redux";
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -22,10 +21,9 @@ const SiderApp = ({ isLoading }) => {
   const navigate = useNavigate();
   // i18n
   const { t } = useTranslation();
-  // Redux
-  const collapsed = useSelector((state) => state.app.collapsedSider);
 
   // State
+  const [collapsed, setCollapsed] = React.useState(false);
   const [keySelected, setKeySelected] = React.useState(false);
 
   // Classes - clsx

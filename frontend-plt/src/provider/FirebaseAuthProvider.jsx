@@ -91,6 +91,7 @@ function AuthProvider({ children }) {
 
           // Additional user data
           user['uid'] = user.uid;
+          user['sub'] = user_info.id;
           user['email'] = user.email;
           user['displayName'] = user.displayName || user_info.fullname || user.email.split('@')[0];
           user['isAdmin'] = (user_info.role === ADMIN_ROLE);
@@ -201,6 +202,7 @@ function AuthProvider({ children }) {
         method: "firebase",
         user: {
           id: _auth.uid,
+          sub: _auth.sub,
           email: _auth.email,
           avatar: _auth.photoURL,
           displayName: _auth.displayName,

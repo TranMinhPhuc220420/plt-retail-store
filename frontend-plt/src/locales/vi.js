@@ -67,6 +67,27 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_EMAIL_INVALID': 'Email không hợp lệ',
     'MSG_FULLNAME_IS_REQUIRED': 'Họ tên là bắt buộc',
 
+    // Store management
+    'TXT_STORE_LIST': 'Danh sách cửa hàng',
+    'TXT_ADD_NEW_STORE': 'Thêm cửa hàng mới',
+    'TXT_EDIT_STORE': 'Chỉnh sửa cửa hàng',
+    'TXT_STORE_NAME': 'Tên cửa hàng',
+    'TXT_STORE_PHONE': 'Số điện thoại cửa hàng',
+    'TXT_STORE_EMAIL': 'Email cửa hàng',
+    'TXT_STORE_DESCRIPTION': 'Mô tả cửa hàng',
+    'TXT_STORE_ADDRESS': 'Địa chỉ cửa hàng',
+    'TXT_STORE_CREATED_SUCCESS': 'Cửa hàng đã được tạo thành công',
+    'TXT_STORE_CREATION_FAILED': 'Tạo cửa hàng không thành công',
+    'TXT_STORE_UPDATED_SUCCESS': 'Cửa hàng đã được cập nhật thành công',
+    'TXT_STORE_UPDATE_FAILED': 'Cập nhật cửa hàng không thành công',
+    'TXT_STORE_DELETED': 'Cửa hàng đã được xóa thành công',
+    'TXT_STORE_NOT_FOUND': 'Cửa hàng không tồn tại',
+    'TXT_STORE_ID': 'Mã cửa hàng',
+    'TXT_STORE_OWNER': 'Chủ sở hữu cửa hàng',
+    'TXT_STORE_STATUS': 'Trạng thái cửa hàng',
+    'TXT_STORE_ACTIVE': 'Đang hoạt động',
+    'TXT_STORE_INACTIVE': 'Không hoạt động',
+
     // Employee management
     'TXT_EMPLOYEE_LIST': 'Danh sách nhân viên',
 

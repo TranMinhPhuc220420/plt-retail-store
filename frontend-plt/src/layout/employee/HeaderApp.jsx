@@ -11,10 +11,6 @@ import { useTranslation } from 'react-i18next';
 // Hook components
 import useAuth from "@/hooks/useAuth";
 
-// Redux
-import { useDispatch, useSelector } from "react-redux";
-import { toggleSider } from '@/store/features/app';
-
 // Ant Design
 import { ShoppingCartOutlined, UserOutlined, FileDoneOutlined, LoadingOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons';
 import { Layout, Button, Dropdown, Space, Menu } from 'antd';
@@ -29,9 +25,6 @@ const SiderApp = ({ isLoading }) => {
 
   // Hook components
   const { user, signOut } = useAuth();
-
-  // Redux
-  const dispatch = useDispatch();
 
   // State
   const [keySelected, setKeySelected] = useState('employee_dashboard');

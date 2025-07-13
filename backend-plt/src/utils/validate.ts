@@ -12,6 +12,8 @@ import { ADMIN_ROLE } from '@/config';
 /**                 Store                   */
 //////////////////////////////////////////////
 export function validateStoreData(store: Store, user: User): void {
+  console.log(user);
+  
   if (!user) {
     throw new UnauthorizedException('user_not_authenticated');
   }
