@@ -23,7 +23,6 @@ export class AuthController {
     }
 
     let userExist = await this.authService.getUserByUsername(userFirebase.email);
-
     if (!userExist) {
       // Register the user if they do not exist
       const user: User = {

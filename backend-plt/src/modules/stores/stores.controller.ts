@@ -1,7 +1,12 @@
-import { BadRequestException, Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Inject, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Express } from 'express';
 
+// Cache
+import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+
 // Services
+import { CacheService } from '@/modules/cache/cache.service';
 import { StoresService } from '@/modules/stores/stores.service';
 import { StoreFileInterceptor } from '@/modules/upload/upload.service';
 // Middleware
@@ -12,10 +17,15 @@ import { validateStoreData, validateStoreDelete, validateStoreUpdateData } from 
 import { Store, User } from '@/interfaces';
 // Constants
 import { ADMINISTRATOR_LIST, STORE_URL_TEMP } from '@/config';
+import { generateCacheKey } from '@/utils';
+import { TIMEOUT_CACHE } from '@/config/cache.config';
 
 @Controller('stores')
 export class StoresController {
-  constructor(private readonly stores_service: StoresService) {}
+  constructor(
+    private readonly stores_service: StoresService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
   
   //////////////////////////////////////////////////
   /** Controller methods for store administration */
@@ -116,10 +126,25 @@ export class StoresController {
    * @returns A promise resolving to the list of stores owned by the user.
    */
   @UseGuards(AuthMiddleware)
+  @UseInterceptors(CacheInterceptor)
   @Get('my-stores')
   async getMyStores(@Req() req) {
     const user = req.user as User;
-    return this.stores_service.getMyStores(user);
+
+    // Check memory cache for stores
+    const cacheKey = generateCacheKey('my_stores', user.id);
+    const cachedStores = await this.cacheManager.get(cacheKey);
+    console.log(`Cache hit for user ${cacheKey}:${cachedStores}`);
+    if (cachedStores) {
+      return cachedStores;
+    }
+
+    // If not cached, fetch from the service
+    const stores = await this.stores_service.getMyStores(user);
+
+    await this.cacheManager.set(cacheKey, stores, TIMEOUT_CACHE);
+
+    return stores;
   }
 
   /**

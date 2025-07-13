@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { CacheModule } from '@nestjs/cache-manager';
 
 import { PrismaService } from '@/database/prisma.service';
 import { AuthService } from '@/modules/auth/auth.service';
@@ -9,6 +10,7 @@ import { JwtStrategy } from '@/modules/auth/strategies/jwt.strategy';
 
 @Module({
   imports: [
+    CacheModule.register(),
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secretKey',

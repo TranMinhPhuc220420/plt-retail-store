@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AuthMiddleware } from '@/modules/auth/auth.service';
 
 // Controllers
@@ -9,6 +10,7 @@ import { UploadService, StoreFileInterceptor } from '../upload/upload.service';
 import { PrismaService } from '@/database/prisma.service';
 
 @Module({
+  imports: [CacheModule.register()],
   controllers: [StoresController],
   providers: [StoresService, UploadService, StoreFileInterceptor, PrismaService],
 })

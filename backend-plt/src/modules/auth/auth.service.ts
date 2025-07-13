@@ -1,12 +1,22 @@
-import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+
+// Cache
+import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+
 import * as jwt from 'jsonwebtoken';
 
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/database/prisma.service';
 
+// Utils
+import { generateCacheKey } from '@/utils';
+// Interfaces
 import { User } from '@/interfaces'; // Assuming you have a User interface defined
+// Constants
 import { USER_DEV } from '@/config';
+import { TIMEOUT_CACHE } from '@/config/cache.config';
 
 @Injectable()
 export class AuthService {
@@ -69,11 +79,12 @@ export class AuthService {
 export class AuthMiddleware implements NestMiddleware {
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
 
-    console.log(`AuthMiddleware: ${req.method} ${req.url}`);
+    // console.log(`AuthMiddleware: ${req.method} ${req.url}`);
     // Check if NODE_ENV is set to 'production'
     // if (process.env.NODE_ENV === 'development') {
     //   req['user'] = USER_DEV; // Use the development user
@@ -102,6 +113,14 @@ export class AuthMiddleware implements NestMiddleware {
         throw new UnauthorizedException('Invalid token payload');
       }
 
+      const cacheKey = generateCacheKey('user', sub);
+      const cachedUser = await this.cacheManager.get(cacheKey);
+      if (cachedUser) {
+        console.log(`Cache hit for user ${cacheKey}`);
+        req['user'] = cachedUser;
+        return next();
+      }
+
       // Attach user information to the request object
       const userEntry = await this.prisma.user.findUnique({
         where: { id: sub },
@@ -112,6 +131,11 @@ export class AuthMiddleware implements NestMiddleware {
       }
 
       req['user'] = userEntry;
+
+      // Store user in cache for 1 hour
+      await this.cacheManager.set(cacheKey, userEntry, TIMEOUT_CACHE); // 1 hour
+      console.log(`User ${sub} cached with key ${cacheKey}`);
+
       next();
     } catch (err) {
       throw new UnauthorizedException('Invalid token');
