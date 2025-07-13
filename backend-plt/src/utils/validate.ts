@@ -2,8 +2,8 @@ import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 
 import { isValidEmail } from '@/utils';
 
-// Interface for store data validation
-import { User, Store, ProductType, Product } from '@/interfaces';
+// Interface for validation
+import { User, Store, ProductType, Product, Employee, StoreManager, Customer } from '@/interfaces';
 
 // Constants
 import { ADMIN_ROLE } from '@/config';
@@ -312,5 +312,200 @@ export function validateProductDelete(productId: string, user: User): void {
 
   if (!productId || productId.trim() === '') {
     throw new BadRequestException('product_id_is_required');
+  }
+}
+
+//////////////////////////////////////////////
+/**                 Employee                   */
+//////////////////////////////////////////////
+export function validateEmployeeData(employee: Employee, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!employee) {
+    throw new BadRequestException('employee_data_is_required');
+  }
+  if (!employee.userId || employee.userId.trim() === '') {
+    throw new BadRequestException('employee_user_id_is_required');
+  }
+  if (!employee.storeId || employee.storeId.trim() === '') {
+    throw new BadRequestException('employee_store_id_is_required');
+  }
+  if (!employee.position || employee.position.trim() === '') {
+    throw new BadRequestException('employee_position_is_required');
+  }
+}
+
+export function validateEmployeeUpdateData(employee: Employee, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!employee) {
+    throw new BadRequestException('employee_data_is_required');
+  }
+  if (employee.userId && employee.userId.trim() === '') {
+    throw new BadRequestException('employee_user_id_is_required');
+  }
+  if (employee.storeId && employee.storeId.trim() === '') {
+    throw new BadRequestException('employee_store_id_is_required');
+  }
+  if (employee.position && employee.position.trim() === '') {
+    throw new BadRequestException('employee_position_is_required');
+  }
+}
+
+export function validateEmployeeDelete(employeeId: string, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!employeeId || employeeId.trim() === '') {
+    throw new BadRequestException('employee_id_is_required');
+  }
+}
+
+//////////////////////////////////////////////
+/**                 StoreManager                   */
+//////////////////////////////////////////////
+export function validateStoreManagerData(storeManager: StoreManager, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!storeManager) {
+    throw new BadRequestException('store_manager_data_is_required');
+  }
+  if (!storeManager.userId || storeManager.userId.trim() === '') {
+    throw new BadRequestException('store_manager_user_id_is_required');
+  }
+  if (!storeManager.storeId || storeManager.storeId.trim() === '') {
+    throw new BadRequestException('store_manager_store_id_is_required');
+  }
+}
+
+export function validateStoreManagerUpdateData(storeManager: StoreManager, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!storeManager) {
+    throw new BadRequestException('store_manager_data_is_required');
+  }
+  if (storeManager.userId && storeManager.userId.trim() === '') {
+    throw new BadRequestException('store_manager_user_id_is_required');
+  }
+  if (storeManager.storeId && storeManager.storeId.trim() === '') {
+    throw new BadRequestException('store_manager_store_id_is_required');
+  }
+}
+
+export function validateStoreManagerDelete(storeManagerId: string, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!storeManagerId || storeManagerId.trim() === '') {
+    throw new BadRequestException('store_manager_id_is_required');
+  }
+}
+
+//////////////////////////////////////////////
+/**                 Customer                   */
+//////////////////////////////////////////////
+export function validateCustomerData(customer: Customer, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!customer) {
+    throw new BadRequestException('customer_data_is_required');
+  }
+  if (!customer.userId || customer.userId.trim() === '') {
+    throw new BadRequestException('customer_user_id_is_required');
+  }
+  if (!customer.storeId || customer.storeId.trim() === '') {
+    throw new BadRequestException('customer_store_id_is_required');
+  }
+}
+
+export function validateCustomerUpdateData(customer: Customer, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!customer) {
+    throw new BadRequestException('customer_data_is_required');
+  }
+  if (customer.userId && customer.userId.trim() === '') {
+    throw new BadRequestException('customer_user_id_is_required');
+  }
+  if (customer.storeId && customer.storeId.trim() === '') {
+    throw new BadRequestException('customer_store_id_is_required');
+  }
+}
+
+export function validateCustomerDelete(customerId: string, user: User): void {
+  if (!user) {
+    throw new UnauthorizedException('user_not_authenticated');
+  }
+  if (!user.id) {
+    throw new UnauthorizedException('user_id_is_required');
+  }
+  if (!user.role || user.role !== ADMIN_ROLE) {
+    throw new UnauthorizedException('user_not_authorized');
+  }
+
+  if (!customerId || customerId.trim() === '') {
+    throw new BadRequestException('customer_id_is_required');
   }
 }
