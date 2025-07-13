@@ -7,10 +7,10 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { StoresModule } from './modules/stores/stores.module';
 import { StoresService } from '@/modules/stores/stores.service';
 import { ProductTypeModule } from '@/modules/productTypes/product-type.module';
-import { ProductModule } from '@/modules/products/product.module';
+import { ProductsModule } from '@/modules/products/products.module';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, StoresModule, ProductTypeModule, ProductModule],
+  imports: [DatabaseModule, AuthModule, StoresModule, ProductTypeModule, ProductsModule],
   controllers: [AppController],
   providers: [AppService, StoresService],
 })
