@@ -17,20 +17,27 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // Create a default user
-  const user = await prisma.user.upsert({
+  // Check user existence and create if not exists
+  const existingUser = await prisma.user.findUnique({
     where: { id: USER_DEV.id },
-    update: {},
-    create: {
-      id: USER_DEV.id,
-      email: USER_DEV.email,
-      role: USER_DEV.role as any, // Cast to 'any' or 'UserRole' if imported
-      fullname: USER_DEV.fullname,
-      avatar: USER_DEV.avatar,
-      username: USER_DEV.username,
-      isActive: USER_DEV.isActive,
-    },
   });
+
+  if (!existingUser) {
+    // Create a default user
+    const user = await prisma.user.upsert({
+      where: { id: USER_DEV.id },
+      update: {},
+      create: {
+        id: USER_DEV.id,
+        email: USER_DEV.email,
+        role: USER_DEV.role as any, // Cast to 'any' or 'UserRole' if imported
+        fullname: USER_DEV.fullname,
+        avatar: USER_DEV.avatar,
+        username: USER_DEV.username,
+        isActive: USER_DEV.isActive,
+      },
+    });
+  }
 
   console.log('✅ Seed completed successfully!');
 }

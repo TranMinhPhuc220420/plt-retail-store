@@ -52,6 +52,9 @@ interface ProductType {
   createdAt: Date; // Timestamp of when the product type was created
   updatedAt: Date; // Timestamp of when the product type was last updated
 
+  ownerId: string; // Reference to the user who owns the store
+
+  owner?: User; // Optional reference to the owner user object
   products?: Product[]; // Optional array of products associated with this product type
 }
 
@@ -65,9 +68,11 @@ interface Product {
   createdAt: Date; // Timestamp of when the product was created
   updatedAt: Date; // Timestamp of when the product was last updated
   
+  ownerId: string; // Reference to the user who owns the store
   storeId: string; // Reference to the store where the product is available
   store?: Store; // Optional reference to the store object
 
+  owner?: User; // Optional reference to the owner user object
   categories?: ProductType[]; // Optional array of product types/categories associated with this product
 }
 

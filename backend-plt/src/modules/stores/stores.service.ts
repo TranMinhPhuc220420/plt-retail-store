@@ -17,27 +17,6 @@ export class StoresService {
     return this.prisma.store.findUnique({ where: { id } });
   }
 
-  async getMyStores(user: User) {
-    if (!user || !user.id) {
-      throw new UnauthorizedException('user_not_authenticated');
-    } 
-
-    return this.prisma.store.findMany({ where: { ownerId: user.id } });
-  }
-
-  async getMyStoreById(user: User, storeId: string) {
-    if (!user || !user.id) {
-      throw new UnauthorizedException('user_not_authenticated');
-    }
-
-    return this.prisma.store.findFirst({
-      where: {
-        id: storeId,
-        ownerId: user.id,
-      },
-    });
-  }
-
   async createStore(data: Store) {
     return this.prisma.store.create({
       data: {
@@ -63,5 +42,26 @@ export class StoresService {
 
   async deleteStore(id: string) {
     return this.prisma.store.delete({ where: { id } });
+  }
+
+  async getMyStores(user: User) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('user_not_authenticated');
+    } 
+
+    return this.prisma.store.findMany({ where: { ownerId: user.id } });
+  }
+
+  async getMyStoreById(user: User, storeId: string) {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('user_not_authenticated');
+    }
+
+    return this.prisma.store.findFirst({
+      where: {
+        id: storeId,
+        ownerId: user.id,
+      },
+    });
   }
 }
