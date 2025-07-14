@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 @import "tailwindcss";
 
 body {
@@ -8,4 +9,12 @@ body {
 /* antd custom */
 .ant-form-item {
   margin-bottom: 0;
+}
+
+.app-name {
+  font-family: "Bebas Neue", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: rgb(29, 29, 29);
+  font-size: 1.5rem;
 }

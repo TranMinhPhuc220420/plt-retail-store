@@ -1,5 +1,6 @@
 const VIETNAMESE_TRANSLATIONS = {
   translation: {
+    'TXT_COMPANY_NAME': 'PLT Solutions',
     'TXT_APP_NAME': 'PLT Retail Store',
     'TXT_APP_DESCRIPTION': 'Ứng dụng quản lý cửa hàng bán lẻ',
 

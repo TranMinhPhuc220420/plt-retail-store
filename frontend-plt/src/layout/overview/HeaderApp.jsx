@@ -52,7 +52,10 @@ const HeaderApp = ({ isLoading }) => {
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
       <div className='flex items-center justify-between h-full'>
 
-        <div></div>
+        <div className='flex items-center cursor-pointer' onClick={() => navigate('/overview')}>
+          <img src="/favicon.ico" className='h-10' alt="Logo" />
+          <span className='app-name text-lg font-bold ml-2'>{t('TXT_COMPANY_NAME')}</span>
+        </div>
 
         <div>
           {!isLoading ?

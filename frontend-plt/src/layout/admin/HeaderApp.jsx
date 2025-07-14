@@ -1,4 +1,5 @@
-import React, { } from 'react';
+import React, { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router';
 
 import clsx from 'clsx';
 
@@ -10,17 +11,52 @@ import { MenuUnfoldOutlined, MenuFoldOutlined, LoadingOutlined, BellOutlined } f
 import { Layout, Button, Dropdown, Badge } from 'antd';
 const { Header } = Layout;
 
-const SiderApp = ({ isLoading }) => {
+// Zustand store
+import useStoreStore from '@/store/store';
+
+// Request
+import { getMyStores } from '@/request/store';
+import { BASE_URL } from '@/constant';
+
+const HeaderApp = ({ isLoading }) => {
+  const navigate = useNavigate();
+  const params = useParams();
+  const storeCode = params.storeCode;
+  
   // Hook components
   const { user, signOut } = useAuth();
 
+  // Zustand store
+  const { stores, setStores } = useStoreStore();
+
   // State
   const [collapsed, setCollapsed] = React.useState(false);
+  const [storeActive, setStoreActive] = React.useState(null);
 
   // Classes - clsx
   const classes = {
     collapsedBtn: clsx('border-none', {
     }),
+  };
+
+  const loadStores = async () => {
+    try {
+      const stores = await getMyStores();
+      setStores(stores);
+
+      if (storeCode) {
+        const activeStore = stores.find(store => store.storeCode === storeCode);
+        if (activeStore) {
+          setStoreActive(activeStore);
+        } else {
+          console.error('Store not found:', storeCode);
+        }
+      }
+
+    } catch (error) {
+      console.error('Failed to load stores:', error);
+      message.error('Failed to load stores');
+    }
   };
 
   // Handler
@@ -29,6 +65,10 @@ const SiderApp = ({ isLoading }) => {
   const handlerOnSelectMenuItem = () => {
     // Call signOut function from auth provider
     signOut();
+  };
+  const handleSelectStore = (store) => {
+    setStoreActive(store);
+    navigate(`/store/${store.storeCode}/admin`);
   };
 
   // Constants
@@ -39,7 +79,6 @@ const SiderApp = ({ isLoading }) => {
       onClick: handlerOnSelectMenuItem,
     },
   ];
-
   const data_notification_example = [
     {
       id: 1,
@@ -67,16 +106,40 @@ const SiderApp = ({ isLoading }) => {
     },
   ]
 
+  useEffect(() => {
+    loadStores();
+  }, []);
+
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
       <div className='flex items-center justify-between h-full'>
 
-        {/* Button collapse sider app */}
-        <Button type='text'
-          className={classes.collapsedBtn}
-          onClick={handleCollapse}
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        />
+        <div className='flex items-center justify-end gap-3'>
+          <Dropdown
+            menu={{
+              items: stores.map(store => ({
+                key: store.code,
+                label: (
+                  <div className='flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-2 py-1'>
+                    <img src={BASE_URL+store.imageUrl} className='h-full rounded-full' style={{ width: 18, height: 18 }} />
+                    {store.name}
+                  </div>
+                ),
+                onClick: () => handleSelectStore(store),
+              })),
+            }}
+            trigger={['click']}
+          >
+            <div className='h-10 flex items-center justify-start cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 px-2'>
+              {storeActive && (
+                <img src={BASE_URL+storeActive.imageUrl} alt="Store Logo" className='h-full rounded-full' style={{ width: 25, height: 25 }} />
+              )}
+              <div className='h-full ml-2 flex items-center justify-center'>
+                {storeActive ? storeActive.name : 'Chọn cửa hàng'}
+              </div>
+            </div>
+          </Dropdown>
+        </div>
 
         <div className='flex items-center justify-end gap-3'>
           
@@ -123,4 +186,4 @@ const SiderApp = ({ isLoading }) => {
 };
 
 
-export default SiderApp;
+export default HeaderApp;
