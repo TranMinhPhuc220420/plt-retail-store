@@ -133,6 +133,7 @@ interface ShiftHandover {
 
 interface Store {
   id: string; // Unique identifier for the store
+  storeCode: string; // Unique identifier for the store (can be used for external references)
   name: string; // Name of the store
   address: string; // Address of the store
   phone: string; // Phone number of the store

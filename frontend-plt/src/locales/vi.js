@@ -72,6 +72,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_ADD_NEW_STORE': 'Thêm cửa hàng mới',
     'TXT_EDIT_STORE': 'Chỉnh sửa cửa hàng',
     'TXT_STORE_NAME': 'Tên cửa hàng',
+    'TXT_STORE_CODE': 'Mã cửa hàng',
     'TXT_STORE_PHONE': 'Số điện thoại cửa hàng',
     'TXT_STORE_EMAIL': 'Email cửa hàng',
     'TXT_STORE_DESCRIPTION': 'Mô tả cửa hàng',
@@ -87,6 +88,13 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_STORE_STATUS': 'Trạng thái cửa hàng',
     'TXT_STORE_ACTIVE': 'Đang hoạt động',
     'TXT_STORE_INACTIVE': 'Không hoạt động',
+    'MSG_STORE_CODE_REQUIRED': 'Mã cửa hàng là bắt buộc',
+    'MSG_STORE_CODE_INVALID_FORMAT': 'Mã cửa hàng không hợp lệ, chỉ chứa chữ cái, số và dấu gạch dưới',
+    'MSG_STORE_CODE_LENGTH': 'Mã cửa hàng phải có độ dài từ 3 đến 20 ký tự',
+    'MSG_STORE_CODE_RESERVED': 'Mã cửa hàng không được là "admin" hoặc "root"',
+    'MSG_STORE_CODE_INVALID': 'Mã cửa hàng không hợp lệ',
+    'MSG_STORE_CODE_EXISTS': 'Mã cửa hàng đã tồn tại',
+    'MSG_STORE_CODE_VALIDATION_FAILED': 'Kiểm tra mã cửa hàng không thành công',
 
     // Employee management
     'TXT_EMPLOYEE_LIST': 'Danh sách nhân viên',
@@ -137,6 +145,16 @@ const VIETNAMESE_TRANSLATIONS = {
     'invalid_email_format': 'Định dạng email không hợp lệ',
     'avatar_required': 'Ảnh đại diện là bắt buộc',
     'fullname_too_short': 'Họ tên quá ngắn, phải có ít nhất 3 ký tự',
+    // Store code validation messages
+    'store_avatar_is_required': 'Ảnh đại diện cửa hàng là bắt buộc',
+    'store_code_is_required': 'Mã cửa hàng là bắt buộc',
+    'store_code_length_invalid': 'Mã cửa hàng phải có độ dài từ 3 đến 20 ký tự',
+    'store_code_invalid_characters': 'Mã cửa hàng không hợp lệ, chỉ chứa chữ cái, số và dấu gạch dưới',
+    'store_code_not_allowed_to_create': 'Mã cửa hàng không được phép tạo',
+    'store_code_already_exists': 'Mã cửa hàng đã tồn tại, vui lòng chọn mã khác',
+    'store_phone_already_exists': 'Số điện thoại cửa hàng đã tồn tại',
+    'store_email_already_exists': 'Email cửa hàng đã tồn tại',
+    'store_already_exists': 'Cửa hàng đã tồn tại',
   }
 };
 

@@ -1,4 +1,5 @@
 import { get, post } from "@/request";
+import { storeCodeIsValid } from "@/utils";
 
 // Fetch all stores
 export const getAllStores = async () => {
@@ -52,8 +53,8 @@ export const createMyStore = async (storeData) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Failed to create my store:', error);
-    throw error;
+    let message = error.response?.data?.message;
+    throw message || 'TXT_STORE_CREATION_FAILED';
   }
 };
 
@@ -76,8 +77,8 @@ export const updateMyStore = async (id, storeData) => {
     });
     return response.data;
   } catch (error) {
-    console.error(`Failed to update my store with ID ${id}:`, error);
-    throw error;
+    let message = error.response?.data?.message;
+    throw message || 'TXT_STORE_UPDATE_FAILED';
   }
 };
 
@@ -91,3 +92,16 @@ export const deleteMyStore = async (id) => {
     throw error;
   }
 };
+
+export const validateStoreCode = async (storeCode) => {
+  try {
+    
+    await storeCodeIsValid(storeCode);
+
+    const response = await post('/stores/validate-store-code', { storeCode });
+    return response.data;
+  } catch (error) {
+    let message = error.response?.data?.message;
+    throw message || 'MSG_STORE_CODE_INVALID';
+  }
+}

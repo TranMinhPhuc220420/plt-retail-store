@@ -1,14 +1,15 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
+// Controllers
 import { ProductTypeController } from './product-type.controller';
+// Services
+import { CacheService } from '@/modules/cache/cache.service';
 import { ProductTypeService } from './product-type.service';
 import { PrismaService } from '@/database/prisma.service';
 import { AuthMiddleware } from '@/modules/auth/auth.service';
 
 @Module({
-  imports: [CacheModule.register()],
   controllers: [ProductTypeController],
-  providers: [ProductTypeService, PrismaService],
+  providers: [CacheService, ProductTypeService, PrismaService],
   exports: [ProductTypeService],
 })
 export class ProductTypeModule implements NestModule {

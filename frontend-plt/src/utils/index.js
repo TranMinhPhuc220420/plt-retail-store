@@ -74,3 +74,21 @@ export const bubbleSort = (arr) => {
   console.log(arr);
   return arr;
 };
+
+export const storeCodeIsValid = (storeCode) => {
+  return new Promise((resolve, reject) => {
+    if (!storeCode || storeCode.trim() === '') {
+      reject('MSG_STORE_CODE_REQUIRED');
+    } else if (!/^[a-zA-Z0-9_-]+$/.test(storeCode)) {
+      reject('MSG_STORE_CODE_INVALID_FORMAT');
+    } else if (storeCode.length < 3 || storeCode.length > 20) {
+      reject('MSG_STORE_CODE_LENGTH');
+    } else if (storeCode === 'admin' || storeCode === 'root') {
+      reject('MSG_STORE_CODE_RESERVED');
+    } else if (storeCode === 'undefined' || storeCode === 'null') {
+      reject('MSG_STORE_CODE_INVALID');
+    } else {
+      resolve(true);
+    }
+  });
+}

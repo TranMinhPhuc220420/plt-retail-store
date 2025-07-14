@@ -31,9 +31,21 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
 
+  // Store management routes
+  {
+    path: '/overview',
+    element: <LayoutOverview />,
+    children: [
+      {
+        index: true,
+        element: <StoreManagerPage />,
+      },
+    ],
+  },
+
   // Admin routes
   {
-    path: '/admin',
+    path: '/store/:storeCode/admin',
     element: <LayoutAdmin />,
     children: [
       {
@@ -60,21 +72,9 @@ const router = createBrowserRouter([
     ],
   },
 
-  // Store management routes
-  {
-    path: '/overview',
-    element: <LayoutOverview />,
-    children: [
-      {
-        index: true,
-        element: <StoreManagerPage />,
-      },
-    ],
-  },
-
   // Client routes
   {
-    path: '/',
+    path: '/store/:storeCode',
     element: <LayoutEmployee />,
     children: [
       {

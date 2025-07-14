@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useRef, useEffect, useReducer } from "react";
 
 import AuthContext from "@/provider/FirebaseAuthContext";
 
@@ -8,7 +8,7 @@ import {
   GoogleAuthProvider, onAuthStateChanged, getAuth, signOut, signInWithPopup,
   createUserWithEmailAndPassword, signInWithEmailAndPassword
 } from "firebase/auth";
-import { addUserEntry, getUserEntryByEmail, getUserEntryById } from "@/database";
+import { addUserEntry, getUserEntryById } from "@/database";
 
 const INITIALIZE = "INITIALIZE";
 const IS_CHECKING = "IS_CHECKING";
@@ -60,9 +60,14 @@ const reducer = (state, action) => {
 };
 
 function AuthProvider({ children }) {
+  const initialized = useRef(false);
+
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
+    // Check if user is initialized
+    if (initialized.current) return;
+    initialized.current = true;
     
     // Listen for authentication state changes
     onAuthStateChanged(auth, async (user) => {
@@ -108,7 +113,7 @@ function AuthProvider({ children }) {
           if (isLoginPage) {
             // Redirect to dashboard if not on login page
             if (role === ADMIN_ROLE) {
-              window.location.replace(redirectTo || "/admin/dashboard");
+              window.location.replace(redirectTo || "/overview");
             }
             if (role === USER_ROLE) {
               window.location.replace((!isRedirectToAdmin && redirectTo) ? redirectTo : "/");

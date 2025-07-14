@@ -38,6 +38,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
     if (storeData) {
       form.setFieldsValue({
         name: storeData.name,
+        storeCode: storeData.storeCode,
         address: storeData.address,
         phone: storeData.phone,
         email: storeData.email,
@@ -58,14 +59,22 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       values.file = imageFile;
     }
 
-    // Update store in database
-    let isSuccess = await updateMyStore(values.id, values);
+    try {
+      // Update store in database
+      await updateMyStore(values.id, values);
 
-    if (isSuccess) {
-      // message.success(t('MSG_STORE_UPDATED_SUCCESS'));
+      form.resetFields();
+      setImageUrl("public/background-page-login.png");
+      setImageFile(null);
+      message.success(t('TXT_STORE_UPDATED_SUCCESS'));
+
       onOK();
-    } else {
-      // message.error(t('MSG_STORE_UPDATED_FAIL'));
+    } catch (error) {
+      let messageError = t(error);
+      if (!messageError || messageError === error) {
+        messageError = t('TXT_STORE_UPDATE_FAILED');
+      }
+      message.error(messageError);
       onFail();
     }
 
@@ -126,11 +135,13 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
           </Form.Item>
 
           <Form.Item
-            name="address"
-            label={t('TXT_STORE_ADDRESS')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED')}]}
+            name="storeCode"
+            label={t('TXT_STORE_CODE')}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+            ]}
           >
-            <Input />
+            <Input readOnly disabled />
           </Form.Item>
 
           <Form.Item
@@ -153,7 +164,15 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
           </Form.Item>
         </div>
 
-        <div className="px-4 bg-white mb-4">
+        <div className="grid gap-4 px-4 bg-white mb-4">
+          <Form.Item
+            name="address"
+            label={t('TXT_STORE_ADDRESS')}
+            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED')}]}
+          >
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="description"
             label={t('TXT_STORE_DESCRIPTION')}

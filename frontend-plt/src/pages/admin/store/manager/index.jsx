@@ -26,6 +26,7 @@ import styles from "./index.module.scss";
 // Components
 import CreateStoreForm from "@/components/form/CreateStore";
 import EditStoreForm from "@/components/form/EditStore";
+import { Link } from "react-router";
 
 const StoreManagerPage = () => {
   // Translation
@@ -56,28 +57,15 @@ const StoreManagerPage = () => {
     setLoadingData(false);
   };
 
-  const eventWindowResize = () => {
-    // Set the height of the table
-    const handleResize = () => {
-      setHeight(window.innerHeight - 300);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  };
-
   // Handlers
   const handleCreateOk = () => {
     setShowModalCreate(false);
-    messageApi.success(t('TXT_STORE_ADDED'));
     fetchData();
   };
   const handleCancelCreate = () => {
     setShowModalCreate(false);
   };
   const handlerCreateOnFail = () => {
-    messageApi.error(t('TXT_STORE_CREATION_FAILED'));
   };
 
   const handlerClickEdit = (store) => {
@@ -90,11 +78,9 @@ const StoreManagerPage = () => {
   };
   const handleEditOk = () => {
     setShowModalEdit(false);
-    messageApi.success(t('TXT_STORE_UPDATED_SUCCESS'));
     fetchData();
   };
   const handlerEditOnFail = () => {
-    messageApi.error(t('TXT_STORE_UPDATE_FAILED'));
   };
 
   // Effect
@@ -127,28 +113,30 @@ const StoreManagerPage = () => {
             {/* Store Cards */}
             {stores.map((store) => (
               <div key={store.id} className="mb-10">
-                <div className="relative p-4 border bg-white border-gray-200 h-50 rounded-2xl shadow text-center">
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <img
-                      className="h-15 w-15 object-cover rounded-lg mb-4"
-                      src={`${BASE_URL}${store.imageUrl}`}
-                      alt={store.name}
-                    />
-                    <h3 className="text-lg font-semibold">{store.name}</h3>
-                    <p className="line-clamp-2 min-h-[2.5em] overflow-hidden text-ellipsis">
-                      {store.address}
-                    </p>
+                  <div className="relative p-4 border bg-white border-gray-200 h-50 rounded-2xl shadow text-center hover:bg-gray-100 transition duration-300 ease-in-out">
+                    <Link to={`/store/${store.storeCode}/admin`} className="no-underline">
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <img
+                          className="h-15 w-15 object-cover rounded-lg mb-4"
+                          src={`${BASE_URL}${store.imageUrl}`}
+                          alt={store.name}
+                        />
+                        <h3 className="text-lg font-semibold text-gray-800">{store.name}</h3>
+                        <p className="line-clamp-2 text-gray-700 min-h-[2.5em] overflow-hidden text-ellipsis">
+                          {store.address}
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="absolute -top-2.5 -right-2.5"></div>
+                    <div className="absolute top-[-10px] right-[-10px]">
+                      <Button
+                        type="primary"
+                        shape="circle"
+                        icon={<EditOutlined />}
+                        onClick={() => handlerClickEdit(store)}
+                      />
+                    </div>
                   </div>
-                  <div className="absolute -top-2.5 -right-2.5"></div>
-                  <div className="absolute top-[-10px] right-[-10px]">
-                    <Button
-                      type="primary"
-                      shape="circle"
-                      icon={<EditOutlined />}
-                      onClick={() => handlerClickEdit(store)}
-                    />
-                  </div>
-                </div>
               </div>
             ))}
           </div>

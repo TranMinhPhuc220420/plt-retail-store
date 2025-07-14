@@ -6,14 +6,26 @@ import { isValidEmail } from '@/utils';
 import { User, Store, ProductType, Product, Employee, StoreManager, Customer } from '@/interfaces';
 
 // Constants
-import { ADMIN_ROLE } from '@/config';
+import { ADMIN_ROLE, STORE_CODE_NOT_ALLOWED_TO_CREATE } from '@/config';
 
 //////////////////////////////////////////////
 /**                 Store                   */
 //////////////////////////////////////////////
+export function validateStoreCode(storeCode: string): void {
+  if (!storeCode || storeCode.trim() === '') {
+    throw new BadRequestException('store_code_is_required');
+  }
+  if (storeCode.length < 3 || storeCode.length > 20) {
+    throw new BadRequestException('store_code_length_invalid');
+  }
+  if (!/^[a-zA-Z0-9_-]+$/.test(storeCode)) {
+    throw new BadRequestException('store_code_invalid_characters');
+  }
+  if (STORE_CODE_NOT_ALLOWED_TO_CREATE.includes(storeCode.toLowerCase())) {
+    throw new BadRequestException('store_code_not_allowed_to_create');
+  }
+}
 export function validateStoreData(store: Store, user: User): void {
-  console.log(user);
-  
   if (!user) {
     throw new UnauthorizedException('user_not_authenticated');
   }
@@ -27,6 +39,9 @@ export function validateStoreData(store: Store, user: User): void {
   if (!store) {
     throw new BadRequestException('store_data_is_required');
   }
+
+  validateStoreCode(store.storeCode);
+
   if (!store.name || store.name.trim() === '') {
     throw new BadRequestException('store_name_is_required');
   }
@@ -48,7 +63,7 @@ export function validateStoreData(store: Store, user: User): void {
   }
 
   if (!store.imageUrl || store.imageUrl.trim() === '') {
-    throw new BadRequestException('store_image_url_is_required');
+    throw new BadRequestException('store_avatar_is_required');
   }
   
   if (!store.ownerId || store.ownerId !== user.id) {
@@ -68,6 +83,10 @@ export function validateStoreUpdateData(store: Store, user: User): void {
 
   if (!store) {
     throw new BadRequestException('store_data_is_required');
+  }
+
+  if (store.storeCode && store.storeCode.trim() === '') {
+    throw new BadRequestException('store_code_is_required');
   }
 
   if (store.name && store.name.trim() === '') {
@@ -91,7 +110,7 @@ export function validateStoreUpdateData(store: Store, user: User): void {
   }
 
   if (store.imageUrl && store.imageUrl.trim() === '') {
-    throw new BadRequestException('store_image_url_is_required');
+    throw new BadRequestException('store_avatar_is_required');
   }
 }
 export function validateStoreDelete(storeId: string, user: User): void {

@@ -2,10 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from './products.service';
 import { PrismaService } from '@/database/prisma.service';
 import { UnauthorizedException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 describe('ProductsService', () => {
   let service: ProductsService;
   let prisma: PrismaService;
+  let cacheManager: any;
 
   const mockPrisma = {
     product: {
@@ -18,16 +20,24 @@ describe('ProductsService', () => {
     },
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: CACHE_MANAGER, useValue: mockCacheManager },
       ],
     }).compile();
 
     service = module.get<ProductsService>(ProductsService);
     prisma = module.get<PrismaService>(PrismaService);
+    cacheManager = module.get(CACHE_MANAGER);
 
     jest.clearAllMocks();
   });
@@ -37,8 +47,18 @@ describe('ProductsService', () => {
   });
 
   describe('getAllProducts', () => {
-    it('should return all products with relations', async () => {
+    it('should return cached products if available', async () => {
+      const cachedProducts = [{ id: '1', name: 'Cached Product' }];
+      cacheManager.get.mockResolvedValue(cachedProducts);
+      
+      expect(await service.getAllProducts()).toEqual(cachedProducts);
+      expect(cacheManager.get).toHaveBeenCalledWith('products:all');
+      expect(prisma.product.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should return all products with relations and cache them', async () => {
       const products = [{ id: '1', name: 'Product A', ownerId: 'u1' }];
+      cacheManager.get.mockResolvedValue(null);
       (prisma.product.findMany as jest.Mock).mockResolvedValue(products);
       
       expect(await service.getAllProducts()).toEqual(products);
@@ -49,6 +69,7 @@ describe('ProductsService', () => {
           categories: true,
         },
       });
+      expect(cacheManager.set).toHaveBeenCalledWith('products:all', products, 300000);
     });
   });
 
@@ -116,7 +137,7 @@ describe('ProductsService', () => {
   });
 
   describe('createProduct', () => {
-    it('should create a product', async () => {
+    it('should create a product and invalidate caches', async () => {
       const data = { 
         name: 'Product A', 
         price: 100, 
@@ -142,6 +163,7 @@ describe('ProductsService', () => {
           categories: true,
         },
       });
+      expect(cacheManager.del).toHaveBeenCalled();
     });
   });
 

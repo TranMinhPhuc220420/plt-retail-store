@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { AppController } from '@/modules/app/app.controller';
-import { AppService } from '@/modules/app/app.service';
 import { CacheModule } from '@nestjs/cache-manager';
+
+import { AppService } from '@/modules/app/app.service';
+import { CacheService } from './modules/cache/cache.service';
 
 import { DatabaseModule } from '@/database/database.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { StoresModule } from './modules/stores/stores.module';
-import { StoresService } from '@/modules/stores/stores.service';
-import { ProductTypeModule } from '@/modules/productTypes/product-type.module';
+import { ProductTypeModule } from '@/modules/product-types/product-type.module';
 import { ProductsModule } from '@/modules/products/products.module';
-// import { CacheConfigModule } from './modules/cache/cache.module';
 
 @Module({
   imports: [
-    CacheModule.register(), // Registering cache globally
+    CacheModule.register({ isGlobal: true }), // Global cache module
     DatabaseModule,
     AuthModule,
     StoresModule,
@@ -21,6 +21,6 @@ import { ProductsModule } from '@/modules/products/products.module';
     ProductsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, StoresService],
+  providers: [AppService, CacheService],
 })
 export class AppModule {}

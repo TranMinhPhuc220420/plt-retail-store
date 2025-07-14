@@ -58,6 +58,7 @@ model Customer {
 
 model Store {
   id        String   @id @default(cuid())
+  storeCode String @unique
   name      String   
   address   String
   phone     String?

@@ -11,8 +11,10 @@ import { Button, Input, Form, Upload, message } from "antd";
 import useAuth from "@/hooks/useAuth";
 
 // Request
-import { createMyStore } from "@/request/store";
-import { set } from "react-hook-form";
+import { createMyStore, validateStoreCode } from "@/request/store";
+
+// Utilities
+import { } from "@/utils";
 
 const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
   // i18n
@@ -34,18 +36,24 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
     // Additional params
     values.ownerId = user.sub;
     values.file = imageFile;
+    values.storeCode = values.storeCode ? values.storeCode.toLowerCase() : '';
 
     // Add store to database
-    let isSuccess = await createMyStore(values);
+    try {
+      await createMyStore(values);
 
-    if (isSuccess) {
       form.resetFields();
       setImageUrl("public/background-page-login.png");
       setImageFile(null);
       message.success(t('MSG_STORE_CREATED_SUCCESS'));
+
       onOK();
-    } else {
-      message.error(t('MSG_STORE_CREATED_FAIL'));
+    } catch (error) {
+      let messageError = t(error);
+      if (!messageError || messageError === error) {
+        messageError = t('TXT_STORE_CREATION_FAILED');
+      }
+      message.error(messageError);
       onFail();
     }
 
@@ -102,9 +110,11 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
           </Form.Item>
 
           <Form.Item
-            name="address"
-            label={t('TXT_STORE_ADDRESS')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED')}]}
+            name="storeCode"
+            label={t('TXT_STORE_CODE')}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+            ]}
           >
             <Input />
           </Form.Item>
@@ -129,7 +139,15 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
           </Form.Item>
         </div>
 
-        <div className="px-4 bg-white mb-4">
+        <div className="grid gap-4 px-4 bg-white mb-4">
+          <Form.Item
+            name="address"
+            label={t('TXT_STORE_ADDRESS')}
+            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED')}]}
+          >
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="description"
             label={t('TXT_STORE_DESCRIPTION')}

@@ -1,30 +1,22 @@
 import { BadRequestException, Body, Controller, Get, Inject, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Express } from 'express';
 
-// Cache
-import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-
 // Services
-import { CacheService } from '@/modules/cache/cache.service';
 import { StoresService } from '@/modules/stores/stores.service';
 import { StoreFileInterceptor } from '@/modules/upload/upload.service';
 // Middleware
 import { AuthMiddleware } from '@/modules/auth/auth.service';
 // Validation
-import { validateStoreData, validateStoreDelete, validateStoreUpdateData } from '@/utils/validate';
+import { validateStoreCode, validateStoreData, validateStoreDelete, validateStoreUpdateData } from '@/utils/validate';
 // Interfaces
 import { Store, User } from '@/interfaces';
 // Constants
 import { ADMINISTRATOR_LIST, STORE_URL_TEMP } from '@/config';
-import { generateCacheKey } from '@/utils';
-import { TIMEOUT_CACHE } from '@/config/cache.config';
 
 @Controller('stores')
 export class StoresController {
   constructor(
     private readonly stores_service: StoresService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
   
   //////////////////////////////////////////////////
@@ -106,13 +98,13 @@ export class StoresController {
     }
 
     // Fetch the store to ensure it exists
-    // const store = await this.stores_service.getStoreById(storeId);
-    // if (!store) {
-    //   throw new BadRequestException('store_not_found');
-    // }
+    const store = await this.stores_service.getStoreById(storeId);
+    if (!store) {
+      throw new BadRequestException('store_not_found');
+    }
 
     // Delete the store
-    return this.stores_service.deleteStore(storeId);
+    return this.stores_service.deleteMyStore(user, storeId);
   }
 
   ////////////////////////////////////////////////////////////
@@ -126,25 +118,10 @@ export class StoresController {
    * @returns A promise resolving to the list of stores owned by the user.
    */
   @UseGuards(AuthMiddleware)
-  @UseInterceptors(CacheInterceptor)
   @Get('my-stores')
   async getMyStores(@Req() req) {
     const user = req.user as User;
-
-    // Check memory cache for stores
-    const cacheKey = generateCacheKey('my_stores', user.id);
-    const cachedStores = await this.cacheManager.get(cacheKey);
-    console.log(`Cache hit for user ${cacheKey}:${cachedStores}`);
-    if (cachedStores) {
-      return cachedStores;
-    }
-
-    // If not cached, fetch from the service
-    const stores = await this.stores_service.getMyStores(user);
-
-    await this.cacheManager.set(cacheKey, stores, TIMEOUT_CACHE);
-
-    return stores;
+    return this.stores_service.getMyStores(user, true);
   }
 
   /**
@@ -172,11 +149,35 @@ export class StoresController {
       storeData.imageUrl = STORE_URL_TEMP.replace('{filename}', file.filename);
     }
 
+    if (storeData.storeCode) {
+      // Ensure storeCode is in lowercase and trimmed
+      storeData.storeCode = storeData.storeCode.toLowerCase().trim();
+    }
+
     // Validate store data
     validateStoreData(storeData, user);
 
+    // Check if the store code is valid
+    let paramsSearch = {
+      storeCode: storeData.storeCode,
+      phone: storeData.phone,
+      email: storeData.email,
+    }
+    const storesExist = await this.stores_service.searchStores(paramsSearch);
+    if (storesExist.length > 0) {
+      let store = storesExist[0];
+      if (store.storeCode === storeData.storeCode) {
+        throw new BadRequestException('store_code_already_exists');
+      } else if (store.phone === storeData.phone) {
+        throw new BadRequestException('store_phone_already_exists');
+      } else if (store.email === storeData.email) {
+        throw new BadRequestException('store_email_already_exists');
+      }
+      throw new BadRequestException('store_already_exists');
+    }
+
     // Create store
-    return this.stores_service.createStore({
+    return this.stores_service.createMyStore(user, {
       ...storeData,
       ownerId: user.id, // Ensure the ownerId is set to the current user's ID
     });
@@ -196,6 +197,19 @@ export class StoresController {
 
     // Fetch the store by ID for the authenticated user
     return this.stores_service.getMyStoreById(user, storeId);
+  }
+
+  @UseGuards(AuthMiddleware)
+  @Post('validate-store-code')
+  async validateStoreCode(@Req() req, @Body('storeCode') storeCode: string) {
+    const user = req.user as User;
+
+    // Validate the store code format
+    validateStoreCode(storeCode);
+
+    // Validate the store code
+    const store = await this.stores_service.getMyStoreByStoreCode(storeCode);
+    return { valid: !!store, store };
   }
 
   /**
@@ -233,13 +247,32 @@ export class StoresController {
     validateStoreUpdateData(storeData, user);
 
     // Fetch the existing store
-    const existingStore = await this.stores_service.getMyStoreById(user, storeId);
-    if (!existingStore) {
+    const storeEditing = await this.stores_service.getMyStoreById(user, storeId);
+    if (!storeEditing) {
       throw new BadRequestException('store_not_found');
     }
 
+    // Check if the store code is valid
+    let paramsSearch = {
+      storeCode: storeData.storeCode,
+      phone: storeData.phone,
+      email: storeData.email,
+    }
+    const storesExist = await this.stores_service.searchStores(paramsSearch);
+    if (storesExist.length > 0 && storesExist[0].id !== storeId) {
+      let store = storesExist[0];
+      if (store.storeCode === storeData.storeCode) {
+        throw new BadRequestException('store_code_already_exists');
+      } else if (store.phone === storeData.phone) {
+        throw new BadRequestException('store_phone_already_exists');
+      } else if (store.email === storeData.email) {
+        throw new BadRequestException('store_email_already_exists');
+      }
+      throw new BadRequestException('store_already_exists');
+    }
+
     // Update the store
-    return this.stores_service.updateStore(storeId, {
+    return this.stores_service.updateMyStore(user, storeId, {
       ...storeData,
       ownerId: user.id, // Ensure the ownerId is set to the current user's ID
     });
@@ -270,6 +303,6 @@ export class StoresController {
     }
 
     // Delete the store
-    return this.stores_service.deleteStore(storeId);
+    return this.stores_service.deleteMyStore(user, storeId);
   }
 }

@@ -39,3 +39,5 @@ export const STORAGE_CONFIG = {
     prefix: "/products/images/",
   },
 };
+
+export const STORE_CODE_NOT_ALLOWED_TO_CREATE = ['admin', 'undefined', 'root', 'null', 'superadmin', 'administrator'];
