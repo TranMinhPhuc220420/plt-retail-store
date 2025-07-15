@@ -103,8 +103,22 @@ export class ProductTypeController {
   @Get('my-product-types')
   async getMyProductTypes(@Req() req) {
     const user = req.user as User;
+    const storeCode = req.query.storeCode as string;
 
-    return this.productTypeService.getMyProductTypes(user);
+    if (!user || !user.id) {
+      throw new BadRequestException('user_not_authenticated');
+    }
+    if (!storeCode) {
+      throw new BadRequestException('store_code_required');
+    }
+
+    const store = await this.productTypeService.getMyStoreByCode(user, storeCode);
+    if (!store) {
+      throw new BadRequestException('store_not_found');
+    }
+
+    const storeId = store.id;
+    return this.productTypeService.getMyProductTypes(user, storeId);
   }
 
   /**
@@ -127,6 +141,40 @@ export class ProductTypeController {
       ...productTypeData,
       ownerId: user.id,
     });
+  }
+
+  // Create new product type by list item
+  @UseGuards(AuthMiddleware)
+  @Post('my-product-type-bulk')
+  async createProductTypeBulk(@Req() req, @Body('productTypes') productTypesData: ProductType[], @Body('storeCode') storeCode: string) {
+    const user = req.user as User;
+
+    if (!user || !user.id) {
+      throw new BadRequestException('user_not_authenticated');
+    }
+    if (!storeCode) {
+      throw new BadRequestException('store_code_required');
+    }
+    if (!Array.isArray(productTypesData) || productTypesData.length === 0) {
+      throw new BadRequestException('product_types_data_required');
+    }
+
+    // Validate each product type data
+    productTypesData.forEach(productType => {
+      validateProductTypeData({ ...productType, ownerId: user.id }, user);
+    });
+
+    const store = await this.productTypeService.getMyStoreByCode(user, storeCode);
+    if (!store) {
+      throw new BadRequestException('store_not_found');
+    }
+
+    return this.productTypeService.createProductTypesBulk(store, user,
+      productTypesData.map(productType => ({
+        ...productType,
+        ownerId: user.id,
+      }))
+    );
   }
 
   /**
@@ -171,6 +219,14 @@ export class ProductTypeController {
 
     // Validate product type update data
     validateProductTypeUpdateData({ ...productTypeData, ownerId: user.id }, user);
+
+    // Ensure the ownerId is set to the current user's ID
+    if (productTypeData.ownerId !== user.id) {
+      productTypeData.ownerId = user.id;
+    }
+    if (existingProductType.storeId !== productTypeData.storeId) {
+      throw new BadRequestException('store_id_mismatch');
+    }
 
     return this.productTypeService.updateProductType(productTypeId, {
       ...productTypeData,

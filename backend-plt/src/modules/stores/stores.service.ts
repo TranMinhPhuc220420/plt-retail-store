@@ -47,12 +47,12 @@ export class StoresService {
     return store;
   }
 
-  async getMyStoreByStoreCode(storeCode: string, cache: boolean = true): Promise<Store | null> {
-    if (!storeCode) {
-      throw new UnauthorizedException('store_code_is_required');
+  async getMyStoreByStoreCode(user: User, storeCode: string, cache: boolean = true): Promise<Store | null> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('user_not_authenticated');
     }
 
-    const cacheKey = `my-store:${storeCode}`;
+    const cacheKey = `my-store:${user.id}:${storeCode}`;
     if (cache) {
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) {
@@ -60,9 +60,9 @@ export class StoresService {
       }
     }
 
-    const store = await this.prisma.store.findUnique({
-      where: { storeCode },
-    }) as Store | null;
+    const store = await this.prisma.store.findFirst({
+      where: { storeCode, ownerId: user.id },
+    }) as Store;
 
     if (store) {
       await this.cacheManager.set(cacheKey, store, this.TIME_CACHE);
@@ -205,6 +205,7 @@ export class StoresService {
     const keys = [
       'stores:all',
       ...(ownerId ? [`my-stores:${ownerId}`] : []),
+      ...(ownerId ? [`my-store:${ownerId}`] : []),
       ...(storeId ? [`stores:${storeId}`] : []),
       ...(ownerId && storeId ? [`my-stores:${ownerId}:${storeId}`] : []),
     ];

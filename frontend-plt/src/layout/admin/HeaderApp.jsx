@@ -68,7 +68,19 @@ const HeaderApp = ({ isLoading }) => {
   };
   const handleSelectStore = (store) => {
     setStoreActive(store);
-    navigate(`/store/${store.storeCode}/admin`);
+    
+    let url = window.location.pathname;
+    const match = url.match(/\/store\/[a-zA-Z0-9-]+\/(.*)/);
+    const after = match ? match[1] : '';
+    
+    let nextUrl = '';
+    if (after) {
+      nextUrl = `/store/${store.storeCode}/${after}`;
+    } else {
+      nextUrl = `/store/${store.storeCode}/admin`;
+    }
+
+    navigate(nextUrl);
   };
 
   // Constants

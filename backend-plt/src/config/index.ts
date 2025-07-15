@@ -29,7 +29,13 @@ export const STORE_URL_TEMP = "/stores/images/{filename}";
 export const PRODUCT_DISK_PATH = "./storages/products/images";
 export const PRODUCT_URL_TEMP = "/uploads/products/images/{filename}";
 
+export const PUBLIC_DISK_PATH = "./public";
+
 export const STORAGE_CONFIG = {
+  public: {
+    disk: PUBLIC_DISK_PATH,
+    prefix: "/public/",
+  },
   stores: {
     disk: STORE_DISK_PATH,
     prefix: "/stores/images/",

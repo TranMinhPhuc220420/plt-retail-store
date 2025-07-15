@@ -6,7 +6,7 @@ import { Cache } from 'cache-manager';
 import { PrismaService } from '@/database/prisma.service';
 
 // Interface imports
-import { ProductType, User } from '@/interfaces';
+import { ProductType, Store, User } from '@/interfaces';
 
 @Injectable()
 export class ProductTypeService {
@@ -44,16 +44,37 @@ export class ProductTypeService {
     return productType;
   }
 
-  ////////////////////////////////////////////////////////////
-  /** Controller methods for user-specific store management */
-  ////////////////////////////////////////////////////////////
-
-  async getMyProductTypes(user: User, cache: boolean = true): Promise<ProductType[]> {
+  // Relationship with Store
+  async getMyStoreByCode(user: User, storeCode: string, cache: boolean = true): Promise<Store | null> {
     if (!user || !user.id) {
       throw new UnauthorizedException('user_not_authenticated');
     }
 
-    const cacheKey = `my-product-types:${user.id}`;
+    const cacheKey = `store:${storeCode}`;
+    if (cache) {
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached) {
+        return cached as Store;
+      }
+    }
+
+    const store = await this.prisma.store.findUnique({ where: { storeCode: storeCode } }) as Store | null;
+    if (store) {
+      await this.cacheManager.set(cacheKey, store, 300000); // 5 minutes
+    }
+    return store;
+  }
+
+  ////////////////////////////////////////////////////////////
+  /** Controller methods for user-specific store management */
+  ////////////////////////////////////////////////////////////
+
+  async getMyProductTypes(user: User, storeId: string, cache: boolean = true): Promise<ProductType[]> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('user_not_authenticated');
+    }
+
+    const cacheKey = `my-product-types:${user.id}:${storeId}`;
 
     if (cache) {
       const cached = await this.cacheManager.get(cacheKey);
@@ -63,7 +84,8 @@ export class ProductTypeService {
     }
 
     const productTypes = await this.prisma.productType.findMany({
-      where: { ownerId: user.id },
+      where: { ownerId: user.id, storeId: storeId },
+      orderBy: { updatedAt: 'desc' },
     }) as ProductType[];
 
     // Cache the fetched product types
@@ -103,14 +125,32 @@ export class ProductTypeService {
       data: {
         name: data.name,
         description: data.description,
+        storeId: data.storeId, // Ensure storeId is included
         ownerId: data.ownerId,
       },
     }) as ProductType;
 
     // Invalidate related caches
-    await this.invalidateProductTypeCaches(data.ownerId);
+    await this.invalidateProductTypeCaches(data.ownerId, undefined, data.storeId);
 
     return productType;
+  }
+
+  async createProductTypesBulk(store: Store, user: User, data: ProductType[]): Promise<ProductType[]> {
+    const productTypes = await this.prisma.productType.createMany({
+      data: data.map(pt => ({
+        name: pt.name,
+        description: pt.description,
+        storeId: pt.storeId,
+        ownerId: pt.ownerId,
+      })),
+      skipDuplicates: true,
+    });
+
+    // Invalidate related caches
+    await this.invalidateProductTypeCaches(user.id);
+
+    return this.getMyProductTypes(user, store.id, false); // Return the updated list without cache
   }
 
   async updateProductType(id: string, data: Partial<any>): Promise<ProductType> {
@@ -121,7 +161,7 @@ export class ProductTypeService {
     }) as ProductType;
 
     // Invalidate related caches
-    await this.invalidateProductTypeCaches(ownerId, id);
+    await this.invalidateProductTypeCaches(ownerId, id, productType.storeId);
 
     return productType;
   }
@@ -139,18 +179,20 @@ export class ProductTypeService {
 
     // Invalidate related caches
     if (productType) {
-      await this.invalidateProductTypeCaches(productType.ownerId, id);
+      await this.invalidateProductTypeCaches(productType.ownerId, id, result.storeId);
     }
 
     return result;
   }
 
-  private async invalidateProductTypeCaches(ownerId?: string, productTypeId?: string) {
+  private async invalidateProductTypeCaches(ownerId?: string, productTypeId?: string, storeId?: string) {
     const keys = [
       'product-types:all',
       ...(ownerId ? [`my-product-types:${ownerId}`] : []),
+      ...(storeId ? [`my-product-types:${ownerId}:${storeId}`] : []),
       ...(productTypeId ? [`product-types:${productTypeId}`] : []),
       ...(ownerId && productTypeId ? [`my-product-types:${ownerId}:${productTypeId}`] : []),
+      ...(storeId ? [`store:${storeId}`] : []), // Include store cache key
     ];
 
     await Promise.all(keys.map(key => this.cacheManager.del(key)));

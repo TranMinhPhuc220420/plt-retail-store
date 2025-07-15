@@ -69,6 +69,16 @@ export const getMyStoreDetail = async (id) => {
   }
 };
 
+export const getMyStoreByStoreCode = async (storeCode) => {
+  try {
+    const response = await get(`/stores/my-store-by-code`, { storeCode });
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch my store details for ID ${id}:`, error);
+    throw error;
+  }
+};
+
 // Update a specific store owned by the user
 export const updateMyStore = async (id, storeData) => {
   try {

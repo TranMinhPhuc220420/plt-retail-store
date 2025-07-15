@@ -6,11 +6,12 @@ const VIETNAMESE_TRANSLATIONS = {
 
     'TXT_DASHBOARD': 'Trang chủ',
     'TXT_REPORT': 'Báo cáo',
-    'TXT_PRODUCT_MANAGEMENT': 'Quản lý sản phẩm',
-    'TXT_INVENTORY_MANAGEMENT': 'Quản lý kho hàng',
+    'TXT_PRODUCT_MANAGEMENT': 'Sản phẩm',
+    'TXT_INVENTORY_MANAGEMENT': 'Kho hàng',
     'TXT_REVENUE': 'Doanh thu',
-    'TXT_EMPLOYEE': 'Danh mục quản lý',
-    'TXT_MANAGER': 'Quản lý nhân viên',
+    'TXT_EMPLOYEE': 'Nhân viên',
+    'TXT_MANAGER': 'Quản lý',
+    'TXT_OVERVIEW': 'Overview',
     'TXT_SKILL_CATEGORIZATION': 'Danh sách cấp bậc',
     'TXT_TRACK_WORK_HOURS': 'Theo giỏi giờ làm việc',
     'TXT_SHIFT_OPTIMIZATION': 'Tối ưu hóa ca',
@@ -26,6 +27,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_INVOICE': 'Hóa đơn',
     'TXT_SHIFT_HANDOVER': 'Bàn giao ca',
 
+    'MSG_FEATURE_COMING_SOON': 'Tính năng này sẽ sớm có mặt trong tương lai',
     'TXT_LOGOUT': 'Đăng xuất',
     'TXT_LOGIN': 'Đăng nhập',
     'TXT_ADD_NEW': 'Thêm mới',
@@ -41,8 +43,19 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_BACK': 'Quay lại',
     'TXT_SEARCH': 'Tìm kiếm',
     'TXT_FILTER': 'Lọc',
+    'TXT_EXPORT_DATA': 'Xuất dữ liệu',
+    'TXT_IMPORT_DATA': 'Nhập dữ liệu',
+    'TXT_DOWNLOAD_TEMPLATE': 'Tải mẫu',
     'TXT_ADD_BY_EXCEL': 'Thêm bằng Excel',
     'TXT_ADD_BY_CSV': 'Thêm bằng CSV',
+    'MSG_UNKNOWN_ACTION': 'Hành động không xác định',
+    'MSG_ERROR_DOWNLOAD_TEMPLATE': 'Lỗi tải mẫu, vui lòng thử lại sau',
+
+    'LABEL_NAME': 'Tên',
+    'LABEL_DESCRIPTION': 'Mô tả',
+    'LABEL_CREATED_AT': 'Ngày tạo',
+    'LABEL_UPDATED_AT': 'Ngày cập nhật',
+    'LABEL_ACTIONS': 'Hành động',
 
     // Login page
     'TXT_LOGIN_WITH_GOOGLE': 'Đăng nhập bằng Google',
@@ -97,6 +110,31 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_STORE_CODE_EXISTS': 'Mã cửa hàng đã tồn tại',
     'MSG_STORE_CODE_VALIDATION_FAILED': 'Kiểm tra mã cửa hàng không thành công',
 
+    // Product types management
+    'TXT_PRODUCT_TYPES': 'Loại sản phẩm',
+    'TXT_PRODUCT_TYPES_MANAGEMENT': 'Loại sản phẩm',
+    'TXT_PRODUCT_TYPE_LIST': 'Danh sách loại sản phẩm',
+    'TITLE_ADD_PRODUCT_TYPE': 'Thêm loại sản phẩm',
+    'TITLE_EDIT_PRODUCT_TYPE': 'Chỉnh sửa loại sản phẩm',
+    'CONFIRM_DELETE_PRODUCT_TYPE': 'Bạn có chắc chắn muốn xóa loại sản phẩm này không?',
+    'CONFIRM_DELETE_PRODUCT_TYPES_SELECTED': 'Bạn có chắc chắn muốn xóa những loại sản phẩm đã chọn không?',
+    
+    // Product type messages
+    'MSG_ERROR_PRODUCT_TYPE_NOT_FOUND': 'Loại sản phẩm không tồn tại',
+    'MSG_ERROR_FETCHING_PRODUCT_TYPES': 'Lỗi khi lấy danh sách loại sản phẩm',
+    'MSG_CREATE_PRODUCT_TYPE_SUCCESS': 'Tạo loại sản phẩm thành công',
+    'MSG_PRODUCT_TYPE_CREATION_FAILED': 'Tạo loại sản phẩm không thành công',
+    'MSG_UPDATE_PRODUCT_TYPE_SUCCESS': 'Cập nhật loại sản phẩm thành công',
+    'MSG_PRODUCT_TYPE_UPDATE_FAILED': 'Cập nhật loại sản phẩm không thành công',
+    'MSG_SUCCESS_DELETE_PRODUCT_TYPE': 'Xóa loại sản phẩm thành công',
+    'MSG_CONFIRM_DELETE_PRODUCT_TYPE': 'Bạn có chắc chắn muốn xóa loại sản phẩm này không?',
+    'MSG_SUCCESS_DELETE_PRODUCT_TYPES_SELECTED': 'Xóa loại sản phẩm đã chọn thành công',
+    'MSG_ERROR_DELETE_PRODUCT_TYPE': 'Xóa loại sản phẩm không thành công',
+    'MSG_ERROR_PRODUCT_TYPE_NOT_FOUND': 'Loại sản phẩm không tồn tại',
+    'MSG_SUCCESS_ADD_PRODUCT_TYPE_BY_EXCEL': 'Thêm loại sản phẩm bằng Excel thành công',
+    'MSG_ERROR_INVALID_EXCEL_FORMAT': 'Định dạng Excel không hợp lệ',
+    'MSG_ERROR_PROCESS_EXCEL_FILE': 'Lỗi xử lý file Excel',
+
     // Employee management
     'TXT_EMPLOYEE_LIST': 'Danh sách nhân viên',
 
@@ -104,7 +142,6 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_REVENUE_LIST': 'Danh sách doanh thu của khách',
 
     'TXT_EMPLOYEE_ID': 'Mã nhân viên',
-    'LABEL_NAME': 'Tên',
     'LABEL_POSITION': 'Chức vụ',
     'LABEL_BRANCH': 'Chi nhánh',
     'LABEL_LEVEL': 'Cấp bậc',
@@ -137,6 +174,9 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_SUCCESS_DELETE_EMPLOYEES_SELECTED': 'Xóa nhân viên đã chọn thành công',
 
     // key messages by server response
+    'user_not_authenticated': 'Người dùng không được xác thực',
+    'user_id_is_required': 'ID người dùng là bắt buộc',
+    'user_not_authorized': 'Người dùng không được ủy quyền để thực hiện hành động này',
     'invalid_registration_data': 'Dữ liệu đăng ký không hợp lệ',
     'username_already_exists': 'Tài khoản đã tồn tại',
     'email_already_exists': 'Email đã tồn tại',
@@ -146,6 +186,9 @@ const VIETNAMESE_TRANSLATIONS = {
     'invalid_email_format': 'Định dạng email không hợp lệ',
     'avatar_required': 'Ảnh đại diện là bắt buộc',
     'fullname_too_short': 'Họ tên quá ngắn, phải có ít nhất 3 ký tự',
+    'store_id_required': 'Mã cửa hàng là bắt buộc',
+    'store_not_found': 'Cửa hàng không tồn tại',
+    'store_code_required': 'Mã cửa hàng là bắt buộc',
     // Store code validation messages
     'store_avatar_is_required': 'Ảnh đại diện cửa hàng là bắt buộc',
     'store_code_is_required': 'Mã cửa hàng là bắt buộc',
@@ -156,6 +199,13 @@ const VIETNAMESE_TRANSLATIONS = {
     'store_phone_already_exists': 'Số điện thoại cửa hàng đã tồn tại',
     'store_email_already_exists': 'Email cửa hàng đã tồn tại',
     'store_already_exists': 'Cửa hàng đã tồn tại',
+    // Product type messages
+    'store_id_mismatch': 'Mã cửa hàng không khớp',
+    'product_type_data_is_required': 'Dữ liệu loại sản phẩm là bắt buộc',
+    'product_type_name_is_required': 'Tên loại sản phẩm là bắt buộc',
+    'product_type_description_is_required': 'Mô tả loại sản phẩm là bắt buộc',
+    'product_type_store_id_is_required': 'Mã cửa hàng là bắt buộc',
+    'product_type_owner_id_is_invalid': 'ID chủ sở hữu loại sản phẩm không hợp lệ',
   }
 };
 

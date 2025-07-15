@@ -192,11 +192,31 @@ export class StoresController {
    */
   @UseGuards(AuthMiddleware)
   @Get('my-store/:id')
-  async getMyStoreById(@Req() req, @Body('id') storeId: string) {
+  async getMyStoreById(@Req() req) {
     const user = req.user as User;
+    const storeId = req.query.id;
 
     // Fetch the store by ID for the authenticated user
     return this.stores_service.getMyStoreById(user, storeId);
+  }
+
+  @UseGuards(AuthMiddleware)
+  @Get('my-store-by-code')
+  async getMyStoreByCode(@Req() req) {
+    const user = req.user as User;
+    const storeCode = req.query.storeCode;
+
+    if (!user || !user.id) {
+      throw new BadRequestException('user_not_authenticated');
+    }
+    console.log(storeCode);
+    
+    if (!storeCode) {
+      throw new BadRequestException('store_code_required');
+    }
+
+    // Fetch the store by ID for the authenticated user
+    return this.stores_service.getMyStoreByStoreCode(user, storeCode);
   }
 
   @UseGuards(AuthMiddleware)
@@ -208,7 +228,7 @@ export class StoresController {
     validateStoreCode(storeCode);
 
     // Validate the store code
-    const store = await this.stores_service.getMyStoreByStoreCode(storeCode);
+    const store = await this.stores_service.getMyStoreByStoreCode(user, storeCode);
     return { valid: !!store, store };
   }
 

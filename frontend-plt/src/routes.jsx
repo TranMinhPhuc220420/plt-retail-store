@@ -9,6 +9,7 @@ import LayoutEmployee from "@/layout/employee";
 
 // Pages
 import StoreManagerPage from "@/pages/admin/store/manager";
+import ProductTypeManager from "@/pages/admin/product-types/manager";
 
 import DashboardPage from "@/pages/admin/DashboardPage";
 import RevenueManagerPage from "@/pages/admin/revenue/manager";
@@ -53,11 +54,15 @@ const router = createBrowserRouter([
         element: <DashboardPage />,
       },
       {
-        path: 'quan-ly-san-pham',
+        path: 'loai-san-pham',
+        element: <ProductTypeManager />,
+      },
+      {
+        path: 'san-pham',
         element: <ProductManagerPage />,
       },
       {
-        path: 'quan-ly-kho',
+        path: 'kho',
         element: <InventoryManagerPage />,
       },
       {

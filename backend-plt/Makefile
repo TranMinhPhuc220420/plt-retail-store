@@ -19,3 +19,6 @@ db_migrate_refresh:
 	npm run db:seed
 
 	rm -rf storages
+
+prisma_studio:
+	npm run db:studio

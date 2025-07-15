@@ -167,6 +167,9 @@ export function validateProductTypeData(productType: ProductType, user: User): v
     throw new BadRequestException('product_type_description_is_required');
   }
 
+  if (!productType.storeId || productType.storeId.trim() === '') {
+    throw new BadRequestException('product_type_store_id_is_required');
+  }
   if (!productType.ownerId || productType.ownerId !== user.id) {
     throw new BadRequestException('product_type_owner_id_is_invalid');
   }
@@ -194,6 +197,9 @@ export function validateProductTypeUpdateData(productType: ProductType, user: Us
     throw new BadRequestException('product_type_description_is_required');
   }
 
+  if (!productType.storeId || productType.storeId.trim() === '') {
+    throw new BadRequestException('product_type_store_id_is_required');
+  }
   if (productType.ownerId && productType.ownerId !== user.id) {
     throw new BadRequestException('product_type_owner_id_is_invalid');
   }

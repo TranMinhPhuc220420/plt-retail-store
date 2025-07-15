@@ -52,6 +52,9 @@ interface ProductType {
   createdAt: Date; // Timestamp of when the product type was created
   updatedAt: Date; // Timestamp of when the product type was last updated
 
+  storeId: string; // Reference to the store where this product type belongs
+  store?: Store; // Optional reference to the store object
+
   ownerId: string; // Reference to the user who owns the store
 
   owner?: User; // Optional reference to the owner user object
