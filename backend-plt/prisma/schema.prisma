@@ -114,11 +114,20 @@ model ProductType {
 
 model Product {
   id        String   @id @default(cuid())
+  productCode String @unique
   name      String
   description String?
-  price     Float
-  stock     Int      @default(0)
   imageUrl  String?
+
+  price     Float
+  retailPrice    Float
+  wholesalePrice Float
+  costPrice      Float
+  stock     Int      @default(0)
+  minStock       Int
+  unit           String
+  status         String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

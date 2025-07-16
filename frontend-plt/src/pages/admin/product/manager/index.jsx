@@ -1,236 +1,243 @@
 import React, { useState, useEffect, useRef } from "react";
-
+import { useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import * as XLSX from 'xlsx';
 
-import { useTranslation } from "react-i18next";
-
-// Firebase
-import { getEmployeeList, deleteEmployee, addEmployee } from "@/database";
-
-import { PlusOutlined, FileExcelOutlined, TeamOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Modal, message, Table, Space, Popconfirm } from "antd";
-const { Column, ColumnGroup } = Table;
-
-import { BRANCH_LIST } from "@/constant";
+import { PlusOutlined, FileExcelOutlined, DeleteOutlined, ShoppingOutlined, DownloadOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Dropdown, Modal, message, Popconfirm } from "antd";
 
 // Components
-import AddEmployeeForm from "@/components/form/AddEmployee";
-import EditEmployeeForm from "@/components/form/EditEmployee";
+import CreateProductForm from "@/components/form/CreateProduct";
+import EditProductForm from "@/components/form/EditProduct";
+import AdminProductTable from "@/components/table/AdminProductTable";
 
-const ProductManager = () => {
+// Requests
+import { deleteMyProduct, getMyProducts, downloadFileTemplateProduct, createMyProductTypeBulk } from "@/request/product";
+
+// use zustand
+import useStoreApp from "@/store/app";
+import useStoreProduct from "@/store/product";
+
+// Constants
+import { SERVER_URL } from "@/constant";
+
+const ProductManagerPage = () => {
+  const { storeCode } = useParams();
+
   // Ref
   const inputRef = useRef(null);
 
   // Translation
   const { t } = useTranslation();
 
-  // State
-  const [height, setHeight] = useState(window.innerHeight - 300);
-  const [employeeList, setEmployeeList] = useState([]);
-  const [employeeListLoading, setEmployeeListLoading] = useState(true);
-  const [idEmployeeDeleting, setIdEmployeeDeleting] = useState(null);
-  const [idEmployeeEditing, setIdEmployeeEditing] = useState(null);
+  // Zustand store
+  const { storeActive, storeActiveIsLoading } = useStoreApp((state) => state);
+  const { 
+    setProducts, setIsLoading, setError,
+    setProductIsEditing, setProductIsDeleting 
+  } = useStoreProduct();
 
+  // State
+  const [productSelected, setProductSelected] = useState([]);
+  const [productEdit, setProductEdit] = useState(null);
+  
+  // Loading states
   const [isDeletingLoading, setIsDeletingLoading] = useState(false);
   const [isAddingByExcelLoading, setIsAddingByExcelLoading] = useState(false);
-
+  
+  // Modal states
+  const [isModalCreateOpen, setIsModalCreateOpen] = useState(false);
   const [isModalEditOpen, setIsModalEditOpen] = useState(false);
-  const [employeeEdit, setEmployeeEdit] = useState(null);
-
-  const [employeeSelected, setEmployeeSelected] = useState([]);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Message API
   const [messageApi, contextHolder] = message.useMessage();
 
-  // Columns for the table
-  const columns = [
+  // Actions for CSV button
+  const csvBtnAction = [
     {
-      title: t('LABEL_NAME'),
-      dataIndex: 'name',
-      key: 'name',
+      key: 'export_data',
+      label: t('TXT_EXPORT_DATA'),
+      icon: <DownloadOutlined />,
+      disabled: true,
+      title: t('MSG_FEATURE_COMING_SOON'),
     },
     {
-      title: t('LABEL_BRANCH'),
-      dataIndex: 'branch_display',
-      key: 'branch',
-      onFilter: (value, record) => record.branch_display.startsWith(value),
-      filters: BRANCH_LIST.map((branch) => ({
-        text: branch.name,
-        value: branch.name,
-      })),
-    },
-    {
-      title: t('LABEL_POSITION'),
-      dataIndex: 'position_display',
-      key: 'position',
-    },
-    {
-      title: t('LABEL_LEVEL'),
-      dataIndex: 'level_display',
-      key: 'level',
-    },
-    {
-      title: t('LABEL_SALARY'),
-      dataIndex: 'salary_display',
-      key: 'salary',
-    },
+      key: 'download_template',
+      label: t('TXT_DOWNLOAD_TEMPLATE'),
+      icon: <FileExcelOutlined />,
+    }
   ];
 
-  const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-
-      setEmployeeSelected(selectedRows);
-    },
-    getCheckboxProps: record => ({
-      disabled: record.name === 'Disabled User', // Column configuration not to be checked
-      name: record.name,
-    }),
-  };
-
   // Fetch data from firebase
-  const fetchEmployeeList = async () => {
-    setEmployeeListLoading(true);
-    const employeeList = await getEmployeeList();
-    if (employeeList) {
-      setEmployeeList(employeeList);
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      let data = await getMyProducts(storeCode);
+      if (data) {
+
+        // Convert image URLs to full URLs if needed
+        data = data.map(item => {
+          let imageUrl = item.imageUrl;
+          if (imageUrl && !imageUrl.startsWith('http')) {
+            imageUrl = SERVER_URL + imageUrl;
+          }
+          item.imageUrl = imageUrl;
+          item.images.push(imageUrl);
+
+          return {
+            ...item,
+            key: item.id,
+          };
+        });
+
+        console.log(data);
+
+        setProducts(data);
+      } else {
+        setError(t('MSG_ERROR_PRODUCT_NOT_FOUND'));
+      }
+    } catch (error) {
+      let message = t(error);
+      if (message == error) {
+        message = t('MSG_ERROR_FETCHING_PRODUCTS');
+      }
+      setError(message);
+      messageApi.open({
+        type: 'error',
+        content: message,
+        duration: 3,
+      });
+    } finally {
+      setIsLoading(false);
     }
-    else {
-      setEmployeeList([]);
+  };
+
+  // Modal handlers
+  const showModalCreate = () => {
+    setIsModalCreateOpen(true);
+  };
+
+  const handleCreateOk = () => {
+    fetchData();
+    setIsModalCreateOpen(false);
+  };
+
+  const handleCreateCancel = () => {
+    setIsModalCreateOpen(false);
+  };
+
+  const handleCreateFail = () => {
+    // Handle create failure if needed
+  };
+
+  const handleEdit = (product) => {
+    setProductEdit(product);
+    setProductIsEditing(product.key, true);
+    setIsModalEditOpen(true);
+  };
+
+  const handleEditOk = () => {
+    fetchData();
+    setIsModalEditOpen(false);
+  };
+
+  const handleEditCancel = () => {
+    setProductIsEditing(productEdit.key, false);
+    setIsModalEditOpen(false);
+  };
+
+  const handleEditFail = () => {
+    // Handle edit failure if needed
+  };
+
+  // Delete handlers
+  const handleConfirmDeleteSelected = async () => {
+    try {
+      setIsDeletingLoading(true);
+
+      productSelected.forEach(key => {
+        setProductIsDeleting(key, true);
+      });
+      
+      const deletePromises = productSelected.map(key => 
+        deleteMyProduct(key)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      messageApi.open({
+        type: 'success',
+        content: t('MSG_SUCCESS_DELETE_PRODUCTS_SELECTED'),
+        duration: 3,
+      });
+      
+      setProductSelected([]);
+      fetchData();
+    } catch (error) {
+      messageApi.open({
+        type: 'error',
+        content: t('MSG_ERROR_DELETE_PRODUCT'),
+        duration: 3,
+      });
+    } finally {
+      setIsDeletingLoading(false);
     }
-
-    setEmployeeListLoading(false);
   };
 
-  // Handlers functions
-  const showModal = () => {
-    setIsModalOpen(true);
+  const handleConfirmDeleteItem = async (record) => {
+    try {
+      setIsDeletingLoading(true);
+      setProductIsDeleting(record.key, true);
+
+      await deleteMyProduct(record.key);
+      messageApi.open({
+        type: 'success',
+        content: t('MSG_SUCCESS_DELETE_PRODUCT'),
+        duration: 3,
+      });
+
+      fetchData();
+    } catch (error) {
+      messageApi.open({
+        type: 'error',
+        content: t('MSG_ERROR_DELETE_PRODUCT'),
+        duration: 3,
+      });
+    } finally {
+      setIsDeletingLoading(false);
+      setProductIsDeleting(record.key, false);
+    }
   };
-  const handleOk = () => {
-    messageApi.open({
-      type: 'success',
-      content: t('MSG_SUCCESS_ADD_EMPLOYEE'),
-      duration: 3,
-    });
 
-    // Fetch data again
-    fetchEmployeeList();
-
-    setIsModalOpen(false);
-  }
-  const handlerOnFail = () => {
-    messageApi.open({
-      type: 'error',
-      content: t('MSG_ERROR_ADD_EMPLOYEE'),
-      duration: 3,
-    });
-  };
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
-  const handlerConfirmDelete = async (employee) => {
-    // Call the delete function here
-    console.log("Delete employee with id: ", employee);
-
-    const { key } = employee;
-    setIdEmployeeDeleting(key);
-
-    await deleteEmployee(key);
-    messageApi.open({
-      type: 'success',
-      content: t('MSG_SUCCESS_DELETE_EMPLOYEE'),
-      duration: 3,
-    });
-
-    // Fetch data again
-    fetchEmployeeList();
-
-    setIdEmployeeDeleting(false);
-  }
-  const handlerConfirmDeleteSelected = async () => {
-    // Call the delete function here
-    console.log("Delete employee with id: ", employeeSelected);
-    setIsDeletingLoading(true);
-    setEmployeeListLoading(true);
-
-    let countDeleted = 0;
-    const checkDone = () => {
-      countDeleted++;
-      if (countDeleted === employeeSelected.length) {
+  // Excel import handler
+  const handlerSelectActionsCSV = ({ key }) => {
+    switch (key) {
+      case 'export_data':
         messageApi.open({
-          type: 'success',
-          content: t('MSG_SUCCESS_DELETE_EMPLOYEES_SELECTED'),
+          type: 'info',
+          content: t('MSG_EXPORT_DATA_NOT_IMPLEMENTED'),
+          duration: 3,
+        }); 
+        break;
+      case 'download_template':
+        handlerDownloadTemplate()
+        break;
+      default:
+        messageApi.open({
+          type: 'error',
+          content: t('MSG_UNKNOWN_ACTION'),
           duration: 3,
         });
-        setIsDeletingLoading(false);
-        fetchEmployeeList();
-
-        // Clear the selected employees
-        setEmployeeSelected([]);
-
-        setEmployeeListLoading(false);
-      }
-    };
-
-    employeeSelected.forEach(async (employee) => {
-      const { key } = employee;
-      setIdEmployeeDeleting(key);
-      await deleteEmployee(key);
-      checkDone();
-    });
-
-    setIdEmployeeDeleting(false);
-  };
-
-  const handleEdit = (employee) => {
-    // Call the edit function here
-    console.log("Edit employee with id: ", employee);
-
-    const { key } = employee;
-    setIdEmployeeEditing(key);
-
-    setEmployeeEdit(employee);
-    setIsModalEditOpen(true);
-  }
-  const handleEditOk = () => {
-    messageApi.open({
-      type: 'success',
-      content: t('MSG_SUCCESS_UPDATE_EMPLOYEE'),
-      duration: 3,
-    });
-
-    // Fetch data again
-    fetchEmployeeList();
-
-    setIsModalEditOpen(false);
-    setIdEmployeeEditing(false);
-  };
-  const handleEditFail = () => {
-    messageApi.open({
-      type: 'error',
-      content: t('MSG_ERROR_UPDATE_EMPLOYEE'),
-      duration: 3,
-    });
-
-    // Fetch data again
-    fetchEmployeeList();
-
-    setIsModalEditOpen(false);
-    setIdEmployeeEditing(false);
-  };
-  const handleEditCancel = () => {
-    setIsModalEditOpen(false);
-    setIdEmployeeEditing(false);
+    }
   };
 
   const handleAddByExcel = () => {
-    // Open the file input dialog
     inputRef.current.click();
   };
-  const handlerOnChangeFile = (e) => {
+
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
 
-    // Check if the file is selected
     if (!file) {
       messageApi.open({
         type: 'error',
@@ -239,7 +246,7 @@ const ProductManager = () => {
       });
       return;
     }
-    // Check if the file is a valid Excel or CSV file
+
     const validFileTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
     if (!validFileTypes.includes(file.type)) {
       messageApi.open({
@@ -252,120 +259,127 @@ const ProductManager = () => {
 
     setIsAddingByExcelLoading(true);
 
-    // Read the file and convert it to JSON
     const reader = new FileReader();
-    reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
+    reader.onload = async (evt) => {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
 
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-
-      const json = XLSX.utils.sheet_to_json(worksheet, {
-        header: ['ten', 'chi_nhanh', 'chuc_vu', 'cap_bac', 'luong'],
-        range: 1, // skip the first row if it has actual headers
-      });
-
-      // Check each item in the JSON array make sure it has all the required fields
-      const requiredFields = ['ten', 'chi_nhanh', 'chuc_vu', 'cap_bac', 'luong'];
-      const isValid = json.every(item => {
-        return requiredFields.every(field => {
-          return item[field] !== null && item[field] !== undefined && item[field] !== '';
+        const json = XLSX.utils.sheet_to_json(worksheet, {
+          header: ['productCode', 'name', 'description', 'price', 'retailPrice', 'wholesalePrice', 'costPrice', 'stock', 'minStock', 'unit', 'status'],
+          range: 1,
         });
-      });
-      if (!isValid) {
-        messageApi.open({
-          type: 'error',
-          content: t('MSG_ERROR_FILE_TYPE'),
-          duration: 3,
-        });
-        setIsAddingByExcelLoading(false);
-        // Clear the input file
-        inputRef.current.value = null;
-        return;
-      }
 
-      let countAdded = 0;
-      const checkDone = () => {
-        countAdded++;
-        if (countAdded === json.length) {
+        const requiredFields = ['productCode', 'name', 'price', 'retailPrice', 'wholesalePrice', 'costPrice', 'stock', 'minStock', 'unit', 'status'];
+        const isValid = json.every(item => 
+          requiredFields.every(field => 
+            item[field] !== null && item[field] !== undefined && item[field] !== ''
+          )
+        );
+
+        if (!isValid) {
           messageApi.open({
-            type: 'success',
-            content: t('MSG_SUCCESS_ADD_EMPLOYEE'),
+            type: 'error',
+            content: t('MSG_ERROR_INVALID_EXCEL_FORMAT'),
             duration: 3,
           });
-
           setIsAddingByExcelLoading(false);
-          fetchEmployeeList();
-
-          // Clear the input file
           inputRef.current.value = null;
-        }
-      };
-
-      json.forEach(async (item) => {
-        let data = {
-          name: item.ten,
-          branch: item.chi_nhanh,
-          position: item.chuc_vu,
-          level: item.cap_bac,
-          salary: item.luong,
+          return;
         }
 
-        // Call the add function here
-        await addEmployee(data);
+        const formData = json.map(item => {
+          return {
+            ...item,
+            storeId: storeActive.id,
+            productCode: item.productCode ? item.productCode.toUpperCase() : '',
+            price: parseFloat(item.price),
+            retailPrice: parseFloat(item.retailPrice),
+            wholesalePrice: parseFloat(item.wholesalePrice),
+            costPrice: parseFloat(item.costPrice),
+            stock: parseInt(item.stock),
+            minStock: parseInt(item.minStock),
+          };
+        });
 
-        checkDone();
-      });
+        await createMyProductTypeBulk(storeCode, formData);
+        
+        messageApi.open({
+          type: 'success',
+          content: t('MSG_SUCCESS_ADD_PRODUCT_BY_EXCEL'),
+          duration: 3,
+        });
+
+        fetchData();
+      } catch (error) {
+        messageApi.open({
+          type: 'error',
+          content: t('MSG_ERROR_PROCESS_EXCEL_FILE'),
+          duration: 3,
+        });
+      } finally {
+        setIsAddingByExcelLoading(false);
+        inputRef.current.value = null;
+      }
     };
 
     reader.readAsArrayBuffer(file);
+  };
+
+  const handlerDownloadTemplate = async () => {
+    try {
+      await downloadFileTemplateProduct();
+    } catch (error) {
+      messageApi.open({
+        type: 'error',
+        content: t('MSG_ERROR_DOWNLOAD_TEMPLATE'),
+        duration: 3,
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [storeActive]);
+
+  if (!storeActive) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <p className="text-gray-500">{t('MSG_NO_STORE_SELECTED')}</p>
+      </div>
+    );
   }
 
-  // Effect
-  useEffect(() => {
-    // Fetch data here
-    fetchEmployeeList();
-
-    // Set the height of the table
-    const handleResize = () => {
-      setHeight(window.innerHeight - 300);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
   return (
-    <div className="px-4 pt-4 pb-10 w-full">
-
+    <div className="h-full w-full px-4 pt-4 pb-10">
       <div className="mb-2">
-        <Breadcrumb items={[{ title: t('TXT_EMPLOYEE') }, { title: t('TXT_MANAGER') }]} />
+        <Breadcrumb items={[{ title: t('TXT_PRODUCTS') }, { title: t('TXT_MANAGER') }]} />
       </div>
 
-      <div className="w-full bg-white p-2 rounded-md shadow-sm overflow-auto">
+      <div className="h-full w-full bg-white p-2 rounded-md shadow-sm overflow-hidden">
         {/* Toolbar top */}
         <div className="flex align-items-center justify-between mb-4">
-          {/* Left */}
           <div className="flex align-items-center">
-            <TeamOutlined className="text-2xl text-primary mr-2" />
-            <h1 className="text-2xl font-semibold">{t('TXT_EMPLOYEE_LIST')}</h1>
+            <ShoppingOutlined className="text-2xl text-primary mr-2" />
+            <h1 className="text-2xl text-gray-800 font-semibold">{t('TXT_PRODUCT_LIST')}</h1>
           </div>
-          {/* Right */}
           <div className="flex align-items-center">
-
-            {employeeSelected && employeeSelected.length > 0 && (
+            {productSelected && productSelected.length > 0 && (
               <Popconfirm
                 placement="bottomRight"
                 title={t('TITLE_CONFIRM_DELETE_SELECTED')}
-                description={t('CONFIRM_DELETE_EMPLOYEES_SELECTED')}
-                onConfirm={handlerConfirmDeleteSelected}
+                description={t('CONFIRM_DELETE_PRODUCTS_SELECTED')}
+                onConfirm={handleConfirmDeleteSelected}
                 okText={t('TXT_CONFIRM')}
                 cancelText={t('TXT_CANCEL')}
               >
-                <Button type="primary" danger icon={<DeleteOutlined />} className="ml-2"
+                <Button 
+                  type="primary" 
+                  danger 
+                  icon={<DeleteOutlined />} 
+                  className="ml-2"
                   disabled={isDeletingLoading || isAddingByExcelLoading}
                   loading={isDeletingLoading}
                 >
@@ -374,87 +388,82 @@ const ProductManager = () => {
               </Popconfirm>
             )}
 
-            <Button type="primary" icon={<PlusOutlined />} className="ml-2" onClick={showModal}
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              className="ml-2" 
+              onClick={showModalCreate}
               disabled={isAddingByExcelLoading || isDeletingLoading}
             >
               {t('TXT_ADD_NEW')}
             </Button>
 
-            <Button type="primary" icon={<FileExcelOutlined />} className="ml-2" onClick={handleAddByExcel}
-              loading={isAddingByExcelLoading} disabled={isAddingByExcelLoading || isDeletingLoading}
+            <Dropdown.Button
+              className="ml-2"
+              loading={isAddingByExcelLoading}
+              disabled={isAddingByExcelLoading || isDeletingLoading}
+              onClick={handleAddByExcel}
+              type="primary"
+              menu={{ items: csvBtnAction, onClick: handlerSelectActionsCSV }}
             >
               {t('TXT_ADD_BY_EXCEL')}
-            </Button>
+            </Dropdown.Button>
           </div>
         </div>
 
         {/* Table */}
-        <Table dataSource={employeeList} loading={employeeListLoading}
-          scroll={{ y: height, x: true }}
-          rowSelection={Object.assign({ type: 'checkbox' }, rowSelection)}
-        >
-          {columns.map((column) => (
-            <Column
-              title={column.title}
-              dataIndex={column.dataIndex}
-              key={column.key}
-              filters={column.filters}
-              onFilter={column.onFilter}
-            />
-          ))}
-          <Column title="Hành động" key="action" render={(_, record) => (
-            <Space size="middle">
-              <Button type="primary" icon={<EditOutlined />}
-                onClick={() => handleEdit(record)}
-                loading={idEmployeeEditing === record.key}
-                disabled={idEmployeeDeleting === record.key || idEmployeeEditing === record.key}
-              >
-                {t('TXT_EDIT')}
-              </Button>
+        <AdminProductTable 
+          onEdit={handleEdit} 
+          onDelete={handleConfirmDeleteItem}
+          onSelectionChange={setProductSelected}
+        />
 
-              <Popconfirm
-                title={t('TITLE_CONFIRM_DELETE')}
-                description={t('CONFIRM_DELETE_EMPLOYEE')}
-                onConfirm={() => handlerConfirmDelete(record)}
-                okText={t('TXT_CONFIRM')}
-                cancelText={t('TXT_CANCEL')}
-              >
-                <Button type="primary" icon={<DeleteOutlined />} danger
-                  loading={idEmployeeDeleting === record.key}
-                  disabled={idEmployeeDeleting === record.key || idEmployeeEditing === record.key}
-                >
-                  {t('TXT_DELETE')}
-                </Button>
-              </Popconfirm>
+        {/* Hidden file input */}
+        <input
+          type="file"
+          ref={inputRef}
+          style={{ display: 'none' }}
+          accept=".xlsx,.xls"
+          onChange={handleFileChange}
+        />
 
-            </Space>
-          )}
-          />
-        </Table>
-
-        {/* Modal */}
+        {/* Modals */}
         {contextHolder}
-        <Modal title={t('TITLE_ADD_EMPLOYEE')} open={isModalOpen} footer={false} onCancel={handleCancel} >
-          {isModalOpen && <AddEmployeeForm onCancel={handleCancel} onOK={handleOk} onFail={handlerOnFail} />}
+        <Modal 
+          title={t('TITLE_ADD_PRODUCT')} 
+          open={isModalCreateOpen} 
+          footer={false} 
+          onCancel={handleCreateCancel}
+        >
+          {isModalCreateOpen && (
+            <CreateProductForm
+              storeId={storeActive.id}
+              storeCode={storeCode}
+              onCancel={handleCreateCancel}
+              onOK={handleCreateOk}
+              onFail={handleCreateFail}
+            />
+          )}
         </Modal>
-        <Modal title={t('TITLE_EDIT_EMPLOYEE')} open={isModalEditOpen} footer={false} onCancel={handleEditCancel}>
-          {employeeEdit && <EditEmployeeForm employeeId={employeeEdit.key} employeeEdit={employeeEdit}
-            onCancel={handleEditCancel}
-            onOK={handleEditOk}
-            onFail={handleEditFail}
-          />}
+
+        <Modal 
+          title={t('TITLE_EDIT_PRODUCT')} 
+          open={isModalEditOpen} 
+          footer={false} 
+          onCancel={handleEditCancel}
+        >
+          {productEdit && (
+            <EditProductForm 
+              productData={productEdit}
+              onCancel={handleEditCancel}
+              onOK={handleEditOk}
+              onFail={handleEditFail}
+            />
+          )}
         </Modal>
-
-        {/* Input update file csv or excel */}
-        <input type="file" ref={inputRef} hidden
-          accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          onChange={handlerOnChangeFile} />
-
-        {/* Test */}
-
       </div>
     </div>
   );
 };
 
-export default ProductManager;
+export default ProductManagerPage;

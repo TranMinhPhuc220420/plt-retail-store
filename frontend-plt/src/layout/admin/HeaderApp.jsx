@@ -16,7 +16,7 @@ import useStoreStore from '@/store/store';
 
 // Request
 import { getMyStores } from '@/request/store';
-import { BASE_URL } from '@/constant';
+import { SERVER_URL } from '@/constant';
 
 const HeaderApp = ({ isLoading }) => {
   const navigate = useNavigate();
@@ -133,7 +133,7 @@ const HeaderApp = ({ isLoading }) => {
                 key: store.code,
                 label: (
                   <div className='flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-2 py-1'>
-                    <img src={BASE_URL+store.imageUrl} className='h-full rounded-full' style={{ width: 18, height: 18 }} />
+                    <img src={SERVER_URL+store.imageUrl} className='h-full rounded-full' style={{ width: 18, height: 18 }} />
                     {store.name}
                   </div>
                 ),
@@ -144,7 +144,7 @@ const HeaderApp = ({ isLoading }) => {
           >
             <div className='h-10 flex items-center justify-start cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 px-2'>
               {storeActive && (
-                <img src={BASE_URL+storeActive.imageUrl} alt="Store Logo" className='h-full rounded-full' style={{ width: 25, height: 25 }} />
+                <img src={SERVER_URL+storeActive.imageUrl} alt="Store Logo" className='h-full rounded-full' style={{ width: 25, height: 25 }} />
               )}
               <div className='h-full ml-2 flex items-center justify-center'>
                 {storeActive ? storeActive.name : 'Chọn cửa hàng'}

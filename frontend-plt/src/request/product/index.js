@@ -1,11 +1,131 @@
 import { get, post } from "@/request";
 
+// Fetch all products
 export const getAllProducts = async () => {
   try {
-    const response = await get('/product/all');
+    const response = await get('/products/all');
     return response.data;
   } catch (error) {
-    console.error('Failed to fetch products:', error);
+    console.error('Failed to fetch all products:', error);
     throw error;
   }
+};
+
+// Fetch product details by ID
+export const getProductDetail = async (id) => {
+  try {
+    const response = await get(`/products/detail/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch product details for ID ${id}:`, error);
+    throw error;
+  }
+};
+
+// Delete a product by ID
+export const deleteProduct = async (id) => {
+  try {
+    const response = await post(`/products/delete/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to delete product with ID ${id}:`, error);
+    throw error;
+  }
+};
+
+// Fetch all products owned by the user
+export const getMyProducts = async (storeCode) => {
+  try {
+    const response = await get('/products/my-products', { storeCode });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch my products:', error);
+    throw error;
+  }
+};
+
+// Create a new product for the user
+export const createMyProduct = async (productData) => {
+  try {
+    const response = await post('/products/my-product', productData, {
+      'Content-Type': 'multipart/form-data',
+    });
+    return response.data;
+  } catch (error) {
+    let message = error.response?.data?.message;
+    throw message || 'MSG_PRODUCT_CREATION_FAILED';
+  }
+};
+
+// Create multiple products from an Excel file
+export const createMyProductTypeBulk = async (storeCode, products) => {
+  try {
+    const response = await post('/products/my-product-bulk', { storeCode, products }, {
+    });
+    return response.data;
+  } catch (error) {
+    let message = error.response?.data?.message;
+    throw message || 'MSG_PRODUCT_CREATION_BULK_FAILED';
+  }
+};
+
+// Fetch details of a specific product owned by the user
+export const getMyProductDetail = async (id) => {
+  try {
+    const response = await get(`/products/my-product/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch my product details for ID ${id}:`, error);
+    throw error;
+  }
+};
+
+// Update a specific product owned by the user
+export const updateMyProduct = async (id, productData) => {
+  try {
+    const response = await post(`/products/update-my-product/${id}`, productData, {
+      'Content-Type': 'multipart/form-data',
+    });
+    return response.data;
+  } catch (error) {
+    let message = error.response?.data?.message;
+    throw message || 'TXT_PRODUCT_UPDATE_FAILED';
+  }
+};
+
+// Delete a specific product owned by the user
+export const deleteMyProduct = async (id) => {
+  try {
+    const response = await post(`/products/delete-my-product/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to delete my product with ID ${id}:`, error);
+    throw error;
+  }
+};
+
+// Fetch products of a specific store owned by the user
+export const getMyProductsByStore = async (storeId) => {
+  try {
+    const response = await get(`/products/my-products/store/${storeId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch my products for store ID ${storeId}:`, error);
+    throw error;
+  }
+};
+
+// Fetch products of a specific store (public)
+export const getProductsByStore = async (storeId) => {
+  try {
+    const response = await get(`/products/store/${storeId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch products for store ID ${storeId}:`, error);
+    throw error;
+  }
+};
+
+export const downloadFileTemplateProduct = async () => {
+  window.open(PRODUCT_TYPE_TEMP_FILE, '_blank');
 }

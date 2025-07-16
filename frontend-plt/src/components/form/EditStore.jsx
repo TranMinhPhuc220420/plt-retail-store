@@ -11,7 +11,7 @@ import { Button, Input, Form, Upload, message } from "antd";
 import useAuth from "@/hooks/useAuth";
 
 // Constants
-import { BASE_URL } from "@/constant";
+import { SERVER_URL } from "@/constant";
 
 // Request
 import { updateMyStore } from "@/request/store";
@@ -44,7 +44,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
         email: storeData.email,
         description: storeData.description,
       });
-      setImageUrl(BASE_URL + storeData.imageUrl || "public/background-page-login.png");
+      setImageUrl(SERVER_URL + storeData.imageUrl || "public/background-page-login.png");
     }
 
   }, [storeData, form]);
@@ -89,7 +89,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       email: storeData.email,
       description: storeData.description,
     });
-    setImageUrl(BASE_URL + storeData.imageUrl || "public/background-page-login.png");
+    setImageUrl(SERVER_URL + storeData.imageUrl || "public/background-page-login.png");
     onCancel();
   };
 
@@ -99,7 +99,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       setImageUrl(URL.createObjectURL(file));
       setImageFile(file);
     } else {
-      setImageUrl(BASE_URL + storeData.imageUrl || "public/background-page-login.png");
+      setImageUrl(SERVER_URL + storeData.imageUrl || "public/background-page-login.png");
       setImageFile(null);
     }
   };

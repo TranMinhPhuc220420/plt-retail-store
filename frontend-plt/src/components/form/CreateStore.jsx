@@ -45,7 +45,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
       form.resetFields();
       setImageUrl("public/background-page-login.png");
       setImageFile(null);
-      message.success(t('MSG_STORE_CREATED_SUCCESS'));
+      message.success(t('TXT_STORE_CREATED_SUCCESS'));
 
       onOK();
     } catch (error) {

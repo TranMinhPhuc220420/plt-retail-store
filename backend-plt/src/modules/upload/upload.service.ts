@@ -3,7 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
-import { STORE_DISK_PATH } from '@/config';
+import { PRODUCT_DISK_PATH, STORE_DISK_PATH } from '@/config';
 
 @Injectable()
 export class UploadService {
@@ -26,6 +26,17 @@ export class StoreFileInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler) {
     const InterceptorClass = FileInterceptor('file', this.uploadService.getMulterOptions(STORE_DISK_PATH));
+    const interceptor = new InterceptorClass();
+    return interceptor.intercept(context, next);
+  }
+}
+
+@Injectable()
+export class ProductFileInterceptor implements NestInterceptor {
+  constructor(private readonly uploadService: UploadService) {}
+
+  intercept(context: ExecutionContext, next: CallHandler) {
+    const InterceptorClass = FileInterceptor('file', this.uploadService.getMulterOptions(PRODUCT_DISK_PATH));
     const interceptor = new InterceptorClass();
     return interceptor.intercept(context, next);
   }

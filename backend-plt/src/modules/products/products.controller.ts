@@ -3,15 +3,16 @@ import { Express } from 'express';
 
 // Services
 import { ProductsService } from '@/modules/products/products.service';
-import { StoreFileInterceptor } from '@/modules/upload/upload.service';
+import { ProductFileInterceptor } from '@/modules/upload/upload.service';
 // Middleware
 import { AuthMiddleware } from '@/modules/auth/auth.service';
 // Validation
 import { validateProductData, validateProductDelete, validateProductUpdateData } from '@/utils/validate';
 // Interfaces
-import { Product, User } from '@/interfaces';
+import { Product, ProductType, User } from '@/interfaces';
 // Constants
 import { ADMINISTRATOR_LIST, PRODUCT_URL_TEMP } from '@/config';
+import { convertProductData } from '@/utils';
 
 @Controller('products')
 export class ProductsController {
@@ -112,7 +113,22 @@ export class ProductsController {
   @Get('my-products')
   async getMyProducts(@Req() req) {
     const user = req.user as User;
-    return this.products_service.getMyProducts(user);
+    const storeCode = req.query.storeCode as string;
+
+    if (!user || !user.id) {
+      throw new BadRequestException('user_not_authenticated');
+    }
+    if (!storeCode) {
+      throw new BadRequestException('store_code_required');
+    }
+
+    const store = await this.products_service.getMyStoreByCode(user, storeCode);
+    if (!store) {
+      throw new BadRequestException('store_not_found');
+    }
+
+    const storeId = store.id;
+    return this.products_service.getMyProducts(user, storeId);
   }
 
   /**
@@ -126,11 +142,11 @@ export class ProductsController {
    * @returns The created product object.
    */
   @UseGuards(AuthMiddleware)
-  @UseInterceptors(StoreFileInterceptor)
+  @UseInterceptors(ProductFileInterceptor)
   @Post('my-product')
   async createProduct(
     @Req() req: any,
-    @Body() productData: Product,
+    @Body() productData: any,
     @UploadedFile() file?: Express.Multer.File
   ) {
     const user: User = req.user;
@@ -141,13 +157,80 @@ export class ProductsController {
     }
 
     // Validate product data
-    validateProductData(productData, user);
+    validateProductData({ ...productData, ownerId: user.id }, user);
+
+    // Check array of categories is valid
+    const categories : Array<ProductType> = [];
+    const categoryIds = Array.isArray(productData.categories) ? productData.categories : [];
+    for (const categoryId of categoryIds || []) {
+      const categoryExists = await this.products_service.getCategoryById(user, productData.storeId, categoryId);
+      if (!categoryExists) {
+        throw new BadRequestException(`product_category_id_not_found`);
+      }
+
+      categories.push(categoryExists);
+    }
+
+    // Check storeId is valid
+    const store = await this.products_service.getMyStoreById(user, productData.storeId);
+    if (!store) {
+      throw new BadRequestException('store_not_found');
+    }
+
+    const dataConvert = convertProductData(productData);
+    dataConvert.categories = categories;
 
     // Create product
     return this.products_service.createProduct({
-      ...productData,
+      ...dataConvert,
       ownerId: user.id, // Ensure the ownerId is set to the current user's ID
     });
+  }
+
+  /**
+   * Create multiple products in bulk for the authenticated user.
+   * 
+   * @param req - The incoming request object containing the authenticated user.
+   * @param productsData - Array of product data to create.
+   * @param storeCode - The store code where products will be created.
+   * @returns The created products.
+   */
+  @UseGuards(AuthMiddleware)
+  @Post('my-product-bulk')
+  async createProductsBulk(
+    @Req() req,
+    @Body('products') productsData: Product[],
+    @Body('storeCode') storeCode: string
+  ) {
+    const user = req.user as User;
+
+    if (!user || !user.id) {
+      throw new BadRequestException('user_not_authenticated');
+    }
+    if (!storeCode) {
+      throw new BadRequestException('store_code_required');
+    }
+    if (!Array.isArray(productsData) || productsData.length === 0) {
+      throw new BadRequestException('products_data_required');
+    }
+
+    // Validate each product data
+    productsData.forEach(product => {
+      validateProductData({ ...product, ownerId: user.id }, user);
+    });
+
+    const store = await this.products_service.getMyStoreByCode(user, storeCode);
+    if (!store) {
+      throw new BadRequestException('store_not_found');
+    }
+
+    return this.products_service.createProductsBulk(store, user,
+      productsData.map(product => ({
+        ...product,
+        ownerId: user.id,
+        storeId: store.id,
+      }))
+    );
   }
 
   /**
@@ -161,19 +244,17 @@ export class ProductsController {
   @Get('my-product/:id')
   async getMyProductById(@Req() req, @Param('id') productId: string) {
     const user = req.user as User;
+    const storeCode = req.query.storeCode as string;
 
-    // Fetch the product by ID for the authenticated user
+    if (!storeCode) {
+      throw new BadRequestException('store_code_required');
+    }
+
     return this.products_service.getMyProductById(user, productId);
   }
 
   /**
    * Handles updating a product's information for the authenticated user.
-   *
-   * - Receives updated product data and an optional image file from the client.
-   * - If a new image file is provided, updates the `imageUrl` field in `productData`.
-   * - Validates the update data based on the user's permissions.
-   * - Checks if the product exists for the current user and the given product ID.
-   * - If valid, updates the product information with the new data and ensures the `ownerId` is set to the current user.
    *
    * @param req - The request object containing user and params information.
    * @param productData - The updated product data.
@@ -182,9 +263,9 @@ export class ProductsController {
    * @throws BadRequestException if the product is not found.
    */
   @UseGuards(AuthMiddleware)
-  @UseInterceptors(StoreFileInterceptor)
+  @UseInterceptors(ProductFileInterceptor)
   @Post('update-my-product/:id')
-  async updateProduct(
+  async updateMyProduct(
     @Req() req,
     @Body() productData: Product,
     @UploadedFile() file?: Express.Multer.File
@@ -197,27 +278,30 @@ export class ProductsController {
       productData.imageUrl = PRODUCT_URL_TEMP.replace('{filename}', file.filename);
     }
 
-    // Validate product data
-    validateProductUpdateData(productData, user);
-
-    // Fetch the existing product
     const existingProduct = await this.products_service.getMyProductById(user, productId);
     if (!existingProduct) {
       throw new BadRequestException('product_not_found');
     }
 
-    // Update the product
+    // Validate product update data
+    validateProductUpdateData({ ...productData, ownerId: user.id }, user);
+
+    // Ensure the ownerId is set to the current user's ID
+    if (productData.ownerId !== user.id) {
+      productData.ownerId = user.id;
+    }
+    if (existingProduct.storeId !== productData.storeId) {
+      throw new BadRequestException('store_id_mismatch');
+    }
+
     return this.products_service.updateProduct(productId, {
       ...productData,
-      ownerId: user.id, // Ensure the ownerId is set to the current user's ID
+      ownerId: user.id,
     });
   }
 
   /**
    * Handles the deletion of a product owned by the authenticated user.
-   * 
-   * This endpoint validates the user's permission and the existence of the product before proceeding with deletion.
-   * Throws a BadRequestException if the product does not exist.
    * 
    * @param req - The request object containing the authenticated user.
    * @param productId - The ID of the product to be deleted, provided in the request body.
@@ -232,12 +316,11 @@ export class ProductsController {
     validateProductDelete(productId, user);
     
     // Fetch the product to ensure it exists
-    const product = await this.products_service.getMyProductById(user, productId);
+    const product = await this.products_service.getMyProductById(user, productId, undefined);
     if (!product) {
       throw new BadRequestException('product_not_found');
     }
 
-    // Delete the product
     return this.products_service.deleteProduct(productId);
   }
 
@@ -258,11 +341,14 @@ export class ProductsController {
   /**
    * Retrieves products by store ID (public endpoint).
    * 
+   * @param req - The incoming request object containing the authenticated user.
    * @param storeId - The ID of the store to get products for.
    * @returns A promise resolving to the list of products in the specified store.
    */
+  @UseGuards(AuthMiddleware)
   @Get('store/:storeId')
-  async getProductsByStore(@Param('storeId') storeId: string) {
-    return this.products_service.getProductsByStore(storeId);
+  async getProductsByStore(@Req() req, @Param('storeId') storeId: string) {
+    const user = req.user as User;
+    return this.products_service.getProductsByStore(user, storeId);
   }
 }

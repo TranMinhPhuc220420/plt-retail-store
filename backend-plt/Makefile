@@ -21,4 +21,4 @@ db_migrate_refresh:
 	rm -rf storages
 
 prisma_studio:
-	npm run db:studio
+	sudo npm run db:studio

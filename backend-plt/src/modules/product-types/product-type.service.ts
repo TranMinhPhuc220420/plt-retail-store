@@ -44,7 +44,9 @@ export class ProductTypeService {
     return productType;
   }
 
-  // Relationship with Store
+  ////////////////////////////////////////////////////////////
+  /**              Relationship with Store                  */
+  ////////////////////////////////////////////////////////////
   async getMyStoreByCode(user: User, storeCode: string, cache: boolean = true): Promise<Store | null> {
     if (!user || !user.id) {
       throw new UnauthorizedException('user_not_authenticated');

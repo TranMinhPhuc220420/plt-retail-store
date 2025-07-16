@@ -1,6 +1,6 @@
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 
-import { isValidEmail } from '@/utils';
+import { isValidEmail, tryValueParseInt } from '@/utils';
 
 // Interface for validation
 import { User, Store, ProductType, Product, Employee, StoreManager, Customer } from '@/interfaces';
@@ -255,24 +255,57 @@ export function validateProductData(product: Product, user: User): void {
   if (!product) {
     throw new BadRequestException('product_data_is_required');
   }
+  if (!product.productCode || product.productCode.trim() === '') {
+    throw new BadRequestException('product_code_is_required');
+  }
   if (!product.name || product.name.trim() === '') {
     throw new BadRequestException('product_name_is_required');
   }
-  
-  if (product.description && product.description.trim() === '') {
-    throw new BadRequestException('product_description_is_required');
+
+  if (!product.imageUrl || product.imageUrl.trim() === '') {
+    throw new BadRequestException('store_avatar_is_required');
   }
 
-  if (typeof product.price !== 'number' || product.price < 0) {
+  const parsedPrice = tryValueParseInt(product.price.toString());
+  if (parsedPrice === null || parsedPrice < 0) {
     throw new BadRequestException('product_price_is_invalid');
   }
 
-  if (typeof product.stock !== 'number' || product.stock < 0) {
+  const parsedRetailPrice = tryValueParseInt(product.retailPrice.toString());
+  if (parsedRetailPrice === null || parsedRetailPrice < 0) {
+    throw new BadRequestException('product_retail_price_is_invalid');
+  }
+
+  const parsedWholesalePrice = tryValueParseInt(product.wholesalePrice.toString());
+  if (parsedWholesalePrice === null || parsedWholesalePrice < 0) {
+    throw new BadRequestException('product_wholesale_price_is_invalid');
+  }
+
+  const parsedCostPrice = tryValueParseInt(product.costPrice.toString());
+  if (parsedCostPrice === null || parsedCostPrice < 0) {
+    throw new BadRequestException('product_cost_price_is_invalid');
+  }
+
+  const parsedStock = tryValueParseInt(product.stock.toString());
+  if (parsedStock === null || parsedStock < 0) {
     throw new BadRequestException('product_stock_is_invalid');
   }
 
-  if (product.imageUrl && product.imageUrl.trim() === '') {
-    throw new BadRequestException('product_image_url_is_required');
+  const parsedMinStock = tryValueParseInt(product.minStock.toString());
+  if (parsedMinStock === null || parsedMinStock < 0) {
+    throw new BadRequestException('product_min_stock_is_invalid');
+  }
+
+  if (!product.unit || product.unit.trim() === '') {
+    throw new BadRequestException('product_unit_is_required');
+  }
+
+  if (!product.status || product.status.trim() === '') {
+    throw new BadRequestException('product_status_is_required');
+  }
+
+  if (product.categories && !Array.isArray(product.categories)) {
+    throw new BadRequestException('product_categories_must_be_an_array');
   }
 
   if (!product.ownerId || product.ownerId !== user.id) {
@@ -297,27 +330,49 @@ export function validateProductUpdateData(product: Product, user: User): void {
   if (!product) {
     throw new BadRequestException('product_data_is_required');
   }
+  if (!product.productCode || product.productCode.trim() === '') {
+    throw new BadRequestException('product_code_is_required');
+  }
 
   if (product.name && product.name.trim() === '') {
     throw new BadRequestException('product_name_is_required');
   }
 
-  if (product.description && product.description.trim() === '') {
-    throw new BadRequestException('product_description_is_required');
-  }
-
-  if (typeof product.price !== 'number' || product.price < 0) {
+  if (product.price !== undefined && (typeof product.price !== 'number' || product.price < 0)) {
     throw new BadRequestException('product_price_is_invalid');
   }
 
-  if (typeof product.stock !== 'number' || product.stock < 0) {
+  if (product.retailPrice !== undefined && (typeof product.retailPrice !== 'number' || product.retailPrice < 0)) {
+    throw new BadRequestException('product_retail_price_is_invalid');
+  }
+
+  if (product.wholesalePrice !== undefined && (typeof product.wholesalePrice !== 'number' || product.wholesalePrice < 0)) {
+    throw new BadRequestException('product_wholesale_price_is_invalid');
+  }
+
+  if (product.costPrice !== undefined && (typeof product.costPrice !== 'number' || product.costPrice < 0)) {
+    throw new BadRequestException('product_cost_price_is_invalid');
+  }
+
+  if (product.stock !== undefined && (typeof product.stock !== 'number' || product.stock < 0)) {
     throw new BadRequestException('product_stock_is_invalid');
   }
 
-  if (product.imageUrl && product.imageUrl.trim() === '') {
-    throw new BadRequestException('product_image_url_is_required');
+  if (product.minStock !== undefined && (typeof product.minStock !== 'number' || product.minStock < 0)) {
+    throw new BadRequestException('product_min_stock_is_invalid');
   }
 
+  if (product.unit && product.unit.trim() === '') {
+    throw new BadRequestException('product_unit_is_required');
+  }
+
+  if (product.status && product.status.trim() === '') {
+    throw new BadRequestException('product_status_is_required');
+  }
+
+  if (product.categories && !Array.isArray(product.categories)) {
+    throw new BadRequestException('product_categories_must_be_an_array');
+  }
   if (product.ownerId && product.ownerId !== user.id) {
     throw new BadRequestException('product_owner_id_is_invalid');
   }

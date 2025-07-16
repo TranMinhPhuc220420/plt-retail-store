@@ -6,13 +6,13 @@ import { AuthMiddleware } from '@/modules/auth/auth.service';
 import { ProductsController } from './products.controller';
 // Services
 import { ProductsService } from './products.service';
-import { UploadService, StoreFileInterceptor } from '../upload/upload.service';
+import { UploadService, ProductFileInterceptor } from '../upload/upload.service';
 import { PrismaService } from '@/database/prisma.service';
 
 @Module({
   imports: [CacheModule.register()],
   controllers: [ProductsController],
-  providers: [ProductsService, UploadService, StoreFileInterceptor, PrismaService],
+  providers: [ProductsService, UploadService, ProductFileInterceptor, PrismaService],
 })
 export class ProductsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

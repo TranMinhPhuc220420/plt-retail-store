@@ -27,7 +27,7 @@ export const STORE_DISK_PATH = "./storages/stores/images";
 export const STORE_URL_TEMP = "/stores/images/{filename}";
 
 export const PRODUCT_DISK_PATH = "./storages/products/images";
-export const PRODUCT_URL_TEMP = "/uploads/products/images/{filename}";
+export const PRODUCT_URL_TEMP = "/products/images/{filename}";
 
 export const PUBLIC_DISK_PATH = "./public";
 
@@ -47,3 +47,6 @@ export const STORAGE_CONFIG = {
 };
 
 export const STORE_CODE_NOT_ALLOWED_TO_CREATE = ['admin', 'undefined', 'root', 'null', 'superadmin', 'administrator'];
+
+// Product
+export const IMAGE_PRODUCT_DEFAULT = "public/images/product-default.jpg";

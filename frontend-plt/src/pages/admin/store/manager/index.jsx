@@ -1,21 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 // Ant Design
-import Icon, { FireOutlined, DeleteOutlined, EditOutlined, FireFilled } from "@ant-design/icons";
-import { Button, Modal, message, Table, Space, Popconfirm, Row, Col } from "antd";
-const { Column } = Table;
+import { FireOutlined,EditOutlined } from "@ant-design/icons";
+import { Button, Modal, message } from "antd";
 
 // Zustand store
 import useStoreStore from "@/store/store";
 
-// Firebase
-import { getEmployeeList, deleteEmployee, addEmployee } from "@/database";
-
 // Third-party libraries
 
 // Constants
-import { BASE_URL } from "@/constant";
+import { SERVER_URL } from "@/constant";
 
 // Request
 import { getMyStores } from "@/request/store";
@@ -26,7 +23,6 @@ import styles from "./index.module.scss";
 // Components
 import CreateStoreForm from "@/components/form/CreateStore";
 import EditStoreForm from "@/components/form/EditStore";
-import { Link } from "react-router";
 
 const StoreManagerPage = () => {
   // Translation
@@ -118,7 +114,7 @@ const StoreManagerPage = () => {
                       <div className="flex flex-col items-center justify-center h-full">
                         <img
                           className="h-15 w-15 object-cover rounded-lg mb-4"
-                          src={`${BASE_URL}${store.imageUrl}`}
+                          src={`${SERVER_URL}${store.imageUrl}`}
                           alt={store.name}
                         />
                         <h3 className="text-lg font-semibold text-gray-800">{store.name}</h3>

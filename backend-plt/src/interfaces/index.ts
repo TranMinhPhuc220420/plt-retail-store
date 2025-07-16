@@ -63,11 +63,20 @@ interface ProductType {
 
 interface Product {
   id: string; // Unique identifier for the product
+  productCode: string; // Unique code for the product
   name: string; // Name of the product
   description?: string; // Optional description of the product
-  price: number; // Price of the product
-  stock: number; // Current stock level of the product
   imageUrl?: string; // Optional URL to an image of the product
+  
+  price: number; // Price of the product
+  retailPrice: number; // Retail price of the product
+  wholesalePrice: number; // Wholesale price of the product
+  costPrice: number; // Cost price of the product
+  minStock: number; // Minimum stock level for the product
+  stock: number; // Current stock level of the product
+  unit: string; // Unit of measurement for the product (e.g., 'pcs', 'kg', etc.)
+  status: string; // Status of the product (e.g., 'active', 'inactive', etc.)
+
   createdAt: Date; // Timestamp of when the product was created
   updatedAt: Date; // Timestamp of when the product was last updated
   
