@@ -1,112 +1,163 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '@/database/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
+// Entity imports
+import { StoreManager as StoreManagerEntity } from '@/entities/StoreManager';
+
+// Interface imports
 import { StoreManager, User } from '@/interfaces';
 
 @Injectable()
 export class StoreManagersService {
   constructor(
-    private readonly prisma: PrismaService,
+    @InjectRepository(StoreManagerEntity)
+    private readonly storeManagerRepository: Repository<StoreManagerEntity>,
   ) {}
 
-  async getAllStoreManagers() {
-    return this.prisma.storeManager.findMany({
-      include: {
-        user: true,
-        store: true,
+  /**
+   * Helper method to map StoreManagerEntity to StoreManager interface
+   */
+  private mapEntityToStoreManager(entity: StoreManagerEntity): StoreManager {
+    return {
+      id: entity.id,
+      userId: entity.userId,
+      storeId: entity.storeId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      user: {
+        id: entity.user.id,
+        email: entity.user.email,
+        username: entity.user.username,
+        fullname: entity.user.fullname,
+        avatar: entity.user.avatar,
+        role: entity.user.role,
+        isActive: entity.user.isActive,
+        createdAt: entity.user.createdAt,
+        updatedAt: entity.user.updatedAt,
       },
-    });
+      store: {
+        id: entity.store.id,
+        name: entity.store.name,
+        storeCode: entity.store.storeCode,
+        address: entity.store.address,
+        phone: entity.store.phone,
+        email: entity.store.email,
+        description: entity.store.description,
+        imageUrl: entity.store.imageUrl,
+        ownerId: entity.store.ownerId,
+        createdAt: entity.store.createdAt,
+        updatedAt: entity.store.updatedAt,
+      },
+    };
   }
 
-  async getStoreManagerById(id: string) {
-    return this.prisma.storeManager.findUnique({
+  async getAllStoreManagers(): Promise<StoreManager[]> {
+    const storeManagerEntities = await this.storeManagerRepository.find({
+      relations: ['user', 'store'],
+    });
+    return storeManagerEntities.map(entity => this.mapEntityToStoreManager(entity));
+  }
+
+  async getStoreManagerById(id: string): Promise<StoreManager | null> {
+    const storeManagerEntity = await this.storeManagerRepository.findOne({
       where: { id },
-      include: {
-        user: true,
-        store: true,
-      },
+      relations: ['user', 'store'],
     });
+    return storeManagerEntity ? this.mapEntityToStoreManager(storeManagerEntity) : null;
   }
 
-  async createStoreManager(data: StoreManager) {
-    return this.prisma.storeManager.create({
-      data: {
-        userId: data.userId,
-        storeId: data.storeId,
-      },
-      include: {
-        user: true,
-        store: true,
-      },
+  async createStoreManager(data: StoreManager): Promise<StoreManager> {
+    const storeManagerEntity = this.storeManagerRepository.create({
+      userId: data.userId,
+      storeId: data.storeId,
     });
+
+    const savedEntity = await this.storeManagerRepository.save(storeManagerEntity);
+    const savedStoreManager = await this.storeManagerRepository.findOne({
+      where: { id: savedEntity.id },
+      relations: ['user', 'store'],
+    });
+
+    return this.mapEntityToStoreManager(savedStoreManager!);
   }
 
-  async updateStoreManager(id: string, data: Partial<any>) {
-    return this.prisma.storeManager.update({
+  async updateStoreManager(id: string, data: Partial<StoreManager>): Promise<StoreManager> {
+    // Only update primitive fields, not nested objects
+    const updateData: Partial<StoreManagerEntity> = {};
+    if (data.userId !== undefined) updateData.userId = data.userId;
+    if (data.storeId !== undefined) updateData.storeId = data.storeId;
+
+    await this.storeManagerRepository.update({ id }, updateData);
+    const updatedEntity = await this.storeManagerRepository.findOne({
       where: { id },
-      data,
-      include: {
-        user: true,
-        store: true,
-      },
+      relations: ['user', 'store'],
     });
+
+    if (!updatedEntity) {
+      throw new Error('StoreManager not found after update');
+    }
+
+    return this.mapEntityToStoreManager(updatedEntity);
   }
 
-  async deleteStoreManager(id: string) {
-    return this.prisma.storeManager.delete({ where: { id } });
+  async deleteStoreManager(id: string): Promise<StoreManager> {
+    const storeManagerEntity = await this.storeManagerRepository.findOne({ where: { id } });
+    
+    if (!storeManagerEntity) {
+      throw new Error('StoreManager not found');
+    }
+
+    const storeManager = this.mapEntityToStoreManager(storeManagerEntity);
+    await this.storeManagerRepository.delete({ id });
+    return storeManager;
   }
 
-  async getMyStoreManagers(user: User) {
+  async getMyStoreManagers(user: User): Promise<StoreManager[]> {
     if (!user || !user.id) {
       throw new UnauthorizedException('user_not_authenticated');
     }
 
-    return this.prisma.storeManager.findMany({
+    const storeManagerEntities = await this.storeManagerRepository.find({
       where: { userId: user.id },
-      include: {
-        store: true,
-      },
+      relations: ['store'],
     });
+
+    return storeManagerEntities.map(entity => this.mapEntityToStoreManager(entity));
   }
 
-  async getMyStoreManagerById(user: User, storeManagerId: string) {
+  async getMyStoreManagerById(user: User, storeManagerId: string): Promise<StoreManager | null> {
     if (!user || !user.id) {
       throw new UnauthorizedException('user_not_authenticated');
     }
 
-    return this.prisma.storeManager.findFirst({
-      where: {
-        id: storeManagerId,
-        userId: user.id,
-      },
-      include: {
-        store: true,
-      },
+    const storeManagerEntity = await this.storeManagerRepository.findOne({
+      where: { id: storeManagerId, userId: user.id },
+      relations: ['store'],
     });
+
+    return storeManagerEntity ? this.mapEntityToStoreManager(storeManagerEntity) : null;
   }
 
-  async getStoreManagersByStore(storeId: string) {
-    return this.prisma.storeManager.findMany({
+  async getStoreManagersByStore(storeId: string): Promise<StoreManager[]> {
+    const storeManagerEntities = await this.storeManagerRepository.find({
       where: { storeId },
-      include: {
-        user: true,
-      },
+      relations: ['user'],
     });
+
+    return storeManagerEntities.map(entity => this.mapEntityToStoreManager(entity));
   }
 
-  async getMyStoreManagersByStore(user: User, storeId: string) {
+  async getMyStoreManagersByStore(user: User, storeId: string): Promise<StoreManager[]> {
     if (!user || !user.id) {
       throw new UnauthorizedException('user_not_authenticated');
     }
 
-    return this.prisma.storeManager.findMany({
-      where: {
-        storeId,
-        userId: user.id,
-      },
-      include: {
-        store: true,
-      },
+    const storeManagerEntities = await this.storeManagerRepository.find({
+      where: { storeId, userId: user.id },
+      relations: ['store'],
     });
+
+    return storeManagerEntities.map(entity => this.mapEntityToStoreManager(entity));
   }
 }

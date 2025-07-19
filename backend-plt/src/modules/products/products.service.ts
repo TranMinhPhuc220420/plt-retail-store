@@ -1,93 +1,171 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '@/database/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
+// Entity imports
+import { Product as ProductEntity } from '@/entities/Product';
+import { ProductType as ProductTypeEntity } from '@/entities/ProductType';
+import { Store as StoreEntity } from '@/entities/Store';
+
+// Interface imports
 import { Product, ProductType, Store, User } from '@/interfaces';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    private readonly prisma: PrismaService,
+    @InjectRepository(ProductEntity)
+    private readonly productRepository: Repository<ProductEntity>,
+    @InjectRepository(ProductTypeEntity)
+    private readonly productTypeRepository: Repository<ProductTypeEntity>,
+    @InjectRepository(StoreEntity)
+    private readonly storeRepository: Repository<StoreEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  /**
+   * Helper method to map ProductEntity to Product interface
+   */
+  private mapEntityToProduct(entity: ProductEntity): Product {
+    return {
+      id: entity.id,
+      productCode: entity.productCode,
+      name: entity.name,
+      description: entity.description,
+      imageUrl: entity.imageUrl,
+      price: entity.price,
+      retailPrice: entity.retailPrice,
+      wholesalePrice: entity.wholesalePrice,
+      costPrice: entity.costPrice,
+      stock: entity.stock,
+      minStock: entity.minStock,
+      unit: entity.unit,
+      status: entity.status,
+      ownerId: entity.ownerId,
+      storeId: entity.storeId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      categories: entity.categories?.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        description: cat.description,
+        storeId: cat.storeId,
+        ownerId: cat.ownerId,
+        createdAt: cat.createdAt,
+        updatedAt: cat.updatedAt,
+      })) ?? [],
+    };
+  }
+
+  /**
+   * Helper method to map StoreEntity to Store interface
+   */
+  private mapEntityToStore(entity: StoreEntity): Store {
+    return {
+      id: entity.id,
+      name: entity.name,
+      storeCode: entity.storeCode,
+      address: entity.address,
+      phone: entity.phone,
+      email: entity.email,
+      description: entity.description,
+      imageUrl: entity.imageUrl,
+      ownerId: entity.ownerId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
+
+  /**
+   * Helper method to map ProductTypeEntity to ProductType interface
+   */
+  private mapEntityToProductType(entity: ProductTypeEntity): ProductType {
+    return {
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      storeId: entity.storeId,
+      ownerId: entity.ownerId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 
   //////////////////////////////////////////////////
   /** Controller methods for store administration */
   //////////////////////////////////////////////////
 
-  async getAllProducts() {
+  async getAllProducts(): Promise<Product[]> {
     const cacheKey = 'products:all';
     const cached = await this.cacheManager.get(cacheKey);
     if (cached) {
-      return cached;
+      return cached as Product[];
     }
 
-    const products = await this.prisma.product.findMany({
-      include: {
-        store: true,
-        owner: true,
-        categories: true,
-        images: true,
-      },
+    const productEntities = await this.productRepository.find({
+      relations: ['store', 'owner', 'categories', 'images'],
     });
 
+    const products = productEntities.map(entity => this.mapEntityToProduct(entity));
     await this.cacheManager.set(cacheKey, products, 300000); // 5 minutes
     return products;
   }
 
-  async getProductById(id: string) {
+  async getProductById(id: string): Promise<Product | null> {
     const cacheKey = `products:${id}`;
     const cached = await this.cacheManager.get(cacheKey);
     if (cached) {
-      return cached;
+      return cached as Product;
     }
 
-    const product = await this.prisma.product.findUnique({
+    const productEntity = await this.productRepository.findOne({
       where: { id },
-      include: {
-        store: true,
-        owner: true,
-        categories: true,
-        images: true,
-      },
+      relations: ['store', 'owner', 'categories', 'images'],
     });
 
-    if (product) {
-      await this.cacheManager.set(cacheKey, product, 300000); // 5 minutes
+    if (!productEntity) {
+      return null;
     }
+
+    const product = this.mapEntityToProduct(productEntity);
+    await this.cacheManager.set(cacheKey, product, 300000); // 5 minutes
     return product;
   }
 
-  async createProduct(data: Product) {
-    const product = await this.prisma.product.create({
-      data: {
-        productCode: data.productCode,
-        name: data.name,
-        description: data.description,
-        imageUrl: data.imageUrl,
-        
-        price: data.price,
-        retailPrice: data.retailPrice,
-        wholesalePrice: data.wholesalePrice,
-        costPrice: data.costPrice,
-        stock: data.stock,
-        minStock: data.minStock,
-        unit: data.unit,
-        status: data.status,
-
-        categories: {
-          connect: data.categories?.map(category => ({ id: category.id })),
-        },
-        ownerId: data.ownerId,
-        storeId: data.storeId,
-      },
-      include: {
-        store: true,
-        owner: true,
-        categories: true,
-      },
+  async createProduct(data: Product): Promise<Product> {
+    const productEntity = this.productRepository.create({
+      productCode: data.productCode,
+      name: data.name,
+      description: data.description,
+      imageUrl: data.imageUrl,
+      price: data.price,
+      retailPrice: data.retailPrice,
+      wholesalePrice: data.wholesalePrice,
+      costPrice: data.costPrice,
+      stock: data.stock,
+      minStock: data.minStock,
+      unit: data.unit,
+      status: data.status,
+      ownerId: data.ownerId,
+      storeId: data.storeId,
     });
+
+    // Handle categories if provided
+    if (data.categories && data.categories.length > 0) {
+      const categories = await this.productTypeRepository.findByIds(
+        data.categories.map(cat => cat.id)
+      );
+      productEntity.categories = categories;
+    }
+
+    const savedEntity = await this.productRepository.save(productEntity);
+    const savedProduct = await this.productRepository.findOne({
+      where: { id: savedEntity.id },
+      relations: ['store', 'owner', 'categories'],
+    });
+
+    const product = this.mapEntityToProduct(savedProduct!);
 
     // Invalidate related caches
     await this.invalidateProductCaches(data.ownerId, data.storeId);
@@ -95,19 +173,37 @@ export class ProductsService {
     return product;
   }
 
-  async updateProduct(id: string, data: Partial<any>) {
-    // Exclude ownerId from update data
-    const { ownerId, ...updateData } = data;
+  async updateProduct(id: string, data: Partial<Product>): Promise<Product> {
+    const { ownerId, owner, store, categories, ...updateData } = data;
 
-    const product = await this.prisma.product.update({
+    await this.productRepository.update({ id }, updateData);
+
+    // Handle categories update if provided
+    if (categories) {
+      const product = await this.productRepository.findOne({
+        where: { id },
+        relations: ['categories'],
+      });
+      
+      if (product) {
+        const newCategories = await this.productTypeRepository.findByIds(
+          categories.map(cat => cat.id)
+        );
+        product.categories = newCategories;
+        await this.productRepository.save(product);
+      }
+    }
+
+    const updatedEntity = await this.productRepository.findOne({
       where: { id },
-      data: updateData,
-      include: {
-        store: true,
-        owner: true,
-        categories: true,
-      },
+      relations: ['store', 'owner', 'categories'],
     });
+
+    if (!updatedEntity) {
+      throw new Error('Product not found after update');
+    }
+
+    const product = this.mapEntityToProduct(updatedEntity);
 
     // Invalidate related caches
     await this.invalidateProductCaches(product.ownerId, product.storeId, id);
@@ -115,21 +211,21 @@ export class ProductsService {
     return product;
   }
 
-  async deleteProduct(id: string) {
+  async deleteProduct(id: string): Promise<Product> {
     // Get product details before deletion for cache invalidation
-    const product = await this.prisma.product.findUnique({
-      where: { id },
-      select: { ownerId: true, storeId: true },
-    });
-
-    const result = await this.prisma.product.delete({ where: { id } });
-
-    // Invalidate related caches
-    if (product) {
-      await this.invalidateProductCaches(product.ownerId, product.storeId, id);
+    const productEntity = await this.productRepository.findOne({ where: { id } });
+    
+    if (!productEntity) {
+      throw new Error('Product not found');
     }
 
-    return result;
+    const product = this.mapEntityToProduct(productEntity);
+    await this.productRepository.delete({ id });
+
+    // Invalidate related caches
+    await this.invalidateProductCaches(product.ownerId, product.storeId, id);
+
+    return product;
   }
 
   ////////////////////////////////////////////////////////////
@@ -149,16 +245,17 @@ export class ProductsService {
       }
     }
 
-    const store = await this.prisma.store.findUnique({ 
+    const storeEntity = await this.storeRepository.findOne({
       where: { id: storeId },
-      include: {
-        owner: true,
-      }
-    }) as Store | null;
+      relations: ['owner'],
+    });
     
-    if (store) {
-      await this.cacheManager.set(cacheKey, store, 300000); // 5 minutes
+    if (!storeEntity) {
+      return null;
     }
+
+    const store = this.mapEntityToStore(storeEntity);
+    await this.cacheManager.set(cacheKey, store, 300000); // 5 minutes
     return store;
   }
 
@@ -175,10 +272,13 @@ export class ProductsService {
       }
     }
 
-    const store = await this.prisma.store.findUnique({ where: { storeCode: storeCode } }) as Store | null;
-    if (store) {
-      await this.cacheManager.set(cacheKey, store, 300000); // 5 minutes
+    const storeEntity = await this.storeRepository.findOne({ where: { storeCode } });
+    if (!storeEntity) {
+      return null;
     }
+
+    const store = this.mapEntityToStore(storeEntity);
+    await this.cacheManager.set(cacheKey, store, 300000); // 5 minutes
     return store;
   }
 
@@ -199,18 +299,17 @@ export class ProductsService {
       return cached as ProductType;
     }
 
-    const productType = await this.prisma.productType.findUnique({
+    const productTypeEntity = await this.productTypeRepository.findOne({
       where: { id: categoryId, storeId },
-      include: {
-        store: true,
-        owner: true,
-        products: true,
-      },
-    }) as ProductType | null;
+      relations: ['store', 'owner', 'products'],
+    });
 
-    if (productType) {
-      await this.cacheManager.set(cacheKey, productType, 300000); // 5 minutes
+    if (!productTypeEntity) {
+      return null;
     }
+
+    const productType = this.mapEntityToProductType(productTypeEntity);
+    await this.cacheManager.set(cacheKey, productType, 300000); // 5 minutes
 
     return productType;
   }
@@ -232,16 +331,13 @@ export class ProductsService {
       }
     }
 
-    const products = await this.prisma.product.findMany({
-      where: { ownerId: user.id, storeId: storeId },
-      include: {
-        store: true,
-        categories: true,
-        images: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-    }) as Product[];
+    const productEntities = await this.productRepository.find({
+      where: { ownerId: user.id, storeId },
+      relations: ['store', 'categories', 'images'],
+      order: { updatedAt: 'DESC' },
+    });
 
+    const products = productEntities.map(entity => this.mapEntityToProduct(entity));
     await this.cacheManager.set(cacheKey, products, 300000); // 5 minutes
     return products;
   }
@@ -259,21 +355,17 @@ export class ProductsService {
       }
     }
 
-    const product = await this.prisma.product.findFirst({
-      where: {
-        id: productId,
-        ownerId: user.id,
-      },
-      include: {
-        store: true,
-        categories: true,
-        images: true,
-      },
-    }) as Product | null;
+    const productEntity = await this.productRepository.findOne({
+      where: { id: productId, ownerId: user.id },
+      relations: ['store', 'categories', 'images'],
+    });
 
-    if (product) {
-      await this.cacheManager.set(cacheKey, product, 300000); // 5 minutes
+    if (!productEntity) {
+      return null;
     }
+
+    const product = this.mapEntityToProduct(productEntity);
+    await this.cacheManager.set(cacheKey, product, 300000); // 5 minutes
     return product;
   }
 
@@ -290,21 +382,17 @@ export class ProductsService {
       }
     }
 
-    const product = await this.prisma.product.findFirst({
-      where: {
-        productCode: productCode,
-        ownerId: user.id,
-      },
-      include: {
-        store: true,
-        categories: true,
-        images: true,
-      },
-    }) as Product | null;
+    const productEntity = await this.productRepository.findOne({
+      where: { productCode, ownerId: user.id },
+      relations: ['store', 'categories', 'images'],
+    });
     
-    if (product) {
-      await this.cacheManager.set(cacheKey, product, 300000); // 5 minutes
+    if (!productEntity) {
+      return null;
     }
+
+    const product = this.mapEntityToProduct(productEntity);
+    await this.cacheManager.set(cacheKey, product, 300000); // 5 minutes
 
     return product;
   }
@@ -322,15 +410,13 @@ export class ProductsService {
       }
     }
 
-    const products = await this.prisma.product.findMany({
+    const productEntities = await this.productRepository.find({
       where: { storeId },
-      include: {
-        categories: true,
-        images: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-    }) as Product[];
+      relations: ['categories', 'images'],
+      order: { updatedAt: 'DESC' },
+    });
 
+    const products = productEntities.map(entity => this.mapEntityToProduct(entity));
     await this.cacheManager.set(cacheKey, products, 300000); // 5 minutes
     return products;
   }
@@ -348,50 +434,42 @@ export class ProductsService {
       }
     }
 
-    const products = await this.prisma.product.findMany({
-      where: {
-        storeId,
-        ownerId: user.id,
-      },
-      include: {
-        store: true,
-        categories: true,
-        images: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-    }) as Product[];
+    const productEntities = await this.productRepository.find({
+      where: { storeId, ownerId: user.id },
+      relations: ['store', 'categories', 'images'],
+      order: { updatedAt: 'DESC' },
+    });
 
+    const products = productEntities.map(entity => this.mapEntityToProduct(entity));
     await this.cacheManager.set(cacheKey, products, 300000); // 5 minutes
     return products;
   }
 
   async createProductsBulk(store: Store, user: User, data: Product[]): Promise<Product[]> {
-    const products = await this.prisma.product.createMany({
-      data: data.map(product => ({
-        productCode: product.productCode,
-        name: product.name,
-        description: product.description,
-        imageUrl: product.imageUrl,
-        price: product.price,
-        retailPrice: product.retailPrice,
-        wholesalePrice: product.wholesalePrice,
-        costPrice: product.costPrice,
-        stock: product.stock,
-        minStock: product.minStock,
-        unit: product.unit,
-        status: product.status,
-        ownerId: product.ownerId,
-        storeId: product.storeId,
-      })),
-      skipDuplicates: true,
-    });
+    const productEntities = data.map(product => this.productRepository.create({
+      productCode: product.productCode,
+      name: product.name,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      price: product.price,
+      retailPrice: product.retailPrice,
+      wholesalePrice: product.wholesalePrice,
+      costPrice: product.costPrice,
+      stock: product.stock,
+      minStock: product.minStock,
+      unit: product.unit,
+      status: product.status,
+      ownerId: product.ownerId,
+      storeId: product.storeId,
+    }));
+
+    await this.productRepository.save(productEntities);
 
     // Invalidate related caches
     await this.invalidateProductCaches(user.id, store.id);
 
     return this.getMyProductsByStore(user, store.id, false); // Return the updated list without cache
   }
-
 
   private async invalidateProductCaches(ownerId?: string, storeId?: string, productId?: string) {
     const keys = [
@@ -401,7 +479,7 @@ export class ProductsService {
       ...(ownerId && storeId ? [`my-products:${ownerId}:store:${storeId}`] : []),
       ...(productId ? [`products:${productId}`] : []),
       ...(ownerId && productId ? [`my-products:${ownerId}:${productId}`] : []),
-      ...(ownerId && storeId ? [`my-store:${ownerId}:${storeId}`] : []), // Include store cache key
+      ...(ownerId && storeId ? [`my-store:${ownerId}:${storeId}`] : []),
     ];
 
     await Promise.all(keys.map(key => this.cacheManager.del(key)));

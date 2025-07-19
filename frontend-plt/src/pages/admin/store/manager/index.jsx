@@ -108,13 +108,13 @@ const StoreManagerPage = () => {
             </div>
             {/* Store Cards */}
             {stores.map((store) => (
-              <div key={store.id} className="mb-10">
+              <div key={store._id} className="mb-10">
                   <div className="relative p-4 border bg-white border-gray-200 h-50 rounded-2xl shadow text-center hover:bg-gray-100 transition duration-300 ease-in-out">
                     <Link to={`/store/${store.storeCode}/admin`} className="no-underline">
                       <div className="flex flex-col items-center justify-center h-full">
                         <img
                           className="h-15 w-15 object-cover rounded-lg mb-4"
-                          src={`${SERVER_URL}${store.imageUrl}`}
+                          src={`${store.imageUrl}`}
                           alt={store.name}
                         />
                         <h3 className="text-lg font-semibold text-gray-800">{store.name}</h3>

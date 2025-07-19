@@ -1,4 +1,4 @@
-import { get, post } from "@/request";
+import { get, getApi, post, postApi } from "@/request";
 
 import { PRODUCT_TYPE_TEMP_FILE } from "@/constant";
 
@@ -38,10 +38,10 @@ export const deleteProductType = async (id) => {
 // Fetch all product types owned by the user
 export const getMyProductTypes = async (storeCode) => {
   try {
-    const response = await get('/product-types/my-product-types', { storeCode });
+    const response = await getApi(`/product-categories/my-categories-stores/${storeCode}`);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.message;
+    let message = error.response?.data?.error;
     throw message || 'MSG_ERROR_FETCHING_PRODUCT_TYPES';
   }
 };
@@ -49,11 +49,11 @@ export const getMyProductTypes = async (storeCode) => {
 // Create a new product type for the user
 export const createMyProductType = async (productTypeData) => {
   try {
-    const response = await post('/product-types/my-product-type', productTypeData, {
+    const response = await postApi('/product-categories/my-categories-stores', productTypeData, {
     });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.message;
+    let message = error.response?.data?.error;
     throw message || 'MSG_PRODUCT_TYPE_CREATION_FAILED';
   }
 };
@@ -65,7 +65,7 @@ export const createMyProductTypeTypeBulk = async (storeCode, productTypes) => {
     });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.message;
+    let message = error.response?.data?.error;
     throw message || 'MSG_PRODUCT_TYPE_CREATION_FAILED';
   }
 };
@@ -88,7 +88,7 @@ export const updateMyProductType = async (id, productTypeData) => {
     });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.message;
+    let message = error.response?.data?.error;
     throw message || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
   }
 };

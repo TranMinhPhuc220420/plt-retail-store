@@ -1,5 +1,7 @@
 import { Inject, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 // Cache
 import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
@@ -8,12 +10,14 @@ import { Cache } from 'cache-manager';
 import * as jwt from 'jsonwebtoken';
 
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@/database/prisma.service';
+
+// Entities
+import { User } from '@/entities/User';
 
 // Utils
 import { generateCacheKey } from '@/utils';
 // Interfaces
-import { User } from '@/interfaces'; // Assuming you have a User interface defined
+import { User as UserInterface } from '@/interfaces'; // Assuming you have a User interface defined
 // Constants
 import { USER_DEV } from '@/config';
 import { TIMEOUT_CACHE } from '@/config/cache.config';
@@ -21,12 +25,13 @@ import { TIMEOUT_CACHE } from '@/config/cache.config';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(username: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { username } });
+    const user = await this.userRepository.findOne({ where: { username } });
   
     const { ...result } = user;
     return result;
@@ -35,34 +40,34 @@ export class AuthService {
   }
 
   async getUserByUsername(username: string) {
-    return await this.prisma.user.findUnique({ where: { username } });
+    return await this.userRepository.findOne({ where: { username } });
   }
 
   async getUserByEmail(email: string) {
-    return await this.prisma.user.findUnique({ where: { email } });
+    return await this.userRepository.findOne({ where: { email } });
   }
 
   async getUserByUsernameOrEmail(usernameOrEmail: string) {
-    return await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          { username: usernameOrEmail },
-          { email: usernameOrEmail },
-        ],
-      },
+    return await this.userRepository.findOne({
+      where: [
+        { username: usernameOrEmail },
+        { email: usernameOrEmail },
+      ],
     });
   }
 
-  async register(data: User) {
-    const user = await this.prisma.user.create({
-      data: {
-        email: data.email,
-        avatar: data.avatar as string,
-        username: data.username,
-        fullname: data.fullname,
-      },
+  async register(data: UserInterface) {
+    const user = this.userRepository.create({
+      email: data.email,
+      avatar: data.avatar as string,
+      username: data.username,
+      fullname: data.fullname,
+      role: data.role as User['role'], // Ensure correct type
+      isActive: data.isActive,
     });
-    const { ...result } = user;
+    
+    const savedUser = await this.userRepository.save(user);
+    const { ...result } = savedUser;
     return result;
   }
 
@@ -78,7 +83,8 @@ export class AuthService {
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
   constructor(
-    private readonly prisma: PrismaService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -122,7 +128,7 @@ export class AuthMiddleware implements NestMiddleware {
       }
 
       // Attach user information to the request object
-      const userEntry = await this.prisma.user.findUnique({
+      const userEntry = await this.userRepository.findOne({
         where: { id: sub },
       });
 

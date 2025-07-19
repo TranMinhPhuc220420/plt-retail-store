@@ -404,7 +404,7 @@ const ProductTypeManager = () => {
         >
           {isModalCreateOpen && (
             <CreateProductTypeForm
-              storeId={storeActive.id}
+              storeId={storeActive._id}
               onCancel={handleCreateCancel}
               onOK={handleCreateOk} 
             />
@@ -419,7 +419,7 @@ const ProductTypeManager = () => {
         >
           {productTypeEdit && (
             <EditProductTypeForm 
-              storeId={storeActive.id}
+              storeId={storeActive._id}
               productTypeId={productTypeEdit.key} 
               productTypeEdit={productTypeEdit}
               onCancel={handleEditCancel}

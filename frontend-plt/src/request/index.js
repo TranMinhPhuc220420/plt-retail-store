@@ -50,3 +50,37 @@ export const post = (url, data, headers={}) => {
 
   return apiClient.post(url, data, { headers });
 }
+
+export const put = (url, data, headers={}) => {
+  if (headers['Content-Type'] === 'multipart/form-data') {
+    return apiFormDataClient.put(url, data, { headers });
+  }
+  return apiClient.put(url, data, { headers });
+}
+
+export const deleteRequest = (url, params = {}) => {
+  return apiClient.delete(url, { params });
+} 
+
+export const getApi = (url, params = {}) => {
+  return apiClient.get(`api${url}`, { params });
+}
+
+export const postApi = (url, data, headers={}) => {
+  if (headers['Content-Type'] === 'multipart/form-data') {
+    return apiFormDataClient.post(`api${url}`, data, { headers });
+  }
+
+  return apiClient.post(`api${url}`, data, { headers });
+}
+
+export const putApi = (url, data, headers={}) => {
+  if (headers['Content-Type'] === 'multipart/form-data') {
+    return apiFormDataClient.put(`api${url}`, data, { headers });
+  }
+  return apiClient.put(`api${url}`, data, { headers });
+}
+
+export const deleteApi = (url, params = {}) => {
+  return apiClient.delete(`api${url}`, { params });
+}

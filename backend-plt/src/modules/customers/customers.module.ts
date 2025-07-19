@@ -5,11 +5,10 @@ import { AuthMiddleware } from '@/modules/auth/auth.service';
 import { CustomersController } from './customers.controller';
 // Services
 import { CustomersService } from './customers.service';
-import { PrismaService } from '@/database/prisma.service';
 
 @Module({
   controllers: [CustomersController],
-  providers: [CustomersService, PrismaService],
+  providers: [CustomersService],
   exports: [CustomersService],
 })
 export class CustomersModule implements NestModule {

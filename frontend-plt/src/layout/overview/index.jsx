@@ -11,26 +11,23 @@ import HeaderApp from './HeaderApp';
 
 const App = () => {
   // Use hooks state
-  const { user } = useAuth();
+  const { user, isChecking, isError } = useAuth();
 
   // State
-  const [isLoading, setIsLoading] = useState(true);
 
   // Effect
   useEffect(() => {
-    if (user && user.id) {
-      setIsLoading(false);
-    }
-  }, [user]);
+  }, []);
 
   return (
     <Layout className='flex flex-col h-screen'>
 
-      <HeaderApp isLoading={isLoading} />
+      <HeaderApp isLoading={isChecking} />
 
       <Content>
         {/* This is where the child routes will be rendered */}
-        {!isLoading && <Outlet />}
+        {!isChecking && <Outlet />}
+        {isError && <div className='text-red-500 text-center'>Error: {isError}</div>}
       </Content>
 
       <Footer className='text-center'>

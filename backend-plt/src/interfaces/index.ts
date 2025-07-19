@@ -17,8 +17,8 @@ interface StoreManager {
   userId: string; // Reference to the user associated with this store manager
   createdAt: Date; // Timestamp of when the store manager was created
   updatedAt: Date; // Timestamp of when the store manager was last updated
-  store: Store; // Reference to the store managed by this manager
-  user: User; // Reference to the user associated with this store manager
+  store?: Store; // Reference to the store managed by this manager
+  user?: User; // Reference to the user associated with this store manager
 }
 
 interface Employee {
@@ -28,21 +28,25 @@ interface Employee {
   position: string; // Employee's position or job title
   createdAt: Date;  // Timestamp of when the employee was created
   updatedAt: Date;  // Timestamp of when the employee was last updated
+
+  user?: User; // Optional reference to the user object
+  store?: Store; // Optional reference to the store object
 }
 
 interface Customer {
   id: string; // Unique identifier for the customer
   userId: string; // Reference to the user associated with this customer
   storeId: string; // Reference to the store where the customer is registered
-  loyaltyPoints: number; // Number of loyalty points the customer has
   createdAt: Date; // Timestamp of when the customer was created
   updatedAt: Date; // Timestamp of when the customer was last updated
-  isActive: boolean; // Indicates if the customer is active or not
   phoneNumber?: string; // Optional phone number for the customer
   address?: string; // Optional address for the customer
   notes?: string; // Optional notes about the customer
   lastPurchaseDate?: Date; // Optional date of the last purchase made by the customer
   totalSpent?: number; // Optional total amount spent by the customer
+
+  user?: User; // Optional reference to the user object
+  store?: Store; // Optional reference to the store object
 }
 
 interface ProductType {

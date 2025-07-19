@@ -4,7 +4,6 @@ import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
-import { PrismaService } from '@/database/prisma.service';
 
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
@@ -24,10 +23,6 @@ async function bootstrap() {
       { prefix: config.prefix }
     );
   }
-  
-  // Enable shutdown hooks for Prisma
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
   
   // Enable CORS
   app.enableCors({

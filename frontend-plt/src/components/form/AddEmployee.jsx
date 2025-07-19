@@ -9,7 +9,6 @@ import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import { Button, Input } from "antd";
 
 // Firebase
-import { addEmployee } from "@/database";
 
 import { EMPLOYEE_LEVEL, BRANCH_LIST, POSITION_LIST } from "@/constant";
 

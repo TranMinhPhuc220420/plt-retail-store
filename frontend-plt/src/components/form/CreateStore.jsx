@@ -11,7 +11,7 @@ import { Button, Input, Form, Upload, message } from "antd";
 import useAuth from "@/hooks/useAuth";
 
 // Request
-import { createMyStore, validateStoreCode } from "@/request/store";
+import { createMyStore, uploadAvatarStore } from "@/request/store";
 
 // Utilities
 import { } from "@/utils";
@@ -27,6 +27,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState("public/background-page-login.png");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -34,8 +35,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
     setIsLoading(true);
 
     // Additional params
-    values.ownerId = user.sub;
-    values.file = imageFile;
+    values.imageUrl = imageUrl;
     values.storeCode = values.storeCode ? values.storeCode.toLowerCase() : '';
 
     // Add store to database
@@ -66,13 +66,20 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
     onCancel();
   };
 
-  const handleAvatarChange = (info) => {
+  const handleAvatarChange = async (info) => {
     console.log("Avatar change info:", info);
     const file = info.file;
 
     if (file) {
-      setImageUrl(URL.createObjectURL(file));
-      setImageFile(file);
+      setIsUploadingImage(true);
+      try {
+        const imageUrl = await uploadAvatarStore(file);
+        setImageUrl(imageUrl);
+      } catch (error) {
+        message.error(t('TXT_AVATAR_UPLOAD_FAILED'));
+      } finally {
+        setIsUploadingImage(false);
+      }
     } else {
       setImageUrl("public/background-page-login.png");
       setImageFile(null);
@@ -86,6 +93,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
         {/* Avatar input */}
         <div className="w-full flex justify-center items-center">
           <Upload
+            disabled={isUploadingImage}
             listType="picture-circle"
             showUploadList={false}
             beforeUpload={() => false}

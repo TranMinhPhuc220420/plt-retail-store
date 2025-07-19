@@ -52,7 +52,7 @@ export const createMyProduct = async (productData) => {
     });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.message;
+    let message = error.response?.data?.error;
     throw message || 'MSG_PRODUCT_CREATION_FAILED';
   }
 };
@@ -64,7 +64,7 @@ export const createMyProductTypeBulk = async (storeCode, products) => {
     });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.message;
+    let message = error.response?.data?.error;
     throw message || 'MSG_PRODUCT_CREATION_BULK_FAILED';
   }
 };
@@ -88,7 +88,7 @@ export const updateMyProduct = async (id, productData) => {
     });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.message;
+    let message = error.response?.data?.error;
     throw message || 'TXT_PRODUCT_UPDATE_FAILED';
   }
 };

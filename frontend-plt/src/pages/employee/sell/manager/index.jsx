@@ -4,9 +4,6 @@ import * as XLSX from 'xlsx';
 
 import { useTranslation } from "react-i18next";
 
-// Firebase
-import { } from "@/database";
-
 import { PlusOutlined, FileExcelOutlined, AuditOutlined, DeleteOutlined, EditOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Modal, message, Table, Space, Popconfirm, Row, Col } from "antd";
 const { Column, ColumnGroup } = Table;

@@ -33,9 +33,6 @@ const CreateProductTypeForm = ({ storeId, onOK, onFail, onCancel }) => {
 
     // Additional params
     values.storeId = storeId;
-    values.ownerId = user.sub;
-    console.log(values);
-    
 
     // Add store to database
     try {

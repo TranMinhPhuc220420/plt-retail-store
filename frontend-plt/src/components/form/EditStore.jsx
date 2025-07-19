@@ -14,7 +14,7 @@ import useAuth from "@/hooks/useAuth";
 import { SERVER_URL } from "@/constant";
 
 // Request
-import { updateMyStore } from "@/request/store";
+import { updateMyStore, uploadAvatarStore } from "@/request/store";
 
 const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
   // i18n
@@ -25,15 +25,13 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
 
   // State
   const [isLoading, setIsLoading] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(storeData?.imageUrl || "public/background-page-login.png");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
 
   useEffect(() => {
-
     setIsLoading(false);
-    setImageFile(null);
 
     if (storeData) {
       form.setFieldsValue({
@@ -44,28 +42,23 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
         email: storeData.email,
         description: storeData.description,
       });
-      setImageUrl(SERVER_URL + storeData.imageUrl || "public/background-page-login.png");
+      setImageUrl(storeData.imageUrl || "public/background-page-login.png");
     }
-
   }, [storeData, form]);
 
   const onSubmit = async (values) => {
     setIsLoading(true);
 
     // Additional params
-    values.id = storeData.id;
     values.ownerId = user.sub;
-    if (imageFile) {
-      values.file = imageFile;
-    }
+    values.imageUrl = imageUrl;
 
     try {
       // Update store in database
-      await updateMyStore(values.id, values);
+      await updateMyStore(storeData._id, values);
 
       form.resetFields();
       setImageUrl("public/background-page-login.png");
-      setImageFile(null);
       message.success(t('TXT_STORE_UPDATED_SUCCESS'));
 
       onOK();
@@ -89,18 +82,26 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       email: storeData.email,
       description: storeData.description,
     });
-    setImageUrl(SERVER_URL + storeData.imageUrl || "public/background-page-login.png");
+    setImageUrl(storeData.imageUrl || "public/background-page-login.png");
     onCancel();
   };
 
-  const handleAvatarChange = (info) => {
+  const handleAvatarChange = async (info) => {
+    console.log("Avatar change info:", info);
     const file = info.file;
+
     if (file) {
-      setImageUrl(URL.createObjectURL(file));
-      setImageFile(file);
+      setIsUploadingImage(true);
+      try {
+        const newImageUrl = await uploadAvatarStore(file);
+        setImageUrl(newImageUrl);
+      } catch (error) {
+        message.error(t('TXT_AVATAR_UPLOAD_FAILED'));
+      } finally {
+        setIsUploadingImage(false);
+      }
     } else {
-      setImageUrl(SERVER_URL + storeData.imageUrl || "public/background-page-login.png");
-      setImageFile(null);
+      setImageUrl(storeData.imageUrl || "public/background-page-login.png");
     }
   };
 
@@ -111,6 +112,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
         {/* Avatar input */}
         <div className="w-full flex justify-center items-center">
           <Upload
+            disabled={isUploadingImage}
             listType="picture-circle"
             showUploadList={false}
             beforeUpload={() => false}

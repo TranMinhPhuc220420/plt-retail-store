@@ -80,6 +80,10 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_EMAIL_IS_REQUIRED': 'Email là bắt buộc',
     'MSG_EMAIL_INVALID': 'Email không hợp lệ',
     'MSG_FULLNAME_IS_REQUIRED': 'Họ tên là bắt buộc',
+    'MSG_REGISTER_SUCCESS': 'Đăng ký thành công, vui lòng đăng nhập',
+    'MSG_REGISTER_FAILED': 'Đăng ký không thành công, vui lòng thử lại sau',
+    'MSG_LOGIN_SUCCESS': 'Đăng nhập thành công',
+    'MSG_LOGIN_FAILED': 'Đăng nhập không thành công, vui lòng kiểm tra lại tài khoản và mật khẩu',
 
     // Store management
     'TXT_STORE_LIST': 'Danh sách cửa hàng',
@@ -109,6 +113,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_STORE_CODE_INVALID': 'Mã cửa hàng không hợp lệ',
     'MSG_STORE_CODE_EXISTS': 'Mã cửa hàng đã tồn tại',
     'MSG_STORE_CODE_VALIDATION_FAILED': 'Kiểm tra mã cửa hàng không thành công',
+    'TXT_AVATAR_UPLOAD_FAILED': 'Tải lên ảnh đại diện cửa hàng không thành công',
 
     // Product types management
     'TXT_PRODUCT_TYPES': 'Loại sản phẩm',
@@ -144,7 +149,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'LABEL_PRODUCT_CODE': 'Mã sản phẩm',
     'LABEL_PRICE': 'Giá',
     'LABEL_RETAIL_PRICE': 'Giá bán lẻ',
-    'LABEL_WHOLESALE_PRICE': 'Giá bán buôn',
+    'LABEL_WHOLESALE_PRICE': 'Giá sỉ',
     'LABEL_COST_PRICE': 'Giá vốn',
     'LABEL_STOCK': 'Tồn kho',
     'LABEL_MIN_STOCK': 'Tồn kho tối thiểu',
@@ -161,7 +166,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_INACTIVE': 'Không hoạt động',
     'TXT_PRICE': 'Giá',
     'TXT_RETAIL_PRICE': 'Giá bán lẻ',
-    'TXT_WHOLESALE_PRICE': 'Giá bán buôn',
+    'TXT_WHOLESALE_PRICE': 'Giá sỉ',
     'TXT_COST_PRICE': 'Giá vốn',
     'TXT_STOCK': 'Tồn kho',
     'TXT_MIN_STOCK': 'Tồn kho tối thiểu',
@@ -264,7 +269,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'store_avatar_is_required': 'Ảnh đại diện cửa hàng là bắt buộc',
     'product_price_is_invalid': 'Giá sản phẩm không hợp lệ',
     'product_retail_price_is_invalid': 'Giá bán lẻ sản phẩm không hợp lệ',
-    'product_wholesale_price_is_invalid': 'Giá bán buôn sản phẩm không hợp lệ',
+    'product_wholesale_price_is_invalid': 'Giá sỉ sản phẩm không hợp lệ',
     'product_cost_price_is_invalid': 'Giá vốn sản phẩm không hợp lệ',
     'product_stock_is_invalid': 'Kho sản phẩm không hợp lệ',
     'product_min_stock_is_invalid': 'Kho tối thiểu sản phẩm không hợp lệ',

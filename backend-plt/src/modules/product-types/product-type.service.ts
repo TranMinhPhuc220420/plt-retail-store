@@ -1,9 +1,12 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-// Service imports
-import { PrismaService } from '@/database/prisma.service';
+// Entity imports
+import { ProductType as ProductTypeEntity } from '@/entities/ProductType';
+import { Store as StoreEntity } from '@/entities/Store';
 
 // Interface imports
 import { ProductType, Store, User } from '@/interfaces';
@@ -11,9 +14,46 @@ import { ProductType, Store, User } from '@/interfaces';
 @Injectable()
 export class ProductTypeService {
   constructor(
-    private readonly prisma: PrismaService,
+    @InjectRepository(ProductTypeEntity)
+    private readonly productTypeRepository: Repository<ProductTypeEntity>,
+    @InjectRepository(StoreEntity)
+    private readonly storeRepository: Repository<StoreEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  /**
+   * Helper method to map ProductTypeEntity to ProductType interface
+   */
+  private mapEntityToProductType(entity: ProductTypeEntity): ProductType {
+    return {
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      storeId: entity.storeId,
+      ownerId: entity.ownerId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
+
+  /**
+   * Helper method to map StoreEntity to Store interface
+   */
+  private mapEntityToStore(entity: StoreEntity): Store {
+    return {
+      id: entity.id,
+      name: entity.name,
+      storeCode: entity.storeCode,
+      address: entity.address,
+      phone: entity.phone,
+      email: entity.email,
+      description: entity.description,
+      imageUrl: entity.imageUrl,
+      ownerId: entity.ownerId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 
   //////////////////////////////////////////////////
   /** Controller methods for store administration */
@@ -25,7 +65,8 @@ export class ProductTypeService {
       return cached as ProductType[];
     }
 
-    const productTypes = await this.prisma.productType.findMany() as ProductType[];
+    const productTypeEntities = await this.productTypeRepository.find();
+    const productTypes = productTypeEntities.map(entity => this.mapEntityToProductType(entity));
     await this.cacheManager.set(cacheKey, productTypes, 300000); // 5 minutes
     return productTypes;
   }
@@ -37,10 +78,13 @@ export class ProductTypeService {
       return cached as ProductType;
     }
 
-    const productType = await this.prisma.productType.findUnique({ where: { id } }) as ProductType | null;
-    if (productType) {
-      await this.cacheManager.set(cacheKey, productType, 300000); // 5 minutes
+    const productTypeEntity = await this.productTypeRepository.findOne({ where: { id } });
+    if (!productTypeEntity) {
+      return null;
     }
+
+    const productType = this.mapEntityToProductType(productTypeEntity);
+    await this.cacheManager.set(cacheKey, productType, 300000); // 5 minutes
     return productType;
   }
 
@@ -60,10 +104,13 @@ export class ProductTypeService {
       }
     }
 
-    const store = await this.prisma.store.findUnique({ where: { storeCode: storeCode } }) as Store | null;
-    if (store) {
-      await this.cacheManager.set(cacheKey, store, 300000); // 5 minutes
+    const storeEntity = await this.storeRepository.findOne({ where: { storeCode } });
+    if (!storeEntity) {
+      return null;
     }
+
+    const store = this.mapEntityToStore(storeEntity);
+    await this.cacheManager.set(cacheKey, store, 300000); // 5 minutes
     return store;
   }
 
@@ -85,10 +132,12 @@ export class ProductTypeService {
       }
     }
 
-    const productTypes = await this.prisma.productType.findMany({
-      where: { ownerId: user.id, storeId: storeId },
-      orderBy: { updatedAt: 'desc' },
-    }) as ProductType[];
+    const productTypeEntities = await this.productTypeRepository.find({
+      where: { ownerId: user.id, storeId },
+      order: { updatedAt: 'DESC' },
+    });
+
+    const productTypes = productTypeEntities.map(entity => this.mapEntityToProductType(entity));
 
     // Cache the fetched product types
     await this.cacheManager.set(cacheKey, productTypes, 300000); // 5 minutes
@@ -110,27 +159,32 @@ export class ProductTypeService {
       }
     }
 
-    const productType = await this.prisma.productType.findFirst({
+    const productTypeEntity = await this.productTypeRepository.findOne({
       where: { id: productTypeId, ownerId: user.id },
-    }) as ProductType | null;
+    });
 
-    if (productType) {
-      // Cache the fetched product type
-      await this.cacheManager.set(cacheKey, productType, 300000); // 5 minutes
+    if (!productTypeEntity) {
+      return null;
     }
+
+    const productType = this.mapEntityToProductType(productTypeEntity);
+
+    // Cache the fetched product type
+    await this.cacheManager.set(cacheKey, productType, 300000); // 5 minutes
 
     return productType;
   }
 
   async createProductType(data: ProductType): Promise<ProductType> {
-    const productType = await this.prisma.productType.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        storeId: data.storeId, // Ensure storeId is included
-        ownerId: data.ownerId,
-      },
-    }) as ProductType;
+    const productTypeEntity = this.productTypeRepository.create({
+      name: data.name,
+      description: data.description,
+      storeId: data.storeId,
+      ownerId: data.ownerId,
+    });
+
+    const savedEntity = await this.productTypeRepository.save(productTypeEntity);
+    const productType = this.mapEntityToProductType(savedEntity);
 
     // Invalidate related caches
     await this.invalidateProductTypeCaches(data.ownerId, undefined, data.storeId);
@@ -139,15 +193,14 @@ export class ProductTypeService {
   }
 
   async createProductTypesBulk(store: Store, user: User, data: ProductType[]): Promise<ProductType[]> {
-    const productTypes = await this.prisma.productType.createMany({
-      data: data.map(pt => ({
-        name: pt.name,
-        description: pt.description,
-        storeId: pt.storeId,
-        ownerId: pt.ownerId,
-      })),
-      skipDuplicates: true,
-    });
+    const productTypeEntities = data.map(pt => this.productTypeRepository.create({
+      name: pt.name,
+      description: pt.description,
+      storeId: pt.storeId,
+      ownerId: pt.ownerId,
+    }));
+
+    await this.productTypeRepository.save(productTypeEntities);
 
     // Invalidate related caches
     await this.invalidateProductTypeCaches(user.id);
@@ -155,12 +208,17 @@ export class ProductTypeService {
     return this.getMyProductTypes(user, store.id, false); // Return the updated list without cache
   }
 
-  async updateProductType(id: string, data: Partial<any>): Promise<ProductType> {
-    const { ownerId, ...updateData } = data;
-    const productType = await this.prisma.productType.update({
-      where: { id },
-      data: updateData,
-    }) as ProductType;
+  async updateProductType(id: string, data: Partial<ProductType>): Promise<ProductType> {
+    const { ownerId, store, owner, products, ...updateData } = data;
+    
+    await this.productTypeRepository.update({ id }, updateData);
+    const updatedEntity = await this.productTypeRepository.findOne({ where: { id } });
+    
+    if (!updatedEntity) {
+      throw new Error('ProductType not found after update');
+    }
+
+    const productType = this.mapEntityToProductType(updatedEntity);
 
     // Invalidate related caches
     await this.invalidateProductTypeCaches(ownerId, id, productType.storeId);
@@ -170,21 +228,19 @@ export class ProductTypeService {
 
   async deleteProductType(id: string): Promise<ProductType> {
     // Get product type details before deletion for cache invalidation
-    const productType = await this.prisma.productType.findUnique({
-      where: { id },
-      select: { ownerId: true },
-    });
-
-    const result = await this.prisma.productType.delete({
-      where: { id },
-    }) as ProductType;
-
-    // Invalidate related caches
-    if (productType) {
-      await this.invalidateProductTypeCaches(productType.ownerId, id, result.storeId);
+    const productTypeEntity = await this.productTypeRepository.findOne({ where: { id } });
+    
+    if (!productTypeEntity) {
+      throw new Error('ProductType not found');
     }
 
-    return result;
+    const productType = this.mapEntityToProductType(productTypeEntity);
+    await this.productTypeRepository.delete({ id });
+
+    // Invalidate related caches
+    await this.invalidateProductTypeCaches(productType.ownerId, id, productType.storeId);
+
+    return productType;
   }
 
   private async invalidateProductTypeCaches(ownerId?: string, productTypeId?: string, storeId?: string) {
@@ -194,7 +250,7 @@ export class ProductTypeService {
       ...(storeId ? [`my-product-types:${ownerId}:${storeId}`] : []),
       ...(productTypeId ? [`product-types:${productTypeId}`] : []),
       ...(ownerId && productTypeId ? [`my-product-types:${ownerId}:${productTypeId}`] : []),
-      ...(storeId ? [`store:${storeId}`] : []), // Include store cache key
+      ...(storeId ? [`store:${storeId}`] : []),
     ];
 
     await Promise.all(keys.map(key => this.cacheManager.del(key)));

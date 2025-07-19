@@ -5,10 +5,12 @@ import { Response } from 'express';
 import { AuthService } from '@/modules/auth/auth.service';
 // Guards
 import { FirebaseAuthGuard } from './guards/firebase-auth.guard';
+// Entities
+import { UserRole } from '@/entities/User';
 // Interfaces
 import { User, UserFirebase } from '@/interfaces';
 // Constants
-import { AVATAR_DEFAULT, USER_ROLE } from '@/config';
+import { AVATAR_DEFAULT } from '@/config';
 
 @Controller('auth')
 export class AuthController {
@@ -32,7 +34,7 @@ export class AuthController {
         avatar: userFirebase.picture || AVATAR_DEFAULT,
         fullname: userFirebase.name || '',
 
-        role: USER_ROLE,
+        role: UserRole.USER,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),

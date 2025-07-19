@@ -16,12 +16,12 @@ import Logo from "@/assets/favicon.ico";
 import styles from './index.module.css';
 
 // Request module
-import {  } from "@/request/auth";
+import { registerUser, loginWithUsername } from "@/request/auth";
 import { DOMAIN_EMAIL_DEFAULT } from '@/constant';
 
 const LoginPage = () => {
   // Use hooks state
-  const { signInWithGoogle, signInWithUsernamePassword, registerWithUsernamePassword } = useAuth();
+  const { loginWithGoogle, loadProfile } = useAuth();
   
   // i18n
   const { t } = useTranslation();
@@ -42,16 +42,20 @@ const LoginPage = () => {
     setIsLoadingGoogle(true);
 
     // Call signInWithGoogle function from auth provider
-    await signInWithGoogle();
+    loginWithGoogle();
   };
 
   const handlerLoginWithUsernamePassword = async (data) => {
     setIsLoadingUsernamePassword(true);
 
-    // Additional params
-    data.username = `${data.username}${DOMAIN_EMAIL_DEFAULT}`;
-
-    await signInWithUsernamePassword(data);
+    try {
+      await loginWithUsername(data);
+      loadProfile();
+      messageApi.success(t('MSG_LOGIN_SUCCESS'));
+    } catch (error) {
+      messageApi.error(t('MSG_LOGIN_FAILED'));
+      console.error('Login failed:', error);
+    }
 
     setIsLoadingUsernamePassword(false);
   };
@@ -65,10 +69,13 @@ const LoginPage = () => {
   const handlerSubmitFormRegister = async (form) => {
     setIsLoadingRegister(true);
 
-    // Additional params
-    form.username = `${form.username}${DOMAIN_EMAIL_DEFAULT}`;
-
-    await registerWithUsernamePassword(form);
+    try {
+      await registerUser(form);
+      messageApi.success(t('MSG_REGISTER_SUCCESS'));
+      setIsShowFormRegister(false);
+    } catch (error) {
+      messageApi.error(t('MSG_REGISTER_FAILED'));
+    }
 
     setIsLoadingRegister(false);
   };

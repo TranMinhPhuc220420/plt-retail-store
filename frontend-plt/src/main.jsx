@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 
 import { RouterProvider, Route } from "react-router";
 
-import FirebaseAuthProvider from "@/provider/FirebaseAuthProvider";
+import AuthProvider from "@/provider/AuthProvider";
 
 import router from '@/routes';
 
@@ -18,10 +18,6 @@ import '@/firebase';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-
-    <FirebaseAuthProvider>
-      <RouterProvider router={router} />
-    </FirebaseAuthProvider>
-
+    <RouterProvider router={router} />
   </StrictMode>,
 )

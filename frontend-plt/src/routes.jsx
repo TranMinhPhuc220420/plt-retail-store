@@ -1,5 +1,4 @@
 import React from "react";
-
 import { Routes, Route, createBrowserRouter } from "react-router";
 
 // Layouts
@@ -26,16 +25,31 @@ import ShiftHandoverManagerPage from "@/pages/employee/shiftHandover/manager";
 
 import LoginPage from "@/pages/login";
 
+import AuthProvider from "@/provider/AuthProvider";
+
+// Higher-Order Component for protected routes
+const ProtectedRoute = ({ element }) => {
+  return <AuthProvider>{element}</AuthProvider>;
+};
+
 const router = createBrowserRouter([
   {
     path: "/dang-nhap",
-    element: <LoginPage />,
+    element: (
+      <ProtectedRoute
+        element={<LoginPage />}
+      />
+    ),
   },
 
   // Store management routes
   {
-    path: '/overview',
-    element: <LayoutOverview />,
+    path: "/overview",
+    element: (
+      <ProtectedRoute
+        element={<LayoutOverview />}
+      />
+    ),
     children: [
       {
         index: true,
@@ -46,30 +60,34 @@ const router = createBrowserRouter([
 
   // Admin routes
   {
-    path: '/store/:storeCode/admin',
-    element: <LayoutAdmin />,
+    path: "/store/:storeCode/admin",
+    element: (
+      <ProtectedRoute
+        element={<LayoutAdmin />}
+      />
+    ),
     children: [
       {
-        path: 'dashboard',
+        path: "dashboard",
         element: <DashboardPage />,
       },
       {
-        path: 'loai-san-pham',
+        path: "loai-san-pham",
         element: <ProductTypeManager />,
       },
       {
-        path: 'san-pham',
+        path: "san-pham",
         element: <ProductManagerPage />,
       },
       {
-        path: 'kho',
+        path: "kho",
         element: <InventoryManagerPage />,
       },
       {
-        path: 'nhan-vien',
+        path: "nhan-vien",
         children: [
           {
-            path: 'quan-ly',
+            path: "quan-ly",
             element: <ManagerEmployeePage />,
           },
         ],
@@ -79,33 +97,35 @@ const router = createBrowserRouter([
 
   // Client routes
   {
-    path: '/store/:storeCode',
-    element: <LayoutEmployee />,
+    path: "/store/:storeCode",
+    element: (
+      <ProtectedRoute
+        element={<LayoutEmployee />}
+      />
+    ),
     children: [
       {
         index: true,
-        // path: 'dashboard',
         element: <DashboardEmployeePage />,
       },
       {
-        path: 'ban-hang',
+        path: "ban-hang",
         element: <SellManagerPage />,
       },
       {
-        path: 'khach-hang',
+        path: "khach-hang",
         element: <ClientManagerPage />,
       },
       {
-        path: 'hoa-don',
+        path: "hoa-don",
         element: <InvoiceManagerPage />,
       },
       {
-        path: 'giao-ca',
+        path: "giao-ca",
         element: <ShiftHandoverManagerPage />,
       },
     ],
   },
-
 ]);
 
 export default router;
