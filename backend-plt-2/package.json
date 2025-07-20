@@ -1,7 +1,6 @@
 {
   "name": "my-express-app",
   "version": "1.0.0",
-  "type": "module",
   "description": "Express.js application with MongoDB",
   "main": "src/server.js",
   "scripts": {

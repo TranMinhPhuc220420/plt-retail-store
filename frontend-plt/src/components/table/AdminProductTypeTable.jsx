@@ -59,6 +59,7 @@ const AdminProductTypeTable = ({ onEdit, onDelete, onSelectionChange }) => {
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
       if (onSelectionChange) {
+        console.log(selectedRowKeys, selectedRows);
         onSelectionChange(selectedRowKeys, selectedRows);
       }
     },

@@ -1,4 +1,4 @@
-import Store from '../models/Store.js';
+const Store = require('../models/Store');
 
 const storeController = {
   getAllMy: async (req, res) => {
@@ -36,7 +36,6 @@ const storeController = {
 
       res.status(200).json(store);
     } catch (error) {
-      console.log(error);
       res.status(500).json({ error: 'failed_to_fetch_store' });
     }
   },
@@ -50,7 +49,6 @@ const storeController = {
       const savedStore = await newStore.save();
       res.status(201).json(savedStore);
     } catch (error) {
-      console.log(error);
       res.status(500).json({ error: 'Failed to create store' });
     }
   },
@@ -87,4 +85,4 @@ const storeController = {
   }
 };
 
-export default storeController;
+module.exports = storeController;

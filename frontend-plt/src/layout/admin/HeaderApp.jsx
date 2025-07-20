@@ -15,49 +15,21 @@ const { Header } = Layout;
 import useStoreStore from '@/store/store';
 
 // Request
-import { getMyStores } from '@/request/store';
-import { SERVER_URL } from '@/constant';
 
-const HeaderApp = ({ isLoading }) => {
+const HeaderApp = ({ }) => {
   const navigate = useNavigate();
   const params = useParams();
   const storeCode = params.storeCode;
   
   // Hook components
-  const { user, signOut } = useAuth();
+  const { user, isChecking, signOut } = useAuth();
 
   // Zustand store
-  const { stores, setStores } = useStoreStore();
+  const { isLoading, stores, fetchStores } = useStoreStore();
 
   // State
   const [collapsed, setCollapsed] = React.useState(false);
   const [storeActive, setStoreActive] = React.useState(null);
-
-  // Classes - clsx
-  const classes = {
-    collapsedBtn: clsx('border-none', {
-    }),
-  };
-
-  const loadStores = async () => {
-    try {
-      const stores = await getMyStores();
-      setStores(stores);
-
-      if (storeCode) {
-        const activeStore = stores.find(store => store.storeCode === storeCode);
-        if (activeStore) {
-          setStoreActive(activeStore);
-        } else {
-          console.error('Store not found:', storeCode);
-        }
-      }
-
-    } catch (error) {
-      console.error('Failed to load stores:', error);
-      message.error('Failed to load stores');
-    }
-  };
 
   // Handler
   const handleCollapse = () => {
@@ -119,8 +91,22 @@ const HeaderApp = ({ isLoading }) => {
   ]
 
   useEffect(() => {
-    loadStores();
+    if (!isLoading) {
+      fetchStores();
+    }
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const storeSelected = stores.find(store => store.storeCode === storeCode);
+      if (storeSelected) {
+        setStoreActive(storeSelected);
+      } else {
+        setStoreActive(null);
+        navigate('/overview');
+      }
+    }
+  }, [storeCode, stores]);
 
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
@@ -178,7 +164,7 @@ const HeaderApp = ({ isLoading }) => {
             </Badge>
           </Dropdown>
 
-          {!isLoading ?
+          {!isChecking ?
             (
               <Dropdown menu={{ items }} trigger={['click']}>
                 <div className='h-10 flex items-center justify-center cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 pt-1 px-2 ml-2'>

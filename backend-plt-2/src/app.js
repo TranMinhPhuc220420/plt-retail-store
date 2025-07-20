@@ -1,23 +1,21 @@
-import { config } from 'dotenv';
-config();
+require('dotenv').config();
 
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import cookieParser from 'cookie-parser';
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const { join, dirname } = require('path');
+const cookieParser = require('cookie-parser');
 
-import passport from 'passport';
-import './config/passport.js';
+const passport = require('passport');
+require('./config/passport');
 
-import connectDB from './config/database.js';
-import { sessionMiddleware } from './config/session.js';
-import apiRoutes from './routes/api/index.js';
-import uploadRoutes from './routes/upload/index.js';
-import pictureRoutes from './routes/picture/index.js';
-import authRoutes from './routes/auth/auth.route.js';
+const connectDB = require('./config/database');
+const { sessionMiddleware } = require('./config/session');
+const apiRoutes = require('./routes/api/index');
+const uploadRoutes = require('./routes/upload/index');
+const pictureRoutes = require('./routes/picture/index');
+const authRoutes = require('./routes/auth/auth.route');
 
 const app = express();
 
@@ -42,10 +40,8 @@ app.use(express.json());
 app.use(sessionMiddleware);
 
 // Static files
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 app.use(express.static(join(__dirname, '../public')));
-app.use('/p/stores', express.static(join(__dirname, '../storage')));
+app.use('/p/stores', express.static(join(dirname(__filename), '../storage')));
 
 // Routes
 app.use('/api', apiRoutes);
@@ -69,4 +65,4 @@ app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-export default app;
+module.exports = app;

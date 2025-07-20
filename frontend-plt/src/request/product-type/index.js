@@ -1,4 +1,4 @@
-import { get, getApi, post, postApi } from "@/request";
+import { deleteApi, get, getApi, post, postApi, putApi } from "@/request";
 
 import { PRODUCT_TYPE_TEMP_FILE } from "@/constant";
 
@@ -49,8 +49,7 @@ export const getMyProductTypes = async (storeCode) => {
 // Create a new product type for the user
 export const createMyProductType = async (productTypeData) => {
   try {
-    const response = await postApi('/product-categories/my-categories-stores', productTypeData, {
-    });
+    const response = await postApi('/product-categories/my-categories-stores', productTypeData);
     return response.data;
   } catch (error) {
     let message = error.response?.data?.error;
@@ -59,10 +58,9 @@ export const createMyProductType = async (productTypeData) => {
 };
 
 // Create multiple product types from an Excel file
-export const createMyProductTypeTypeBulk = async (storeCode, productTypes) => {
+export const createMyProductTypeTypeBulk = async (storeId, productTypesData) => {
   try {
-    const response = await post('/product-types/my-product-type-bulk', {storeCode, productTypes}, {
-    });
+    const response = await postApi('/product-categories/my-categories-stores-bulk', { storeId, categories: productTypesData });
     return response.data;
   } catch (error) {
     let message = error.response?.data?.error;
@@ -82,10 +80,9 @@ export const getMyProductTypeDetail = async (id) => {
 };
 
 // Update a specific product type owned by the user
-export const updateMyProductType = async (id, productTypeData) => {
+export const updateMyProductType = async (productTypeId, productTypeData) => {
   try {
-    const response = await post(`/product-types/update-my-product-type/${id}`, productTypeData, {
-    });
+    const response = await putApi(`/product-categories/my-categories-stores/${productTypeId}`, productTypeData);
     return response.data;
   } catch (error) {
     let message = error.response?.data?.error;
@@ -94,13 +91,23 @@ export const updateMyProductType = async (id, productTypeData) => {
 };
 
 // Delete a specific product type owned by the user
-export const deleteMyProductType = async (id) => {
+export const deleteMyProductType = async (productTypeId) => {
   try {
-    const response = await post(`/product-types/delete-my-product-type/${id}`, { id });
+    const response = await deleteApi(`/product-categories/my-categories-stores/${productTypeId}`);
     return response.data;
   } catch (error) {
-    console.error(`Failed to delete my product type with ID ${id}:`, error);
-    throw error;
+    let message = error.response?.data?.error;
+    throw message || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
+  }
+};
+
+export const deleteMyProductTypeBulk = async (ids) => {
+  try {
+    const response = await deleteApi(`/product-categories/my-categories-stores-bulk`, { ids });
+    return response.data;
+  } catch (error) {
+    let message = error.response?.data?.error;
+    throw message || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
   }
 };
 

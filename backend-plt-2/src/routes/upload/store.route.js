@@ -1,7 +1,11 @@
-import express from 'express';
-import multer from 'multer';
+// import express from 'express';
+// import multer from 'multer';
 
-import imageController from '../../controllers/imageController.js';
+// import imageController from '../../controllers/imageController';
+
+const express = require('express');
+const multer = require('multer');
+const imageController = require('../../controllers/imageController');
 
 const router = express.Router();
 
@@ -29,4 +33,5 @@ const uploadStoreAvatar = multer({
 // group my-store routes
 router.post('/', uploadStoreAvatar, imageController.updateAvatarMyStore);
 
-export default router;
+// export default router;
+module.exports = router;

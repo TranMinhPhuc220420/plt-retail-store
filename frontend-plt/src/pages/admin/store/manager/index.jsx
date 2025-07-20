@@ -15,7 +15,6 @@ import useStoreStore from "@/store/store";
 import { SERVER_URL } from "@/constant";
 
 // Request
-import { getMyStores } from "@/request/store";
 
 // Styles
 import styles from "./index.module.scss";
@@ -32,7 +31,7 @@ const StoreManagerPage = () => {
   const [messageApi, contextHolder] = message.useMessage();
 
   // Zustand store
-  const { stores, setStores } = useStoreStore();
+  const { stores, error, fetchStores } = useStoreStore();
 
   // State
   const [height, setHeight] = useState(window.innerHeight - 300);
@@ -41,22 +40,10 @@ const StoreManagerPage = () => {
   const [storeEditing, setStoreEditing] = useState(null);
   const [isLoadingData, setLoadingData] = useState(false);
 
-  // Fetch data from firebase
-  const fetchData = async () => {
-    setLoadingData(true);
-
-    const data = await getMyStores();
-    if (data) {
-      setStores(data);
-    }
-
-    setLoadingData(false);
-  };
-
   // Handlers
   const handleCreateOk = () => {
     setShowModalCreate(false);
-    fetchData();
+    fetchStores();
   };
   const handleCancelCreate = () => {
     setShowModalCreate(false);
@@ -74,15 +61,29 @@ const StoreManagerPage = () => {
   };
   const handleEditOk = () => {
     setShowModalEdit(false);
-    fetchData();
+    fetchStores();
   };
   const handlerEditOnFail = () => {
   };
 
   // Effect
   useEffect(() => {
-    fetchData();
+    fetchStores();
   }, []);
+  useEffect(() => {
+    if (error) {
+      let message = t(error);
+      if (message === error) {
+        message = t('TXT_FAILED_TO_FETCH_STORES');
+      }
+
+      messageApi.open({
+        type: 'error',
+        content: message,
+        duration: 3,
+      });
+    }
+  }, [error]);
 
   return (
     <div className="p-4">

@@ -1,9 +1,13 @@
-import express from 'express';
+// import express from 'express';
 
-import storeController from '../../controllers/storeController.js';
+// import storeController from '../../controllers/storeController';
 
-// middleware to check authentication can be added here if needed
-import { verifyFormCreateStore, verifyFormUpdateStore } from '../../middlewares/verifyForm/verifyFormStore.js';
+// // middleware to check authentication can be added here if needed
+// import { verifyFormCreateStore, verifyFormUpdateStore } from '../../middlewares/verifyForm/verifyFormStore';
+
+const express = require('express');
+const storeController = require('../../controllers/storeController');
+const { verifyFormCreateStore, verifyFormUpdateStore } = require('../../middlewares/verifyForm/verifyFormStore');
 
 const router = express.Router();
 
@@ -15,4 +19,5 @@ router.post('/my-store', verifyFormCreateStore, storeController.createMy);
 router.put('/my-store/:id', verifyFormUpdateStore, storeController.updateMy);
 router.delete('/my-store/:id', storeController.deleteMy);
 
-export default router;
+// export default router;
+module.exports = router;

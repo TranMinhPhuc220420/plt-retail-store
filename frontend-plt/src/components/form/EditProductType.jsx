@@ -16,7 +16,7 @@ import { updateMyProductType } from "@/request/product-type";
 // Utilities
 import { } from "@/utils";
 
-const EditProductTypeForm = ({ storeId, productTypeId, productTypeEdit, onOK, onFail, onCancel }) => {
+const EditProductTypeForm = ({ storeId, storeCode, productTypeId, productTypeEdit, onOK, onFail, onCancel }) => {
   // i18n
   const { t } = useTranslation();
 
@@ -42,13 +42,11 @@ const EditProductTypeForm = ({ storeId, productTypeId, productTypeEdit, onOK, on
     setIsLoading(true);
 
     // Additional params
-    values.id = productTypeId;
     values.storeId = storeId;
-    values.ownerId = user.sub;
 
     try {
       // Update product type in database
-      await updateMyProductType(values.id, values);
+      await updateMyProductType(productTypeId, values);
 
       form.resetFields();
       message.success(t('MSG_UPDATE_PRODUCT_TYPE_SUCCESS'));
@@ -63,8 +61,9 @@ const EditProductTypeForm = ({ storeId, productTypeId, productTypeEdit, onOK, on
       message.error(messageError);
       onFail();
     }
-
-    setIsLoading(false);
+    finally {
+      setIsLoading(false);
+    }
   };
 
   const handlerCancel = () => {

@@ -12,7 +12,7 @@ import EditProductTypeForm from "@/components/form/EditProductType";
 import AdminProductTypeTable from "@/components/table/AdminProductTypeTable";
 
 // Requests
-import { deleteMyProductType, getMyProductTypes, downloadFileTemplateProductType, createMyProductTypeTypeBulk } from "@/request/product-type";
+import { deleteMyProductType, deleteMyProductTypeBulk, getMyProductTypes, downloadFileTemplateProductType, createMyProductTypeTypeBulk } from "@/request/product-type";
 
 // use zustand
 import useStoreApp from "@/store/app";
@@ -28,10 +28,9 @@ const ProductTypeManager = () => {
   const { t } = useTranslation();
 
   // Zustand store
-  const { storeActive, storeActiveIsLoading } = useStoreApp((state) => state);
+  const { storeActive } = useStoreApp((state) => state);
   const { 
-    setProductTypes, setIsLoading, setError,
-    setProductTypeIsEditing, setProductTypeIsDeleting 
+    fetchProductTypes, setProductTypes, setProductTypeIsEditing, setProductTypeIsDeleting 
   } = useStoreProductType();
 
   // State
@@ -65,39 +64,13 @@ const ProductTypeManager = () => {
     }
   ];
 
-  // Fetch data from firebase
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      let data = await getMyProductTypes(storeCode);
-      if (data) {
-        setProductTypes(data);
-      } else {
-        setError(t('MSG_ERROR_PRODUCT_TYPE_NOT_FOUND'));
-      }
-    } catch (error) {
-      let message = t(error);
-      if (message == error) {
-        message = t('MSG_ERROR_FETCHING_PRODUCT_TYPES');
-      }
-      setError(message);
-      messageApi.open({
-        type: 'error',
-        content: message,
-        duration: 3,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Modal handlers
   const showModalCreate = () => {
     setIsModalCreateOpen(true);
   };
 
   const handleCreateOk = () => {
-    fetchData();
+    fetchProductTypes(storeCode);;
     setIsModalCreateOpen(false);
   };
 
@@ -107,18 +80,18 @@ const ProductTypeManager = () => {
 
   const handleEdit = (productType) => {
     setProductTypeEdit(productType);
-    setProductTypeIsEditing(productType.key, true);
+    setProductTypeIsEditing(productType._id, true);
     // Open edit modal
     setIsModalEditOpen(true);
   };
 
   const handleEditOk = () => {
-    fetchData();
+    fetchProductTypes(storeCode);;
     setIsModalEditOpen(false);
   };
 
   const handleEditCancel = () => {
-    setProductTypeIsEditing(productTypeEdit.key, false);
+    setProductTypeIsEditing(productTypeEdit._id, false);
     setIsModalEditOpen(false);
   };
 
@@ -127,15 +100,12 @@ const ProductTypeManager = () => {
     try {
       setIsDeletingLoading(true);
 
-      productTypeSelected.forEach(key => {
-        setProductTypeIsDeleting(key, true);
+      productTypeSelected.forEach(_id => {
+        setProductTypeIsDeleting(_id, true);
       });
-      
-      const deletePromises = productTypeSelected.map(key => 
-        deleteMyProductType(key)
-      );
-      
-      await Promise.all(deletePromises);
+
+      // Wait for all delete operations to complete
+      await deleteMyProductTypeBulk(productTypeSelected);
       
       messageApi.open({
         type: 'success',
@@ -144,7 +114,7 @@ const ProductTypeManager = () => {
       });
       
       setProductTypeSelected([]);
-      fetchData();
+      fetchProductTypes(storeCode);;
     } catch (error) {
       messageApi.open({
         type: 'error',
@@ -159,16 +129,16 @@ const ProductTypeManager = () => {
   const handleConfirmDeleteItem = async (record) => {
     try {
       setIsDeletingLoading(true);
-      setProductTypeIsDeleting(record.key, true);
+      setProductTypeIsDeleting(record._id, true);
 
-      await deleteMyProductType(record.key);
+      await deleteMyProductType(record._id);
       messageApi.open({
         type: 'success',
         content: t('MSG_SUCCESS_DELETE_PRODUCT_TYPE'),
         duration: 3,
       });
 
-      fetchData();
+      fetchProductTypes(storeCode);;
     } catch (error) {
       messageApi.open({
         type: 'error',
@@ -270,7 +240,7 @@ const ProductTypeManager = () => {
         });
 
         // Process Excel data here - you'll need to implement addProductType function
-        await createMyProductTypeTypeBulk(storeCode, formData)
+        await createMyProductTypeTypeBulk(storeActive._id, formData)
         
         // This is just a placeholder
         messageApi.open({
@@ -279,7 +249,7 @@ const ProductTypeManager = () => {
           duration: 3,
         });
 
-        fetchData();
+        fetchProductTypes(storeCode);;
       } catch (error) {
         messageApi.open({
           type: 'error',
@@ -308,7 +278,16 @@ const ProductTypeManager = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchProductTypes(storeCode);
+
+    return () => {
+      setProductTypes([]); // Clear product types on unmount
+      setProductTypeSelected([]);
+      setProductTypeEdit(null);
+      setIsDeletingLoading(false);
+      setIsAddingByExcelLoading(false);
+    }
+
   }, [storeActive]);
 
   if (!storeActive) {
@@ -405,6 +384,7 @@ const ProductTypeManager = () => {
           {isModalCreateOpen && (
             <CreateProductTypeForm
               storeId={storeActive._id}
+              storeCode={storeActive.storeCode}
               onCancel={handleCreateCancel}
               onOK={handleCreateOk} 
             />
@@ -420,7 +400,8 @@ const ProductTypeManager = () => {
           {productTypeEdit && (
             <EditProductTypeForm 
               storeId={storeActive._id}
-              productTypeId={productTypeEdit.key} 
+              storeCode={storeActive.storeCode}
+              productTypeId={productTypeEdit._id} 
               productTypeEdit={productTypeEdit}
               onCancel={handleEditCancel}
               onOK={handleEditOk}

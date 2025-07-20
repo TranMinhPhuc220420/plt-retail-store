@@ -1,6 +1,7 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-import { ROLE_DEFAULT, ROLE_LIST, USER_PROVIDER_LOCAL } from '../config/constant.js';
+// import { ROLE_DEFAULT, ROLE_LIST, USER_PROVIDER_LOCAL } from '../config/constant';
+const { ROLE_DEFAULT, ROLE_LIST, USER_PROVIDER_LOCAL } = require('../config/constant');
 
 const userSchema = new mongoose.Schema({
   username: { type: String, unique: true, required: true, trim: true },
@@ -16,4 +17,4 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-export default mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema);

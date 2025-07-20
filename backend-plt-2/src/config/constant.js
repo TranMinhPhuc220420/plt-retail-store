@@ -1,8 +1,17 @@
-export const ADMIN_ROLE = 'admin';
-export const USER_ROLE = 'user';
+const ADMIN_ROLE = 'admin';
+const USER_ROLE = 'user';
 
-export const ROLE_DEFAULT = USER_ROLE;
-export const ROLE_LIST = [ADMIN_ROLE, USER_ROLE];
+const ROLE_DEFAULT = USER_ROLE;
+const ROLE_LIST = [ADMIN_ROLE, USER_ROLE];
 
-export const USER_PROVIDER_LOCAL = 'local';
-export const USER_PROVIDER_GOOGLE = 'google';
+const USER_PROVIDER_LOCAL = 'local';
+const USER_PROVIDER_GOOGLE = 'google';
+
+module.exports = {
+  ADMIN_ROLE,
+  USER_ROLE,
+  ROLE_DEFAULT,
+  ROLE_LIST,
+  USER_PROVIDER_LOCAL,
+  USER_PROVIDER_GOOGLE,
+};

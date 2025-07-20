@@ -1,5 +1,5 @@
-import Joi from "joi";
-import Store from "../../models/Store.js";
+const Joi = require('joi');
+const Store = require('../../models/Store');
 
 const storeCreateSchema = Joi.object({
   storeCode: Joi.string().min(3).max(30).required().regex(/^[a-zA-Z0-9]+$/).messages({
@@ -76,7 +76,7 @@ const storeUpdateSchema = Joi.object({
   })
 });
 
-export const verifyFormCreateStore = async (req, res, next) => {
+const verifyFormCreateStore = async (req, res, next) => {
   let { error } = storeCreateSchema.validate(req.body);
 
   if (error) {
@@ -97,7 +97,7 @@ export const verifyFormCreateStore = async (req, res, next) => {
   next();
 };
 
-export const verifyFormUpdateStore = async (req, res, next) => {
+const verifyFormUpdateStore = async (req, res, next) => {
   const { id } = req.params;
   let { error } = storeUpdateSchema.validate(req.body);
 
@@ -135,3 +135,8 @@ export const verifyFormUpdateStore = async (req, res, next) => {
 
   next();
 } 
+
+module.exports = {
+  verifyFormCreateStore,
+  verifyFormUpdateStore
+};

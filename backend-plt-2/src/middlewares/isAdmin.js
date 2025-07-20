@@ -1,7 +1,7 @@
-import { ADMIN_ROLE } from "../config/constant.js";
-import User from "../models/User.js";
+const User = require('../models/User');
+const { ADMIN_ROLE } = require('../config/constant');
 
-export const isAdmin = async (req, res, next) => {
+const isAdmin = async (req, res, next) => {
 
   if (!req.user) {
     return res.status(403).json({ error: 'admin_access_required' });
@@ -18,3 +18,5 @@ export const isAdmin = async (req, res, next) => {
   req.user = {...req.user, ...user._doc};
   next();
 };
+
+module.exports = isAdmin;

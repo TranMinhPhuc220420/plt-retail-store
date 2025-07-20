@@ -114,6 +114,8 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_STORE_CODE_EXISTS': 'Mã cửa hàng đã tồn tại',
     'MSG_STORE_CODE_VALIDATION_FAILED': 'Kiểm tra mã cửa hàng không thành công',
     'TXT_AVATAR_UPLOAD_FAILED': 'Tải lên ảnh đại diện cửa hàng không thành công',
+    'TXT_FAILED_TO_FETCH_STORES': 'Lỗi khi lấy danh sách cửa hàng',
+    'MSG_FAILED_TO_FETCH_MY_STORES': 'Lỗi khi lấy danh sách cửa hàng của tôi',
 
     // Product types management
     'TXT_PRODUCT_TYPES': 'Loại sản phẩm',

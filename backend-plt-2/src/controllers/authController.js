@@ -1,13 +1,14 @@
-import jwt from 'jsonwebtoken';
-import passport from 'passport';
-import bcrypt from 'bcrypt';
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const bcrypt = require('bcrypt');
 
-import { fileURLToPath } from 'url';
-import path, { join, dirname } from 'path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const path = require('path');
+// const { join, dirname } = path;
+// const { fileURLToPath } = require('url');
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
-import User from '../models/User.js';
+const User = require('../models/User');
 
 const authController = {
   googleAuth: (req, res, next) => {
@@ -15,7 +16,8 @@ const authController = {
   },
 
   googleAuthCallback: (req, res, next) => {
-    passport.authenticate('google', { failureRedirect: '/auth-failed' }, (err, user, info) => {
+    try {
+      passport.authenticate('google', { failureRedirect: '/auth-failed' }, (err, user, info) => {
       
       if (err || !user) {
         return res.status(400).json({ message: 'authentication_failed', error: err || info });
@@ -62,6 +64,11 @@ const authController = {
       });
 
     })(req, res, next);
+
+    } catch (error) {
+      console.info('Google Auth Callback Error:', error);
+      res.status(500).json({ message: 'internal_server_error', error: error.message });
+    }
   },
 
   register: async (req, res) => {
@@ -122,4 +129,4 @@ const authController = {
   },
 };
 
-export default authController;
+module.exports = authController;

@@ -1,9 +1,10 @@
-import Image from '../models/Image.js';
+const Image = require('../models/Image'); // Adjust the path as necessary
 
-import { fileURLToPath } from 'url';
-import path, { join, dirname } from 'path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const path = require('path');
+// const { join, dirname } = path;
+// const { fileURLToPath } = require('url');
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
 const imageController = {
   updateAvatarMyStore: async (req, res) => {
@@ -52,7 +53,6 @@ const imageController = {
       });
 
     } catch (error) {
-      console.log(error);
       
       res.status(500).json({ error: 'failed_to_update_store_avatar' });
     }
@@ -88,4 +88,4 @@ const imageController = {
   }
 };
 
-export default imageController;
+module.exports = imageController;

@@ -1,0 +1,73 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: plt-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: plt_database
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - plt-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  backend:
+    build:
+      context: ./backend-plt-2
+      dockerfile: Dockerfile
+    container_name: plt-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/plt_database?authSource=admin
+      JWT_SECRET: your-jwt-secret-key
+      PORT: 5000
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend-plt-2:/app
+      - /app/node_modules
+    networks:
+      - plt-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  frontend:
+    build:
+      context: ./frontend-plt
+      dockerfile: Dockerfile
+    container_name: plt-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"  # Nginx serve trên port 80, expose ra 3000
+    depends_on:
+      - backend
+    networks:
+      - plt-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  plt-network:
+    driver: bridge

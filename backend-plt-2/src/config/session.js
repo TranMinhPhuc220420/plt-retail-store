@@ -1,10 +1,9 @@
-import { config } from 'dotenv';
-config();
+require('dotenv').config();
 
-import session from "express-session";
-import MongoStore from "connect-mongo";
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
-export const sessionMiddleware = session({
+const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
@@ -14,3 +13,5 @@ export const sessionMiddleware = session({
   saveUninitialized: false,
   cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
 })
+
+module.exports = { sessionMiddleware };
