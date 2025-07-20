@@ -1,4 +1,4 @@
-import { get, post } from "@/request";
+import { get, getApi, post, postApi } from "@/request";
 
 // Fetch all products
 export const getAllProducts = async () => {
@@ -36,7 +36,7 @@ export const deleteProduct = async (id) => {
 // Fetch all products owned by the user
 export const getMyProducts = async (storeCode) => {
   try {
-    const response = await get('/products/my-products', { storeCode });
+    const response = await getApi(`/products/my-products-stores/${storeCode}`);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch my products:', error);
@@ -47,9 +47,7 @@ export const getMyProducts = async (storeCode) => {
 // Create a new product for the user
 export const createMyProduct = async (productData) => {
   try {
-    const response = await post('/products/my-product', productData, {
-      'Content-Type': 'multipart/form-data',
-    });
+    const response = await postApi('/products/my-products-stores', productData);
     return response.data;
   } catch (error) {
     let message = error.response?.data?.error;
@@ -122,6 +120,29 @@ export const getProductsByStore = async (storeId) => {
     return response.data;
   } catch (error) {
     console.error(`Failed to fetch products for store ID ${storeId}:`, error);
+    throw error;
+  }
+};
+
+export const uploadAvatarProduct = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await post('/upload/products', formData, {
+      'Content-Type': 'multipart/form-data',
+    });
+
+    let imageUrl;
+    if (response.data && response.data.url) {
+      imageUrl = response.data.url;
+    } else {
+      throw 'TXT_AVATAR_UPLOAD_FAILED';
+    }
+
+    return imageUrl;
+  } catch (error) {
+    console.error('Failed to upload store avatar:', error);
     throw error;
   }
 };

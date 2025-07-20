@@ -1,13 +1,14 @@
+
 const express = require('express');
 const multer = require('multer');
 const imageController = require('../../controllers/imageController');
 
 const router = express.Router();
 
-const uploadStoreAvatar = multer({
+const uploadProductsAvatar = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, 'storage/stores/avatars');
+      cb(null, 'storage/products/avatars');
     },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1000000000);
@@ -26,7 +27,7 @@ const uploadStoreAvatar = multer({
 }).any();
 
 // group my-store routes
-router.post('/', uploadStoreAvatar, imageController.uploadAvatarMyStore);
+router.post('/', uploadProductsAvatar, imageController.uploadAvatarMyProduct);
 
 // export default router;
 module.exports = router;

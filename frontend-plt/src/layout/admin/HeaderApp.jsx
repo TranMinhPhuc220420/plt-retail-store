@@ -1,18 +1,18 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-
-import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 // Hook components
 import useAuth from "@/hooks/useAuth";
 
 // Ant Design
-import { MenuUnfoldOutlined, MenuFoldOutlined, LoadingOutlined, BellOutlined } from '@ant-design/icons';
-import { Layout, Button, Dropdown, Badge } from 'antd';
+import { LoadingOutlined, BellOutlined } from '@ant-design/icons';
+import { Layout, Button, Dropdown, Badge, message } from 'antd';
 const { Header } = Layout;
 
 // Zustand store
 import useStoreStore from '@/store/store';
+import useStoreApp from '@/store/app';
 
 // Request
 
@@ -20,12 +20,19 @@ const HeaderApp = ({ }) => {
   const navigate = useNavigate();
   const params = useParams();
   const storeCode = params.storeCode;
+
+  // Ant Design message
+  const [messageApi, contextHolder] = message.useMessage();
+
+  // Use i18n
+  const { t } = useTranslation();
   
   // Hook components
   const { user, isChecking, signOut } = useAuth();
 
   // Zustand store
   const { isLoading, stores, fetchStores } = useStoreStore();
+  const { isFetchingStoreActiveError, messageStoreActiveError } = useStoreApp();
 
   // State
   const [collapsed, setCollapsed] = React.useState(false);
@@ -34,9 +41,16 @@ const HeaderApp = ({ }) => {
   // Handler
   const handleCollapse = () => {
   };
-  const handlerOnSelectMenuItem = () => {
-    // Call signOut function from auth provider
-    signOut();
+  const handlerOnSelectMenuItem = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      const message = t(error);
+      if (message == error) {
+        message = t('TXT_SIGN_OUT_ERROR');
+      }
+      messageApi.error(message);
+    }
   };
   const handleSelectStore = (store) => {
     setStoreActive(store);
@@ -102,14 +116,22 @@ const HeaderApp = ({ }) => {
       if (storeSelected) {
         setStoreActive(storeSelected);
       } else {
-        setStoreActive(null);
-        navigate('/overview');
+        if (isFetchingStoreActiveError) {
+          setStoreActive(null);
+
+          if (messageStoreActiveError) {
+            messageApi.error(messageStoreActiveError);
+          }
+          
+          navigate('/overview');
+        }
       }
     }
   }, [storeCode, stores]);
 
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
+      { contextHolder }
       <div className='flex items-center justify-between h-full'>
 
         <div className='flex items-center justify-end gap-3'>

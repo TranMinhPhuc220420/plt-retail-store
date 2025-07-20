@@ -1,10 +1,3 @@
-// import express from 'express';
-
-// import storeController from '../../controllers/storeController';
-
-// // middleware to check authentication can be added here if needed
-// import { verifyFormCreateStore, verifyFormUpdateStore } from '../../middlewares/verifyForm/verifyFormStore';
-
 const express = require('express');
 const storeController = require('../../controllers/storeController');
 const { verifyFormCreateStore, verifyFormUpdateStore } = require('../../middlewares/verifyForm/verifyFormStore');

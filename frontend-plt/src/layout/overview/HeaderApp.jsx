@@ -12,11 +12,15 @@ import { useTranslation } from 'react-i18next';
 import useAuth from "@/hooks/useAuth";
 
 // Ant Design
-import { ShoppingCartOutlined, UserOutlined, FileDoneOutlined, LoadingOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons';
-import { Layout, Button, Dropdown, Space, Menu } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import { Layout, Dropdown, message } from 'antd';
 const { Header } = Layout;
 
 const HeaderApp = ({ isLoading }) => {
+
+  // Ant Design message
+  const [messageApi, contextHolder] = message.useMessage();
+
   // Use i18n
   const { t } = useTranslation();
 
@@ -36,13 +40,24 @@ const HeaderApp = ({ isLoading }) => {
   };
 
   // Handler
+  const handlerSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      const message = t(error);
+      if (message == error) {
+        message = t('TXT_SIGN_OUT_ERROR');
+      }
+      messageApi.error(message);
+    }
+  };
 
   // Constants
   const items = [];
   items.push({
     label: (<span>{t('TXT_LOGOUT')}</span>),
     key: '0',
-    onClick: signOut,
+    onClick: handlerSignOut,
   });
   
   useEffect(() => {
@@ -50,6 +65,8 @@ const HeaderApp = ({ isLoading }) => {
 
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
+      { contextHolder }
+      
       <div className='flex items-center justify-between h-full'>
 
         <div className='flex items-center cursor-pointer' onClick={() => navigate('/overview')}>

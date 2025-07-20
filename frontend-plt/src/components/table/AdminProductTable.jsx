@@ -11,16 +11,20 @@ const { Column } = Table;
 
 // use zustand
 import useStoreProduct from "@/store/product";
+import useStoreStore from "@/store/store";
+import useStoreProductType from "@/store/productType";
 
 // Constants
 
-const AdminProductTable = ({ onEdit, onDelete, onSelectionChange }) => {
+const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) => {
   // Translation
   const { t } = useTranslation();
 
   // Store products
   const dataSource = useStoreProduct((state) => state.products);
   const isLoading = useStoreProduct((state) => state.isLoading);
+  const isLoadProductTypeSuccess = useStoreProductType((state) => state.success);
+  const { productTypes, fetchProductTypes } = useStoreProductType();
 
   // State
   const [height, setHeight] = useState(window.innerHeight - 310);
@@ -33,8 +37,6 @@ const AdminProductTable = ({ onEdit, onDelete, onSelectionChange }) => {
       dataIndex: 'imageUrl',
       width: 80,
       render: (imageUrl) => {
-        console.log(imageUrl);
-        
         return <Image
           width={50}
           height={50}
@@ -99,32 +101,31 @@ const AdminProductTable = ({ onEdit, onDelete, onSelectionChange }) => {
       ),
     },
     {
-      key: 'store',
-      title: t('LABEL_STORE'),
-      dataIndex: 'store',
-      width: 150,
-      render: (store) => store?.name || '-',
-    },
-    {
       key: 'categories',
       title: t('LABEL_CATEGORIES'),
       dataIndex: 'categories',
       width: 200,
+      // render: (categories) => (
+      //   <div>
+      //     {categories?.map((category) => (
+      //       <Tag key={category.id} color="blue">
+      //         {category.name}
+      //       </Tag>
+      //     ))}
+      //   </div>
+      // ),
       render: (categories) => (
         <div>
-          {categories?.map((category) => (
-            <Tag key={category.id} color="blue">
-              {category.name}
-            </Tag>
-          ))}
+          {categories?.map((category_id) => {
+            const productType = productTypes.find((type) => type._id === category_id);
+            return (
+              <Tag key={category_id} color="blue">
+                {productType.name}
+              </Tag>
+            );
+          })}
         </div>
       ),
-    },
-    {
-      key: 'createdAt',
-      title: t('LABEL_CREATED_AT'),
-      dataIndex: 'createdAt',
-      width: 150,
     },
     {
       key: 'updatedAt',
@@ -164,6 +165,12 @@ const AdminProductTable = ({ onEdit, onDelete, onSelectionChange }) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoadProductTypeSuccess) {
+      fetchProductTypes(storeCode);
+    }
   }, []);
 
   return (

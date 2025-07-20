@@ -1,11 +1,3 @@
-// import express from 'express';
-
-// import productCategoryController from '../../controllers/productCategoryController';
-
-// // middleware to check authentication can be added here if needed
-// import { verifyFormCreateStore, verifyFormUpdateStore } from '../../middlewares/verifyForm/verifyFormStore';
-// import { verifyFormCreateProductCategory, verifyFormUpdateProductCategory } from '../../middlewares/verifyForm/verifyFormProductCategory';
-
 const express = require('express');
 const productCategoryController = require('../../controllers/productCategoryController');
 const { verifyFormCreateStore, verifyFormUpdateStore } = require('../../middlewares/verifyForm/verifyFormStore');

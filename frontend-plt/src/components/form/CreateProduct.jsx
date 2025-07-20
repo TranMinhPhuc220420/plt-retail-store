@@ -11,7 +11,7 @@ import { Button, Input, Form, Upload, message, InputNumber, Select, AutoComplete
 import useAuth from "@/hooks/useAuth";
 
 // Request
-import { createMyProduct } from "@/request/product";
+import { createMyProduct, uploadAvatarProduct } from "@/request/product";
 
 // Zustand store
 import useStoreProduct from "@/store/product";
@@ -23,7 +23,7 @@ import { } from "@/utils";
 // Constants
 import { IMAGE_PRODUCT_EXAMPLE, UNIT_LIST_SUGGESTION, PRODUCT_STATUS_LIST } from "@/constant";
 
-const CreateProduct = ({ onOK, onFail, onCancel, storeId, storeCode }) => {
+const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
   // i18n
   const { t } = useTranslation();
 
@@ -38,6 +38,7 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeId, storeCode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(IMAGE_PRODUCT_EXAMPLE);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -45,10 +46,8 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeId, storeCode }) => {
     setIsLoading(true);
 
     // Additional params
-    values.ownerId = user.sub;
-    values.storeId = storeId;
-    values.file = imageFile;
-    values.productCode = values.productCode ? values.productCode.toUpperCase() : '';
+    values.imageUrl = imageUrl;
+    values.storeCode = storeCode;
 
     // Add product to database
     try {
@@ -78,15 +77,22 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeId, storeCode }) => {
     onCancel();
   };
 
-  const handleAvatarChange = (info) => {
+  const handleAvatarChange = async (info) => {
     console.log("Avatar change info:", info);
     const file = info.file;
 
     if (file) {
-      setImageUrl(URL.createObjectURL(file));
-      setImageFile(file);
+      setIsUploadingImage(true);
+      try {
+        const imageUrl = await uploadAvatarProduct(file);
+        setImageUrl(imageUrl);
+      } catch (error) {
+        message.error(t('TXT_AVATAR_UPLOAD_FAILED'));
+      } finally {
+        setIsUploadingImage(false);
+      }
     } else {
-      setImageUrl(IMAGE_PRODUCT_EXAMPLE);
+      setImageUrl("background-page-login.png");
       setImageFile(null);
     }
   };
@@ -107,6 +113,7 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeId, storeCode }) => {
             showUploadList={false}
             beforeUpload={() => false}
             accept="image/*"
+            disabled={isUploadingImage}
             onChange={handleAvatarChange}
           >
             <img
@@ -260,7 +267,7 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeId, storeCode }) => {
               placeholder={t('TXT_SELECT_CATEGORIES')}
               options={productTypes?.map(type => ({
                 label: type.name,
-                value: type.id
+                value: type._id
               }))}
             />
           </Form.Item>

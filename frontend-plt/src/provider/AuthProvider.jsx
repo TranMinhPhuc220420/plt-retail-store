@@ -4,11 +4,12 @@ import { useNavigate } from "react-router";
 import AuthContext from "@/provider/AuthContext";
 
 const INITIALIZE = "INITIALIZE";
+const SIGN_OUT = "SIGN_OUT";
 const IS_CHECKING = "IS_CHECKING";
 const IS_ERROR = "IS_ERROR";
 
 import { ADMIN_ROLE, AVATAR_DEFAULT, USER_ROLE } from "@/constant";
-import { getMe, openPopupLoginWithGoogle } from "@/request/auth";
+import { getMe, logout, openPopupLoginWithGoogle } from "@/request/auth";
 
 const initialState = {
   isAuthenticated: false,
@@ -31,6 +32,15 @@ const reducer = (state, action) => {
         isAuthenticated,
         isInitialized: true,
         user,
+      };
+    case SIGN_OUT:
+      return {
+        ...state,
+        isAuthenticated: false,
+        user: null,
+        isChecking: false,
+        isError: false,
+        errorMessage: '',
       };
     case IS_CHECKING:
       return {
@@ -60,6 +70,21 @@ function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  const signOut = async () => {
+    try {
+      // Call API to sign out
+      await logout(); // Assuming this is the sign-out function
+
+      // Dispatch sign-out action
+      dispatch({ type: SIGN_OUT });
+
+      // Reset user state
+      navigate('/dang-nhap'); // Redirect to login page
+    } catch (error) {
+      throw 'TXT_SIGN_OUT_ERROR';
+    }
+  };
 
   const afterCheckLogin = async (user) => {
     // Check if page active is login page
@@ -157,6 +182,19 @@ function AuthProvider({ children }) {
     loadProfile();
   }, []);
 
+  useEffect(() => {
+    // Check if the user is authenticated
+    if (state.isInitialized && !state.isAuthenticated) {
+      // If not authenticated, redirect to login page
+      navigate('/dang-nhap');
+    } else {
+      const isPageLogin = window.location.pathname.includes("/dang-nhap");
+      if (state.isInitialized && state.isAuthenticated && isPageLogin) {
+        navigate('/overview');
+      }
+    }
+  }, [state.isInitialized, state.isAuthenticated, navigate]);
+
   const _auth = { ...state.user };
 
   return (
@@ -171,6 +209,7 @@ function AuthProvider({ children }) {
         isError: state.isError,
 
         // Actions
+        signOut,
         loginWithGoogle,
         loadProfile,
       }}

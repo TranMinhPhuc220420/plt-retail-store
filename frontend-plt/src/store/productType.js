@@ -30,6 +30,11 @@ const useStoreProductType = create((set) => ({
       }));
       set({ productTypes, isLoading: false, error: null, success: 'Product types fetched successfully' });
     } catch (error) {
+      if (error.status === 401) {
+        window.location.href = '/dang-nhap';
+        return;
+      }
+      
       set({ isLoading: false, error: error.message || 'Failed to fetch product types', success: null });
     }
   },

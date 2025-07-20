@@ -13,10 +13,14 @@ import useAuth from "@/hooks/useAuth";
 
 // Ant Design
 import { ShoppingCartOutlined, UserOutlined, FileDoneOutlined, LoadingOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons';
-import { Layout, Button, Dropdown, Space, Menu } from 'antd';
+import { Layout, Button, Dropdown, Space, Menu, message } from 'antd';
 const { Header } = Layout;
 
 const SiderApp = ({ isLoading }) => {
+
+  // Ant Design message
+  const [messageApi, contextHolder] = message.useMessage();
+
   // Use i18n
   const { t } = useTranslation();
 
@@ -44,6 +48,17 @@ const SiderApp = ({ isLoading }) => {
       navigate(pathname);
     }
   };
+  const handlerSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      const message = t(error);
+      if (message == error) {
+        message = t('TXT_SIGN_OUT_ERROR');
+      }
+      messageApi.error(message);
+    }
+  };
 
   // Constants
   const items = [];
@@ -57,7 +72,7 @@ const SiderApp = ({ isLoading }) => {
   items.push({
     label: (<span>{t('TXT_LOGOUT')}</span>),
     key: '0',
-    onClick: signOut,
+    onClick: handlerSignOut,
   },
   );
 
@@ -125,6 +140,8 @@ const SiderApp = ({ isLoading }) => {
 
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
+      { contextHolder }
+      
       <div className='flex items-center justify-between h-full'>
 
         <Menu mode="horizontal" style={{ flex: 1, minWidth: 0 }}

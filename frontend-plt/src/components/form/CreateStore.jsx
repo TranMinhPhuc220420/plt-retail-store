@@ -26,7 +26,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
   // State
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState("public/background-page-login.png");
+  const [imageUrl, setImageUrl] = useState("background-page-login.png");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
@@ -43,7 +43,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
       await createMyStore(values);
 
       form.resetFields();
-      setImageUrl("public/background-page-login.png");
+      setImageUrl("background-page-login.png");
       setImageFile(null);
       message.success(t('TXT_STORE_CREATED_SUCCESS'));
 
@@ -62,7 +62,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
 
   const handlerCancel = () => {
     form.resetFields();
-    setImageUrl("public/background-page-login.png");
+    setImageUrl("background-page-login.png");
     onCancel();
   };
 
@@ -81,7 +81,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
         setIsUploadingImage(false);
       }
     } else {
-      setImageUrl("public/background-page-login.png");
+      setImageUrl("background-page-login.png");
       setImageFile(null);
     }
   };

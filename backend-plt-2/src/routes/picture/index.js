@@ -1,17 +1,14 @@
-// import { Router } from 'express';
-
-// import StorePictureRouter from './store.route';
-
-// import { verifyJWT } from '../../middlewares/verifyJWT';
-
 const { Router } = require('express');
-const StorePictureRouter = require('./store.route');
 const verifyJWT = require('../../middlewares/verifyJWT');
+
+const StorePictureRouter = require('./store.route');
+const ProductPictureRouter = require('./product.route');
 
 const router = Router();
 
 // API routes
 router.use('/stores', verifyJWT, StorePictureRouter);
+router.use('/products', verifyJWT, ProductPictureRouter);
 
 // export default router;
 module.exports = router;

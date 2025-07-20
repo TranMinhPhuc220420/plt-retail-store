@@ -28,6 +28,11 @@ const useStoreStore = create((set) => ({
       set({ stores, isLoading: false, error: null, success: 'MY_STORES_FETCHED' });
 
     } catch (error) {
+      if (error.status === 401) {
+        window.location.href = '/dang-nhap';
+        return;
+      }
+      
       set({ isLoading: false, error: error.message || 'MSG_FAILED_TO_FETCH_MY_STORES', success: null });
     }
   },

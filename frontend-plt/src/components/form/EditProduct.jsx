@@ -36,7 +36,7 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
   // State
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(productData?.imageUrl || "public/background-page-login.png");
+  const [imageUrl, setImageUrl] = useState(productData?.imageUrl || "background-page-login.png");
 
   const [form] = Form.useForm();
 
@@ -59,7 +59,7 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
         categories: productData.categories?.map(cat => cat.id),
         description: productData.description,
       });
-      setImageUrl(SERVER_URL + productData.imageUrl || "public/background-page-login.png");
+      setImageUrl(SERVER_URL + productData.imageUrl || "background-page-login.png");
     }
   }, [productData, form]);
 
@@ -78,7 +78,7 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
       await updateMyProduct(values.id, values);
 
       form.resetFields();
-      setImageUrl("public/background-page-login.png");
+      setImageUrl("background-page-login.png");
       setImageFile(null);
       message.success(t('MSG_PRODUCT_UPDATED_SUCCESS'));
 
@@ -110,7 +110,7 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
       categories: productData.categories?.map(cat => cat.id),
       description: productData.description,
     });
-    setImageUrl(SERVER_URL + productData.imageUrl || "public/background-page-login.png");
+    setImageUrl(SERVER_URL + productData.imageUrl || "background-page-login.png");
     onCancel();
   };
 
@@ -120,7 +120,7 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
       setImageUrl(URL.createObjectURL(file));
       setImageFile(file);
     } else {
-      setImageUrl(SERVER_URL + productData.imageUrl || "public/background-page-login.png");
+      setImageUrl(SERVER_URL + productData.imageUrl || "background-page-login.png");
       setImageFile(null);
     }
   };

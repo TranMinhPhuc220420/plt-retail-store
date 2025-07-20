@@ -1,7 +1,3 @@
-// import { Router } from 'express';
-
-// import authRouter from './auth.route';
-
 const { Router } = require('express');
 const authRouter = require('./auth.route');
 

@@ -112,6 +112,23 @@ const authController = {
     res.json({ message: 'login_success'});
   },
 
+  logout: (req, res) => {
+    // token, connect.sid
+
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    });
+    res.clearCookie('connect.sid', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    });
+
+    res.json({ message: 'logout_success' });
+  },
+
   me: async (req, res) => {
     if (!req.user) {
       return res.status(401).json({ message: 'unauthorized' });

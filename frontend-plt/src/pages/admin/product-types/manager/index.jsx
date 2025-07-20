@@ -278,16 +278,16 @@ const ProductTypeManager = () => {
   };
 
   useEffect(() => {
+    setProductTypes([]); // Clear product types on unmount
+    setProductTypeSelected([]);
+    setProductTypeEdit(null);
+    setIsDeletingLoading(false);
+    setIsAddingByExcelLoading(false);
+    
     fetchProductTypes(storeCode);
 
     return () => {
-      setProductTypes([]); // Clear product types on unmount
-      setProductTypeSelected([]);
-      setProductTypeEdit(null);
-      setIsDeletingLoading(false);
-      setIsAddingByExcelLoading(false);
     }
-
   }, [storeActive]);
 
   if (!storeActive) {

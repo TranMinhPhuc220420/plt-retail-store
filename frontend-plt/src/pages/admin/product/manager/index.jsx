@@ -32,7 +32,8 @@ const ProductManagerPage = () => {
 
   // Zustand store
   const { storeActive, storeActiveIsLoading } = useStoreApp((state) => state);
-  const { 
+  const {
+    fetchProducts,
     setProducts, setIsLoading, setError,
     setProductIsEditing, setProductIsDeleting 
   } = useStoreProduct();
@@ -68,57 +69,13 @@ const ProductManagerPage = () => {
     }
   ];
 
-  // Fetch data from firebase
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      let data = await getMyProducts(storeCode);
-      if (data) {
-
-        // Convert image URLs to full URLs if needed
-        data = data.map(item => {
-          let imageUrl = item.imageUrl;
-          if (imageUrl && !imageUrl.startsWith('http')) {
-            imageUrl = SERVER_URL + imageUrl;
-          }
-          item.imageUrl = imageUrl;
-          item.images.push(imageUrl);
-
-          return {
-            ...item,
-            key: item.id,
-          };
-        });
-
-        console.log(data);
-
-        setProducts(data);
-      } else {
-        setError(t('MSG_ERROR_PRODUCT_NOT_FOUND'));
-      }
-    } catch (error) {
-      let message = t(error);
-      if (message == error) {
-        message = t('MSG_ERROR_FETCHING_PRODUCTS');
-      }
-      setError(message);
-      messageApi.open({
-        type: 'error',
-        content: message,
-        duration: 3,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Modal handlers
   const showModalCreate = () => {
     setIsModalCreateOpen(true);
   };
 
   const handleCreateOk = () => {
-    fetchData();
+    fetchProducts(storeCode);
     setIsModalCreateOpen(false);
   };
 
@@ -137,7 +94,7 @@ const ProductManagerPage = () => {
   };
 
   const handleEditOk = () => {
-    fetchData();
+    fetchProducts(storeCode);
     setIsModalEditOpen(false);
   };
 
@@ -172,7 +129,7 @@ const ProductManagerPage = () => {
       });
       
       setProductSelected([]);
-      fetchData();
+      fetchProducts(storeCode);
     } catch (error) {
       messageApi.open({
         type: 'error',
@@ -196,7 +153,7 @@ const ProductManagerPage = () => {
         duration: 3,
       });
 
-      fetchData();
+      fetchProducts(storeCode);
     } catch (error) {
       messageApi.open({
         type: 'error',
@@ -312,7 +269,7 @@ const ProductManagerPage = () => {
           duration: 3,
         });
 
-        fetchData();
+        fetchProducts(storeCode);
       } catch (error) {
         messageApi.open({
           type: 'error',
@@ -341,7 +298,7 @@ const ProductManagerPage = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchProducts(storeCode);
   }, [storeActive]);
 
   if (!storeActive) {
@@ -412,7 +369,8 @@ const ProductManagerPage = () => {
         </div>
 
         {/* Table */}
-        <AdminProductTable 
+        <AdminProductTable
+          storeCode={storeCode}
           onEdit={handleEdit} 
           onDelete={handleConfirmDeleteItem}
           onSelectionChange={setProductSelected}
@@ -437,7 +395,7 @@ const ProductManagerPage = () => {
         >
           {isModalCreateOpen && (
             <CreateProductForm
-              storeId={storeActive.id}
+              storeId={storeActive._id}
               storeCode={storeCode}
               onCancel={handleCreateCancel}
               onOK={handleCreateOk}

@@ -2,19 +2,18 @@ const Joi = require('joi');
 const Store = require('../../models/Store');
 
 const storeCreateSchema = Joi.object({
-  storeCode: Joi.string().min(3).max(30).required().regex(/^[a-zA-Z0-9]+$/).messages({
+  storeCode: Joi.string().min(3).max(30).required().regex(/^[a-zA-Z0-9_-]+$/).messages({
     'string.base': 'store_code_must_be_a_string',
     'string.empty': 'store_code_is_required',
     'string.min': 'store_code_too_short',
     'string.max': 'store_code_too_long',
     'string.pattern.base': 'store_code_invalid_format'
   }),
-  name: Joi.string().min(3).max(100).required().regex(/^[a-zA-Z\s]+$/).messages({
+  name: Joi.string().min(3).max(100).required().messages({
     'string.base': 'name_must_be_a_string',
     'string.empty': 'name_is_required',
     'string.min': 'name_too_short',
     'string.max': 'name_too_long',
-    'string.pattern.base': 'name_invalid_format'
   }),
   address: Joi.string().min(5).max(200).required().messages({
     'string.base': 'address_must_be_a_string',

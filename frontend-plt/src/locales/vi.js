@@ -50,6 +50,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_ADD_BY_CSV': 'Thêm bằng CSV',
     'MSG_UNKNOWN_ACTION': 'Hành động không xác định',
     'MSG_ERROR_DOWNLOAD_TEMPLATE': 'Lỗi tải mẫu, vui lòng thử lại sau',
+    'TXT_SIGN_OUT_ERROR': 'Đăng xuất không thành công, vui lòng thử lại sau',
 
     'LABEL_NAME': 'Tên',
     'LABEL_DESCRIPTION': 'Mô tả',
@@ -116,6 +117,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_AVATAR_UPLOAD_FAILED': 'Tải lên ảnh đại diện cửa hàng không thành công',
     'TXT_FAILED_TO_FETCH_STORES': 'Lỗi khi lấy danh sách cửa hàng',
     'MSG_FAILED_TO_FETCH_MY_STORES': 'Lỗi khi lấy danh sách cửa hàng của tôi',
+    'MSG_STORE_NOT_FOUND': 'Cửa hàng không tồn tại',
 
     // Product types management
     'TXT_PRODUCT_TYPES': 'Loại sản phẩm',

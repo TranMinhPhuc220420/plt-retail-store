@@ -34,7 +34,7 @@ export const USER_ROLE = "user";
 export const AVATAR_DEFAULT = "https://cdn3d.iconscout.com/3d/premium/thumb/programmer-3d-icon-download-in-png-blend-fbx-gltf-file-formats--development-coding-programming-developer-profession-avatar-pack-people-icons-11757512.png?f=webp";
 
 // Product related constants
-export const IMAGE_PRODUCT_EXAMPLE = `${BASE_URL}/public/product-concept.avif`;
+export const IMAGE_PRODUCT_EXAMPLE = `${BASE_URL}/product-concept.avif`;
 export const PRODUCT_TYPE_TEMP_FILE = `${SERVER_URL}/public/download-template/product-type-template.xlsx`;
 export const UNIT_LIST_SUGGESTION = [
   { id: "1", name: "Cái" },

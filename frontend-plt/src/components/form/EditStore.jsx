@@ -25,7 +25,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
 
   // State
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState(storeData?.imageUrl || "public/background-page-login.png");
+  const [imageUrl, setImageUrl] = useState(storeData?.imageUrl || "background-page-login.png");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
@@ -42,7 +42,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
         email: storeData.email,
         description: storeData.description,
       });
-      setImageUrl(storeData.imageUrl || "public/background-page-login.png");
+      setImageUrl(storeData.imageUrl || "background-page-login.png");
     }
   }, [storeData, form]);
 
@@ -58,7 +58,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       await updateMyStore(storeData._id, values);
 
       form.resetFields();
-      setImageUrl("public/background-page-login.png");
+      setImageUrl("background-page-login.png");
       message.success(t('TXT_STORE_UPDATED_SUCCESS'));
 
       onOK();
@@ -82,7 +82,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       email: storeData.email,
       description: storeData.description,
     });
-    setImageUrl(storeData.imageUrl || "public/background-page-login.png");
+    setImageUrl(storeData.imageUrl || "background-page-login.png");
     onCancel();
   };
 
@@ -101,7 +101,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
         setIsUploadingImage(false);
       }
     } else {
-      setImageUrl(storeData.imageUrl || "public/background-page-login.png");
+      setImageUrl(storeData.imageUrl || "background-page-login.png");
     }
   };
 
