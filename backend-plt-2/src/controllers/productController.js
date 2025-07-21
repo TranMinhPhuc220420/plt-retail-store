@@ -98,12 +98,12 @@ const productController = {
       if (!storeCode) {
         return res.status(400).json({ error: 'store_code_required' });
       }
-      const store = await Store.findOne({ storeCode, ownerId: req.user._id });
+      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
 
-      let products = await Product.find({ storeId: store._id, ownerId: req.user._id });
+      let products = await Product.find({ storeId: store._id, owner: req.user.id, deleted: false });
       res.status(200).json(products);
 
     } catch (error) {
@@ -117,8 +117,10 @@ const productController = {
         ...req.body,
         ownerId: req.user._id
       });
+      
       const savedProduct = await newProduct.save();
       res.status(201).json(savedProduct);
+      
     } catch (error) {
       console.log(error);
       
@@ -128,14 +130,15 @@ const productController = {
 
   updateMyInStore: async (req, res) => {
     try {
-      const { id, storeId } = req.params;
+      const { id } = req.params;
+      const { storeCode } = req.body;
       
-      const store = await Store.findOne({ _id: storeId, ownerId: req.user._id });
+      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
       
-      const product = await Product.findOne({ _id: id, ownerId: req.user._id, storeId: store._id });
+      const product = await Product.findOne({ _id: id, owner: req.user.id, storeId: store._id, deleted: false });
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
@@ -151,22 +154,26 @@ const productController = {
 
   deleteMyInStore: async (req, res) => {
     try {
-      const { id, storeId } = req.params;
-      if (!storeId) {
-        return res.status(400).json({ error: 'store_id_required' });
+      const { id } = req.params;
+      const { storeCode } = req.query;
+
+      if (!storeCode) {
+        return res.status(400).json({ error: 'store_code_required' });
       }
 
-      const store = await Store.findOne({ _id: storeId, ownerId: req.user._id });
+      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
 
-      const product = await Product.findOne({ _id: id, ownerId: req.user._id, storeId: store._id });
+      const product = await Product.findOne({ _id: id, ownerId: req.user._id, storeId: store._id, deleted: false });
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
 
-      await product.deleteOne();
+      product.deleted = true;
+      await product.save();      
+      
       res.status(200).json({ message: 'product_deleted_successfully' });
       
     } catch (error) {

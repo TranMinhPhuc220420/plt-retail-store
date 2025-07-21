@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema({
   displayName: { type: String, default: null },
   provider: { type: String, default: USER_PROVIDER_LOCAL },
   role: { type: String, enum: ROLE_LIST, default: ROLE_DEFAULT },
+
+  disabled: { type: Boolean, default: false },
+  deleted: { type: Boolean, default: false },
 }, {
   timestamps: true
 });

@@ -58,9 +58,9 @@ export const createMyProductType = async (productTypeData) => {
 };
 
 // Create multiple product types from an Excel file
-export const createMyProductTypeTypeBulk = async (storeId, productTypesData) => {
+export const createMyProductTypeTypeBulk = async (storeCode, productTypesData) => {
   try {
-    const response = await postApi('/product-categories/my-categories-stores-bulk', { storeId, categories: productTypesData });
+    const response = await postApi('/product-categories/my-categories-stores-bulk', { storeCode, categories: productTypesData });
     return response.data;
   } catch (error) {
     let message = error.response?.data?.error;

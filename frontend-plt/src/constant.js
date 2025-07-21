@@ -35,7 +35,7 @@ export const AVATAR_DEFAULT = "https://cdn3d.iconscout.com/3d/premium/thumb/prog
 
 // Product related constants
 export const IMAGE_PRODUCT_EXAMPLE = `${BASE_URL}/product-concept.avif`;
-export const PRODUCT_TYPE_TEMP_FILE = `${SERVER_URL}/public/download-template/product-type-template.xlsx`;
+export const PRODUCT_TYPE_TEMP_FILE = `${SERVER_URL}/download-template/product-type-template.xlsx`;
 export const UNIT_LIST_SUGGESTION = [
   { id: "1", name: "Cái" },
   { id: "2", name: "Hộp" },

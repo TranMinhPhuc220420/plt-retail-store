@@ -6,11 +6,10 @@ const router = express.Router();
 
 // group my-store routes
 router.get('/my-stores', storeController.getAllMy);
-router.get('/my-store/:id', storeController.getMyById);
-router.get('/my-store-by-store-code/:storeCode', storeController.getMyByByStoreCode);
+router.get('/my-store/:storeCode', storeController.getMyByCode);
 router.post('/my-store', verifyFormCreateStore, storeController.createMy);
-router.put('/my-store/:id', verifyFormUpdateStore, storeController.updateMy);
-router.delete('/my-store/:id', storeController.deleteMy);
+router.put('/my-store/:storeCode', verifyFormUpdateStore, storeController.updateMy);
+router.delete('/my-store/:storeCode', storeController.deleteMy);
 
 // export default router;
 module.exports = router;

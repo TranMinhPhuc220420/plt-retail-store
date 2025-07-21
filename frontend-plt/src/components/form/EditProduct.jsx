@@ -5,16 +5,16 @@ import { useTranslation } from "react-i18next";
 
 // Antd design
 import { SaveOutlined, CloseOutlined } from "@ant-design/icons";
-import { Button, Input, Form, Upload, message, InputNumber, Select } from "antd";
+import { Button, Input, Form, Upload, message, InputNumber, Select, AutoComplete } from "antd";
 
 // Hooks
 import useAuth from "@/hooks/useAuth";
 
 // Constants
-import { SERVER_URL } from "@/constant";
+import { IMAGE_PRODUCT_EXAMPLE, UNIT_LIST_SUGGESTION, PRODUCT_STATUS_LIST } from "@/constant";
 
 // Request
-import { updateMyProduct } from "@/request/product";
+import { updateMyProduct, uploadAvatarProduct } from "@/request/product";
 
 // Zustand store
 import useStoreProduct from "@/store/product";
@@ -23,7 +23,7 @@ import useStoreProductType from "@/store/productType";
 // Utilities
 import { } from "@/utils";
 
-const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
+const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }) => {
   // i18n
   const { t } = useTranslation();
 
@@ -36,7 +36,8 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
   // State
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(productData?.imageUrl || "background-page-login.png");
+  const [imageUrl, setImageUrl] = useState(productData?.imageUrl || IMAGE_PRODUCT_EXAMPLE);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -52,14 +53,12 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
         status: productData.status,
         price: productData.price,
         retailPrice: productData.retailPrice,
-        wholesalePrice: productData.wholesalePrice,
         costPrice: productData.costPrice,
-        stock: productData.stock,
         minStock: productData.minStock,
-        categories: productData.categories?.map(cat => cat.id),
+        categories: productData.categories,
         description: productData.description,
       });
-      setImageUrl(SERVER_URL + productData.imageUrl || "background-page-login.png");
+      setImageUrl(productData.imageUrl || IMAGE_PRODUCT_EXAMPLE);
     }
   }, [productData, form]);
 
@@ -67,18 +66,15 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
     setIsLoading(true);
 
     // Additional params
-    values.id = productData.id;
-    values.ownerId = user.sub;
-    if (imageFile) {
-      values.file = imageFile;
-    }
+    values.storeCode = storeCode;
+    values.imageUrl = imageUrl;
 
     try {
       // Update product in database
-      await updateMyProduct(values.id, values);
+      await updateMyProduct(productData._id, values);
 
       form.resetFields();
-      setImageUrl("background-page-login.png");
+      setImageUrl(IMAGE_PRODUCT_EXAMPLE);
       setImageFile(null);
       message.success(t('MSG_PRODUCT_UPDATED_SUCCESS'));
 
@@ -103,24 +99,31 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
       status: productData.status,
       price: productData.price,
       retailPrice: productData.retailPrice,
-      wholesalePrice: productData.wholesalePrice,
       costPrice: productData.costPrice,
-      stock: productData.stock,
       minStock: productData.minStock,
-      categories: productData.categories?.map(cat => cat.id),
+      categories: productData.categories?.map(cat => cat._id || cat.id),
       description: productData.description,
     });
-    setImageUrl(SERVER_URL + productData.imageUrl || "background-page-login.png");
+    setImageUrl(productData.imageUrl || IMAGE_PRODUCT_EXAMPLE);
     onCancel();
   };
 
-  const handleAvatarChange = (info) => {
+  const handleAvatarChange = async (info) => {
+    console.log("Avatar change info:", info);
     const file = info.file;
+
     if (file) {
-      setImageUrl(URL.createObjectURL(file));
-      setImageFile(file);
+      setIsUploadingImage(true);
+      try {
+        const imageUrl = await uploadAvatarProduct(file);
+        setImageUrl(imageUrl);
+      } catch (error) {
+        message.error(t('TXT_AVATAR_UPLOAD_FAILED'));
+      } finally {
+        setIsUploadingImage(false);
+      }
     } else {
-      setImageUrl(SERVER_URL + productData.imageUrl || "background-page-login.png");
+      setImageUrl(productData.imageUrl || IMAGE_PRODUCT_EXAMPLE);
       setImageFile(null);
     }
   };
@@ -135,6 +138,8 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
             listType="picture-circle"
             showUploadList={false}
             beforeUpload={() => false}
+            accept="image/*"
+            disabled={isUploadingImage}
             onChange={handleAvatarChange}
           >
             <img
@@ -170,7 +175,16 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
             label={t('TXT_UNIT')}
             rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
           >
-            <Input placeholder="kg, pcs, box..." />
+            <AutoComplete
+              placeholder={t('TXT_UNIT_PLACEHOLDER')}
+              options={UNIT_LIST_SUGGESTION.map(unit => ({
+                value: unit.name,
+                label: unit.name
+              }))}
+              filterOption={(inputValue, option) =>
+                option.value.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1
+              }
+            />
           </Form.Item>
 
           <Form.Item
@@ -179,8 +193,11 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
             rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
           >
             <Select>
-              <Select.Option value="active">{t('TXT_ACTIVE')}</Select.Option>
-              <Select.Option value="inactive">{t('TXT_INACTIVE')}</Select.Option>
+              {PRODUCT_STATUS_LIST.map(status => (
+                <Select.Option key={status.key} value={status.key}>
+                  {status.value}
+                </Select.Option>
+              ))}
             </Select>
           </Form.Item>
         </div>
@@ -215,20 +232,6 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
           </Form.Item>
 
           <Form.Item
-            name="wholesalePrice"
-            label={t('TXT_WHOLESALE_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
-          >
-            <InputNumber
-              min={0}
-              step={1000}
-              style={{ width: '100%' }}
-              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' VNĐ'}
-              parser={(value) => value.replace(/\s?VNĐ|(,*)/g, '')}
-            />
-          </Form.Item>
-
-          <Form.Item
             name="costPrice"
             label={t('TXT_COST_PRICE')}
             rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
@@ -241,20 +244,7 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
               parser={(value) => value.replace(/\s?VNĐ|(,*)/g, '')}
             />
           </Form.Item>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 bg-white">
-          <Form.Item
-            name="stock"
-            label={t('TXT_STOCK')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
-          >
-            <InputNumber
-              min={0}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-
+        
           <Form.Item
             name="minStock"
             label={t('TXT_MIN_STOCK')}
@@ -267,7 +257,7 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
           </Form.Item>
         </div>
 
-        <div className="grid gap-4 px-4 bg-white mb-4">
+        <div className="grid gap-4 px-4 bg-white mb-4 mt-3">
           <Form.Item
             name="categories"
             label={t('TXT_CATEGORIES')}
@@ -275,9 +265,10 @@ const EditProduct = ({ productData, onOK, onFail, onCancel }) => {
             <Select
               mode="multiple"
               placeholder={t('TXT_SELECT_CATEGORIES')}
-              options={productTypes?.map(type => ({
+              options={productTypes.map(type => ({
+                key: type._id,
                 label: type.name,
-                value: type.id
+                value: type._id
               }))}
             />
           </Form.Item>

@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 // Ant Design
-import { FireOutlined,EditOutlined } from "@ant-design/icons";
+import { FireOutlined,EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Button, Modal, message } from "antd";
 
 // Zustand store
@@ -12,7 +12,6 @@ import useStoreStore from "@/store/store";
 // Third-party libraries
 
 // Constants
-import { SERVER_URL } from "@/constant";
 
 // Request
 
@@ -22,6 +21,7 @@ import styles from "./index.module.scss";
 // Components
 import CreateStoreForm from "@/components/form/CreateStore";
 import EditStoreForm from "@/components/form/EditStore";
+import ConfirmDeleteStore from "@/components/form/ConfirmDeleteStore";
 
 const StoreManagerPage = () => {
   // Translation
@@ -37,8 +37,9 @@ const StoreManagerPage = () => {
   const [height, setHeight] = useState(window.innerHeight - 300);
   const [isShowModalCreate, setShowModalCreate] = useState(false);
   const [isShowModelEdit, setShowModalEdit] = useState(false);
+  const [isShowModelDelete, setShowModalDelete] = useState(false);
   const [storeEditing, setStoreEditing] = useState(null);
-  const [isLoadingData, setLoadingData] = useState(false);
+  const [storeDeleting, setStoreDeleting] = useState(null);
 
   // Handlers
   const handleCreateOk = () => {
@@ -64,6 +65,21 @@ const StoreManagerPage = () => {
     fetchStores();
   };
   const handlerEditOnFail = () => {
+  };
+
+  const handlerClickDelete = (store) => {
+    setStoreDeleting(store);
+    setShowModalDelete(true);
+  };
+  const handleCancelDelete = () => {
+    setShowModalDelete(false);
+    setStoreDeleting(null);
+  };
+  const handleDeleteOk = () => {
+    setShowModalDelete(false);
+    fetchStores();
+  };
+  const handlerDeleteOnFail = () => {
   };
 
   // Effect
@@ -125,12 +141,23 @@ const StoreManagerPage = () => {
                       </div>
                     </Link>
                     <div className="absolute -top-2.5 -right-2.5"></div>
-                    <div className="absolute top-[-10px] right-[-10px]">
+                    <div className="absolute top-[5px] right-[45px]">
                       <Button
-                        type="primary"
                         shape="circle"
+                        color="primary"
+                        variant="outlined"
                         icon={<EditOutlined />}
                         onClick={() => handlerClickEdit(store)}
+                      />
+                    </div>
+                    <div className="absolute top-[5px] right-[5px]">
+                      <Button
+                        // type="primary"
+                        color="danger"
+                        variant="solid"
+                        shape="circle"
+                        icon={<DeleteOutlined />}
+                        onClick={() => handlerClickDelete(store)}
                       />
                     </div>
                   </div>
@@ -155,6 +182,14 @@ const StoreManagerPage = () => {
         onCancel={handleCancelEdit}
       >
         {isShowModelEdit && <EditStoreForm storeData={storeEditing} onCancel={handleCancelEdit} onOK={handleEditOk} onFail={handlerEditOnFail} />}
+      </Modal>
+
+      <Modal title={t('TXT_CONFIRM_DELETE_STORE')}
+        open={isShowModelDelete}
+        footer={false}
+        onCancel={handleCancelDelete}
+      >
+        {isShowModelDelete && <ConfirmDeleteStore store={storeDeleting} onCancel={handleCancelDelete} onOK={handleDeleteOk} onFail={handlerDeleteOnFail} />}
       </Modal>
     </div>
   );

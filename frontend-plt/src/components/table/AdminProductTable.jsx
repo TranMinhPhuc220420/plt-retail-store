@@ -33,7 +33,6 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
   const columns = [
     {
       key: 'imageUrl',
-      title: t('LABEL_IMAGE'),
       dataIndex: 'imageUrl',
       width: 80,
       render: (imageUrl) => {
@@ -104,20 +103,13 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
       key: 'categories',
       title: t('LABEL_CATEGORIES'),
       dataIndex: 'categories',
-      width: 200,
-      // render: (categories) => (
-      //   <div>
-      //     {categories?.map((category) => (
-      //       <Tag key={category.id} color="blue">
-      //         {category.name}
-      //       </Tag>
-      //     ))}
-      //   </div>
-      // ),
+      width: 150,
       render: (categories) => (
         <div>
           {categories?.map((category_id) => {
             const productType = productTypes.find((type) => type._id === category_id);
+            if (!productType) return null;
+            
             return (
               <Tag key={category_id} color="blue">
                 {productType.name}
@@ -131,7 +123,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
       key: 'updatedAt',
       title: t('LABEL_UPDATED_AT'),
       dataIndex: 'updatedAt',
-      width: 150,
+      width: 130,
     }
   ];
 
@@ -191,7 +183,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
           render={column.render}
           />
       ))}
-      <Column key="action" render={(_, record) => (
+      <Column width={10} key="action" render={(_, record) => (
         <Space size="middle">
 
           <Button type="primary" 

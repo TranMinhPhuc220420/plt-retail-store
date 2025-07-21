@@ -1,4 +1,4 @@
-import { get, getApi, post, postApi } from "@/request";
+import { deleteApi, get, getApi, post, postApi, putApi } from "@/request";
 
 // Fetch all products
 export const getAllProducts = async () => {
@@ -81,9 +81,7 @@ export const getMyProductDetail = async (id) => {
 // Update a specific product owned by the user
 export const updateMyProduct = async (id, productData) => {
   try {
-    const response = await post(`/products/update-my-product/${id}`, productData, {
-      'Content-Type': 'multipart/form-data',
-    });
+    const response = await putApi(`/products/my-products-stores/${id}`, productData);
     return response.data;
   } catch (error) {
     let message = error.response?.data?.error;
@@ -92,9 +90,9 @@ export const updateMyProduct = async (id, productData) => {
 };
 
 // Delete a specific product owned by the user
-export const deleteMyProduct = async (id) => {
+export const deleteMyProduct = async (id, storeCode) => {
   try {
-    const response = await post(`/products/delete-my-product/${id}`);
+    const response = await deleteApi(`/products/my-products-stores/${id}`, { storeCode });
     return response.data;
   } catch (error) {
     console.error(`Failed to delete my product with ID ${id}:`, error);

@@ -4,7 +4,7 @@ const Store = require('../models/Store');
 const productCategoryController = {
   getAllMy: async (req, res) => {
     try {
-      const productCategories = await ProductCategory.find({ owner: req.user.id });
+      const productCategories = await ProductCategory.find({ owner: req.user.id, deleted: false });
       res.status(200).json(productCategories);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch product categories' });
@@ -72,15 +72,16 @@ const productCategoryController = {
     try {
       const { storeCode } = req.params;
       if (!storeCode) {
-        return res.status(400).json({ error: 'Store ID is required' });
+        return res.status(400).json({ error: 'store_code_required' });
       }
-      const store = await Store.findOne({ storeCode, owner: req.user.id });
+
+      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
       if (!store) {
-        return res.status(404).json({ error: 'Store not found or you do not own this store' });
+        return res.status(404).json({ error: 'store_not_found' });
       }
 
       // Fetch product categories for the store
-      const productCategories = await ProductCategory.find({ storeId: store._id, owner: req.user.id });
+      const productCategories = await ProductCategory.find({ storeId: store._id, owner: req.user.id, deleted: false });
       res.status(200).json(productCategories);
 
     } catch (error) {
@@ -91,21 +92,15 @@ const productCategoryController = {
 
   createMyInStore: async (req, res) => {
     try {
-      const { storeId } = req.body;
-      if (!storeId) {
-        return res.status(400).json({ error: 'store_id_required' });
-      }
-      const store = await Store.findById(storeId);
-      if (!store) {
-        return res.status(404).json({ error: 'store_not_found' });
-      }
+      const { storeId, ownerId } = req.body;
+      if (!storeId) return res.status(400).json({ error: 'store_id_required' });
+      if (!ownerId) return res.status(400).json({ error: 'owner_id_required' });
 
       const newProductCategory = new ProductCategory({
         ...req.body,
-        storeId: store._id,
-        ownerId: req.user._id
       });
       const savedProductCategory = await newProductCategory.save();
+
       res.status(201).json(savedProductCategory);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create product category' });
@@ -114,20 +109,12 @@ const productCategoryController = {
 
   createMyInStoreBulk: async (req, res) => {
     try {
-      const { storeId, categories } = req.body;
-      
-      const store = await Store.findOne({ _id: storeId, owner: req.user.id });
-      if (!store) {
-        return res.status(404).json({ error: 'store_not_found' });
+      const { categories } = req.body;
+      if (!categories || !Array.isArray(categories) || categories.length === 0) {
+        return res.status(400).json({ error: 'categories_required' });
       }
-
-      const productCategories = categories.map(category => ({
-        ...category,
-        storeId: store._id,
-        ownerId: req.user._id
-      }));
-
-      const savedProductCategories = await ProductCategory.insertMany(productCategories);
+      
+      const savedProductCategories = await ProductCategory.insertMany(categories);
       res.status(201).json(savedProductCategories);
 
     } catch (error) {
@@ -137,26 +124,12 @@ const productCategoryController = {
 
   updateMyInStore: async (req, res) => {
     try {
-      const { id } = req.params;
-      const { storeId } = req.body;
-
-      if (!storeId) {
-        return res.status(400).json({ error: 'store_id_require'});
+      if (!req.item_update) {
+        return res.status(400).json({ error: 'product_category_not_found' });
       }
 
-      // Find owned store
-      const store = await Store.findOne({ _id: storeId, owner: req.user.id });
-      if (!store) {
-        return res.status(404).json({ error: 'store_not_found' });
-      }
-
-      const productCategory = await ProductCategory.findOne({ _id: id, storeId: store._id, owner: req.user.id });
-      if (!productCategory) {
-        return res.status(404).json({ error: 'product_category_not_found' });
-      }
-
-      Object.assign(productCategory, req.body);
-      const updatedProductCategory = await productCategory.save();
+      Object.assign(req.item_update, req.body);
+      const updatedProductCategory = await req.item_update.save();
 
       res.status(200).json(updatedProductCategory);
     } catch (error) {
@@ -171,12 +144,13 @@ const productCategoryController = {
         return res.status(400).json({ error: 'product_category_id_required' });
       }
 
-      const productCategory = await ProductCategory.findOne({ _id: id, owner: req.user.id });
+      const productCategory = await ProductCategory.findOne({ _id: id, owner: req.user.id, deleted: false });
       if (!productCategory) {
         return res.status(404).json({ error: 'product_category_not_found' });
       }
       
-      await productCategory.deleteOne();
+      productCategory.deleted = true; // Soft delete
+      await productCategory.save();
       
       res.status(200).json({ message: 'product_category_deleted_successfully' });
     } catch (error) {
@@ -191,12 +165,12 @@ const productCategoryController = {
         return res.status(400).json({ error: 'product_category_ids_required' });
       }
 
-      const productCategories = await ProductCategory.find({ _id: { $in: ids }, owner: req.user.id });
+      const productCategories = await ProductCategory.find({ _id: { $in: ids }, owner: req.user.id, deleted: false });
       if (productCategories.length === 0) {
         return res.status(404).json({ error: 'product_categories_not_found' });
       }
 
-      await ProductCategory.deleteMany({ _id: { $in: ids }, owner: req.user.id });
+      await ProductCategory.updateMany({ _id: { $in: ids } }, { deleted: true }); // Soft delete
 
       res.status(200).json({ message: 'product_categories_deleted_successfully' });
     } catch (error) {

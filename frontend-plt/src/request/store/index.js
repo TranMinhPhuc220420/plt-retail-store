@@ -1,4 +1,4 @@
-import { get, getApi, post, postApi, put, putApi } from "@/request";
+import { deleteApi, get, getApi, post, postApi, put, putApi } from "@/request";
 import { storeCodeIsValid } from "@/utils";
 
 // Fetch all stores
@@ -90,19 +90,9 @@ export const getMyStoreDetail = async (id) => {
   }
 };
 
-export const getMyStoreById = async (id) => {
+export const getMyStoreByCode = async (storeCode) => {
   try {
-    const response = await getApi(`/stores/my-store/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to fetch my store details for ID ${id}:`, error);
-    throw error;
-  }
-};
-
-export const getMyStoreByStoreCode = async (storeCode) => {
-  try {
-    const response = await getApi(`/stores/my-store-by-store-code/${storeCode}`);
+    const response = await getApi(`/stores/my-store/${storeCode}`);
     return response.data;
   } catch (error) {
     console.error(`Failed to fetch my store details for ID ${id}:`, error);
@@ -122,9 +112,9 @@ export const updateMyStore = async (storeId, storeData) => {
 };
 
 // Delete a specific store owned by the user
-export const deleteMyStore = async (id) => {
+export const deleteMyStore = async (storeCode) => {
   try {
-    const response = await post(`/stores/delete-my-store/${id}`);
+    const response = await deleteApi(`/stores/my-store/${storeCode}`);
     return response.data;
   } catch (error) {
     console.error(`Failed to delete my store with ID ${id}:`, error);

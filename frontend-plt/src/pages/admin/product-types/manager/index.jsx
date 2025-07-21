@@ -232,15 +232,8 @@ const ProductTypeManager = () => {
           return;
         }
 
-        const formData = json.map(item => {
-          return {
-            ...item,
-            storeId: storeActive.id, // Ensure store ID is included
-          };
-        });
-
         // Process Excel data here - you'll need to implement addProductType function
-        await createMyProductTypeTypeBulk(storeActive._id, formData)
+        await createMyProductTypeTypeBulk(storeCode, json)
         
         // This is just a placeholder
         messageApi.open({

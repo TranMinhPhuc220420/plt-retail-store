@@ -159,7 +159,6 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
           <Form.Item
             name="description"
             label={t('TXT_STORE_DESCRIPTION')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') || "Required" }]}
           >
             <Input.TextArea rows={3} />
           </Form.Item>

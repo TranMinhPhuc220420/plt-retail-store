@@ -14,10 +14,8 @@ router.delete('/my-products/:id', productController.deleteMy);
 
 router.get('/my-products-stores/:storeCode', productController.getAllMyInStore);
 router.post('/my-products-stores', verifyFormCreateProduct, productController.createMyInStore);
-// router.post('/my-products-stores-bulk', verifyFormCreateProductBulk, productController.createMyInStoreBulk);
 router.put('/my-products-stores/:id', verifyFormUpdateProduct, productController.updateMyInStore);
 router.delete('/my-products-stores/:id', productController.deleteMyInStore);
-// router.delete('/my-products-stores-bulk', productController.deleteMyInStoreBulk);
 
 // export default router;
 module.exports = router;

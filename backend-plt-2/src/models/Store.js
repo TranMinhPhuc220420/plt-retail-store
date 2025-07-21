@@ -9,6 +9,9 @@ const storeSchema = new mongoose.Schema(
     email: String,
     description: String,
     imageUrl: String,
+
+    deleted: { type: Boolean, default: false },
+
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     managers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'StoreManager' }],
     orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],

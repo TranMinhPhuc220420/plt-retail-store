@@ -16,7 +16,7 @@ import { createMyProductType } from "@/request/product-type";
 // Utilities
 import { } from "@/utils";
 
-const CreateProductTypeForm = ({ storeId, onOK, onFail, onCancel }) => {
+const CreateProductTypeForm = ({ storeId, storeCode, onOK, onFail, onCancel }) => {
   // i18n
   const { t } = useTranslation();
 
@@ -32,7 +32,7 @@ const CreateProductTypeForm = ({ storeId, onOK, onFail, onCancel }) => {
     setIsLoading(true);
 
     // Additional params
-    values.storeId = storeId;
+    values.storeCode = storeCode;
 
     // Add store to database
     try {
@@ -76,7 +76,6 @@ const CreateProductTypeForm = ({ storeId, onOK, onFail, onCancel }) => {
           <Form.Item
             name="description"
             label={t('TXT_STORE_DESCRIPTION')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
           >
             <Input.TextArea rows={3} />
           </Form.Item>

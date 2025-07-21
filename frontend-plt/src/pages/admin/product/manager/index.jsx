@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import * as XLSX from 'xlsx';
 
-import { PlusOutlined, FileExcelOutlined, DeleteOutlined, ShoppingOutlined, DownloadOutlined } from "@ant-design/icons";
+import { PlusOutlined, FileExcelOutlined, DeleteOutlined, ShoppingOutlined, DownloadOutlined, ProductOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Dropdown, Modal, message, Popconfirm } from "antd";
 
 // Components
@@ -12,14 +12,13 @@ import EditProductForm from "@/components/form/EditProduct";
 import AdminProductTable from "@/components/table/AdminProductTable";
 
 // Requests
-import { deleteMyProduct, getMyProducts, downloadFileTemplateProduct, createMyProductTypeBulk } from "@/request/product";
+import { deleteMyProduct, downloadFileTemplateProduct, createMyProductTypeBulk } from "@/request/product";
 
 // use zustand
 import useStoreApp from "@/store/app";
 import useStoreProduct from "@/store/product";
 
 // Constants
-import { SERVER_URL } from "@/constant";
 
 const ProductManagerPage = () => {
   const { storeCode } = useParams();
@@ -117,7 +116,7 @@ const ProductManagerPage = () => {
       });
       
       const deletePromises = productSelected.map(key => 
-        deleteMyProduct(key)
+        deleteMyProduct(key, storeCode)
       );
       
       await Promise.all(deletePromises);
@@ -144,9 +143,9 @@ const ProductManagerPage = () => {
   const handleConfirmDeleteItem = async (record) => {
     try {
       setIsDeletingLoading(true);
-      setProductIsDeleting(record.key, true);
+      setProductIsDeleting(record._id, true);
 
-      await deleteMyProduct(record.key);
+      await deleteMyProduct(record._id, storeCode);
       messageApi.open({
         type: 'success',
         content: t('MSG_SUCCESS_DELETE_PRODUCT'),
@@ -319,7 +318,7 @@ const ProductManagerPage = () => {
         {/* Toolbar top */}
         <div className="flex align-items-center justify-between mb-4">
           <div className="flex align-items-center">
-            <ShoppingOutlined className="text-2xl text-primary mr-2" />
+            <ProductOutlined className="text-2xl text-primary mr-2" />
             <h1 className="text-2xl text-gray-800 font-semibold">{t('TXT_PRODUCT_LIST')}</h1>
           </div>
           <div className="flex align-items-center">
@@ -355,7 +354,7 @@ const ProductManagerPage = () => {
               {t('TXT_ADD_NEW')}
             </Button>
 
-            <Dropdown.Button
+            {/* <Dropdown.Button
               className="ml-2"
               loading={isAddingByExcelLoading}
               disabled={isAddingByExcelLoading || isDeletingLoading}
@@ -364,7 +363,7 @@ const ProductManagerPage = () => {
               menu={{ items: csvBtnAction, onClick: handlerSelectActionsCSV }}
             >
               {t('TXT_ADD_BY_EXCEL')}
-            </Dropdown.Button>
+            </Dropdown.Button> */}
           </div>
         </div>
 
@@ -412,6 +411,8 @@ const ProductManagerPage = () => {
         >
           {productEdit && (
             <EditProductForm 
+              storeId={storeActive._id}
+              storeCode={storeCode}
               productData={productEdit}
               onCancel={handleEditCancel}
               onOK={handleEditOk}

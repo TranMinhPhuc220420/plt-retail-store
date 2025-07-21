@@ -38,7 +38,7 @@ const storeCreateSchema = Joi.object({
   })
 });
 const storeUpdateSchema = Joi.object({
-  storeCode: Joi.string().min(3).max(30).optional().regex(/^[a-zA-Z0-9]+$/).messages({
+  storeCode: Joi.string().min(3).max(30).optional().regex(/^[a-zA-Z0-9_-]+$/).messages({
     'string.base': 'store_code_must_be_a_string',
     'string.empty': 'store_code_is_required',
     'string.min': 'store_code_too_short',
@@ -83,7 +83,7 @@ const verifyFormCreateStore = async (req, res, next) => {
   } else {
     // Check if storeCode already exists
     const { storeCode } = req.body;
-    const storeExists = await Store.findOne({ storeCode: storeCode });
+    const storeExists = await Store.findOne({ storeCode });
     if (storeExists) {
       error = 'store_code_already_exists';
     }
@@ -97,34 +97,15 @@ const verifyFormCreateStore = async (req, res, next) => {
 };
 
 const verifyFormUpdateStore = async (req, res, next) => {
-  const { id } = req.params;
   let { error } = storeUpdateSchema.validate(req.body);
 
   if (error) {
     error = error.details[0].message;
   } else {
-
-    // Check if storeCode already exists for another store
     const { storeCode } = req.body;
-    const storeExists = await Store.findOne({ storeCode: storeCode });
-    if (storeExists && id !== storeExists._id.toString()) {
-      error = 'store_code_already_exists';
-    }
-    else {
-      // Check if the store update is valid
-      if (!id) {
-        error = 'store_id_required';
-      }
-
-      const ownerId = req.user._id;
-      if (!ownerId) {
-        error = 'user_id_required';
-      }
-      
-      const store = await Store.findOne({ _id: id, ownerId: ownerId });
-      if (!store) {
-        error = 'store_not_found';
-      }
+    const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+    if (!store) {
+      error = 'store_not_found';
     }
   }
 

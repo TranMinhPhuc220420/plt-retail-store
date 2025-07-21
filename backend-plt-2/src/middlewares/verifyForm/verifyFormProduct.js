@@ -31,18 +31,9 @@ const productCreateSchema = Joi.object({
     'number.base': 'product_retail_price_must_be_a_number',
     'any.required': 'product_retail_price_is_required'
   }),
-  wholesalePrice: Joi.number().precision(2).required().messages({
-    'number.base': 'product_wholesale_price_must_be_a_number',
-    'any.required': 'product_wholesale_price_is_required'
-  }),
   costPrice: Joi.number().precision(2).required().messages({
     'number.base': 'product_cost_price_must_be_a_number',
     'any.required': 'product_cost_price_is_required'
-  }),
-  stock: Joi.number().integer().min(0).messages({
-    'number.base': 'product_stock_must_be_a_number',
-    'number.integer': 'product_stock_must_be_integer',
-    'number.min': 'product_stock_minimum_is_0'
   }),
   minStock: Joi.number().integer().min(0).required().messages({
     'number.base': 'product_min_stock_must_be_a_number',
@@ -107,16 +98,8 @@ const productUpdateSchema = Joi.object({
   retailPrice: Joi.number().precision(2).messages({
     'number.base': 'product_retail_price_must_be_a_number'
   }),
-  wholesalePrice: Joi.number().precision(2).messages({
-    'number.base': 'product_wholesale_price_must_be_a_number'
-  }),
   costPrice: Joi.number().precision(2).messages({
     'number.base': 'product_cost_price_must_be_a_number'
-  }),
-  stock: Joi.number().integer().min(0).messages({
-    'number.base': 'product_stock_must_be_a_number',
-    'number.integer': 'product_stock_must_be_integer',
-    'number.min': 'product_stock_minimum_is_0'
   }),
   minStock: Joi.number().integer().min(0).messages({
     'number.base': 'product_min_stock_must_be_a_number',
@@ -129,14 +112,12 @@ const productUpdateSchema = Joi.object({
     'string.min': 'product_unit_too_short',
     'string.max': 'product_unit_too_long'
   }),
-  status: Joi.string().valid('active', 'inactive').messages({
+  status: Joi.string().required().messages({
     'any.only': 'product_status_invalid'
   }),
-  ownerId: Joi.string().messages({
-    'string.base': 'product_owner_id_must_be_a_string'
-  }),
-  storeId: Joi.string().messages({
-    'string.base': 'product_store_id_must_be_a_string'
+  storeCode: Joi.string().messages({
+    'string.base': 'product_store_code_must_be_a_string',
+    'any.required': 'product_store_code_is_required'
   }),
   categories: Joi.array().items(Joi.string()).messages({
     'array.base': 'product_categories_must_be_an_array',
@@ -157,10 +138,15 @@ const verifyFormCreateProduct = async (req, res, next) => {
     return res.status(400).json({ error: error });
   }
 
-  const { storeCode } = req.body;
+  const { storeCode, productCode } = req.body;
   const store = await Store.findOne({ storeCode, ownerId: req.user._id });
   if (!store) {
     return res.status(404).json({ error: 'store_not_found' });
+  }
+
+  const existingProduct = await Product.findOne({ productCode, storeId: store._id, ownerId: req.user._id });
+  if (existingProduct) {
+    return res.status(400).json({ error: 'product_code_already_exists' });
   }
 
   req.body.storeId = store._id; // Set storeId from storeCode

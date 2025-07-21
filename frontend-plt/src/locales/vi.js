@@ -118,6 +118,15 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_FAILED_TO_FETCH_STORES': 'Lỗi khi lấy danh sách cửa hàng',
     'MSG_FAILED_TO_FETCH_MY_STORES': 'Lỗi khi lấy danh sách cửa hàng của tôi',
     'MSG_STORE_NOT_FOUND': 'Cửa hàng không tồn tại',
+    'TXT_CONFIRM_DELETE_STORE': 'Bạn có chắc chắn muốn xóa cửa hàng này không?',
+    'TXT_CONFIRM_DELETE_STORES_SELECTED': 'Bạn có chắc chắn muốn xóa những cửa hàng đã chọn không?',
+    'TXT_CONFIRM_DELETE_STORE_DESCRIPTION': 'Bạn sẽ không thể khôi phục cửa hàng "<strong>store_name</strong>" sau khi xóa. Vui lòng nhập tên cửa hàng để xác nhận.',
+    'TXT_NAME_STORE_CONFIRM_DELETE': 'Nhập tên cửa hàng để xác nhận xóa',
+    'MSG_STORE_NAME_REQUIRED': 'Tên cửa hàng là bắt buộc',
+    'MSG_STORE_NAME_MISMATCH': 'Tên cửa hàng không khớp, vui lòng nhập đúng tên cửa hàng để xác nhận xóa',
+    'MSG_STORE_DELETED_SUCCESS': 'Cửa hàng đã được xóa thành công',
+    'MSG_STORE_DELETE_FAILED': 'Xóa cửa hàng không thành công',
+    'TXT_CONFIRM_DELETE': 'Xác nhận xóa',
 
     // Product types management
     'TXT_PRODUCT_TYPES': 'Loại sản phẩm',
@@ -143,6 +152,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_SUCCESS_ADD_PRODUCT_TYPE_BY_EXCEL': 'Thêm loại sản phẩm bằng Excel thành công',
     'MSG_ERROR_INVALID_EXCEL_FORMAT': 'Định dạng Excel không hợp lệ',
     'MSG_ERROR_PROCESS_EXCEL_FILE': 'Lỗi xử lý file Excel',
+    'TXT_PRODUCT_UPDATE_FAILED': 'Cập nhật loại sản phẩm không thành công',
 
     // Product management
     'TXT_PRODUCTS': 'Sản phẩm',
@@ -150,7 +160,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_PRODUCT_NAME': 'Tên sản phẩm',
     'TXT_PRODUCT_CODE': 'Mã sản phẩm',
     'LABEL_IMAGE': 'Hình ảnh',
-    'LABEL_PRODUCT_CODE': 'Mã sản phẩm',
+    'LABEL_PRODUCT_CODE': 'Mã SP',
     'LABEL_PRICE': 'Giá',
     'LABEL_RETAIL_PRICE': 'Giá bán lẻ',
     'LABEL_WHOLESALE_PRICE': 'Giá sỉ',
@@ -267,6 +277,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'product_type_store_id_is_required': 'Mã cửa hàng là bắt buộc',
     'product_type_owner_id_is_invalid': 'ID chủ sở hữu loại sản phẩm không hợp lệ',
     // Product messages
+    'product_code_already_exists': 'Mã sản phẩm đã tồn tại',
     'product_data_is_required': 'Dữ liệu sản phẩm là bắt buộc',
     'product_code_is_required': 'Mã sản phẩm là bắt buộc',
     'product_name_is_required': 'Tên sản phẩm là bắt buộc',

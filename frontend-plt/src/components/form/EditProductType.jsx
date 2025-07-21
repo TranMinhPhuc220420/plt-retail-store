@@ -42,7 +42,7 @@ const EditProductTypeForm = ({ storeId, storeCode, productTypeId, productTypeEdi
     setIsLoading(true);
 
     // Additional params
-    values.storeId = storeId;
+    values.storeCode = storeCode;
 
     try {
       // Update product type in database
@@ -87,7 +87,6 @@ const EditProductTypeForm = ({ storeId, storeCode, productTypeId, productTypeEdi
           <Form.Item
             name="description"
             label={t('TXT_STORE_DESCRIPTION')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') || "Required" }]}
           >
             <Input.TextArea rows={3} />
           </Form.Item>

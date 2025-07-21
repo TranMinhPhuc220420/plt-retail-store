@@ -15,7 +15,7 @@ const { Content } = Layout;
 import useStoreApp from '@/store/app';
 
 // Request
-import { getMyStoreByStoreCode, validateStoreCode } from '@/request/store';
+import { getMyStoreByCode, validateStoreCode } from '@/request/store';
 
 import SiderApp from './SiderApp';
 import HeaderApp from './HeaderApp';
@@ -45,7 +45,7 @@ const LayoutApp = () => {
     setMessageStoreActiveError('');
 
     try {
-      const store = await getMyStoreByStoreCode(storeCode);
+      const store = await getMyStoreByCode(storeCode);
       setStoreActive(store);
     } catch (error) {
       setIsFetchingStoreActiveError(true);

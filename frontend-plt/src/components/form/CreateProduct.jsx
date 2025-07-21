@@ -205,20 +205,6 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
           </Form.Item>
 
           <Form.Item
-            name="wholesalePrice"
-            label={t('TXT_WHOLESALE_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
-          >
-            <InputNumber
-              min={0}
-              step={1000}
-              style={{ width: '100%' }}
-              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' VNĐ'}
-              parser={(value) => value.replace(/\s?VNĐ|(,*)/g, '')}
-            />
-          </Form.Item>
-
-          <Form.Item
             name="costPrice"
             label={t('TXT_COST_PRICE')}
             rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
@@ -231,20 +217,7 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
               parser={(value) => value.replace(/\s?VNĐ|(,*)/g, '')}
             />
           </Form.Item>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 mt-4 bg-white">
-          <Form.Item
-            name="stock"
-            label={t('TXT_STOCK')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
-          >
-            <InputNumber
-              min={0}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-
+      
           <Form.Item
             name="minStock"
             label={t('TXT_MIN_STOCK')}

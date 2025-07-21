@@ -3,40 +3,28 @@ const Store = require('../models/Store');
 const storeController = {
   getAllMy: async (req, res) => {
     try {
-      const stores = await Store.find({ owner: req.user.id });
+      const stores = await Store.find({ owner: req.user.id, deleted: false });
       res.status(200).json(stores);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch stores' });
     }
   },
 
-  getMyById: async (req, res) => {
-    try {
-      const store = await Store.findById(req.params.id);
-      if (!store || store.owner.toString() !== req.user.id) {
-        return res.status(404).json({ error: 'Store not found' });
-      }
-      res.status(200).json(store);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch store' });
-    }
-  },
-
-  getMyByByStoreCode: async (req, res) => {
+  getMyByCode: async (req, res) => {
     try {
       const { storeCode } = req.params;
       if (!storeCode) {
-        return res.status(400).json({ error: 'store_code_required' });
+        return res.status(400).json({ error: 'store_code_is_required' });
       }
 
-      const store = await Store.findOne({ storeCode, ownerId: req.user._id });
+      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
-
+      
       res.status(200).json(store);
     } catch (error) {
-      res.status(500).json({ error: 'failed_to_fetch_store' });
+      res.status(500).json({ error: 'fetch_store_failed' });
     }
   },
 
@@ -46,7 +34,9 @@ const storeController = {
         ...req.body,
         ownerId: req.user._id
       });
+      
       const savedStore = await newStore.save();
+      
       res.status(201).json(savedStore);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create store' });
@@ -55,11 +45,10 @@ const storeController = {
 
   updateMy: async (req, res) => {
     try {
-      const { id } = req.params;
-      
-      const store = await Store.findById(id);
+      const { storeCode } = req.body;
+      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
       if (!store) {
-        return res.status(404).json({ error: 'Store not found' });
+        return res.status(404).json({ error: 'store_not_found' });
       }
       
       Object.assign(store, req.body);
@@ -73,14 +62,22 @@ const storeController = {
 
   deleteMy: async (req, res) => {
     try {
-      const store = await Store.findById(req.params.id);
-      if (!store || store.owner.toString() !== req.user.id) {
-        return res.status(404).json({ error: 'Store not found' });
+      const { storeCode } = req.params;
+      if (!storeCode) {
+        return res.status(400).json({ error: 'store_code_is_required' });
       }
-      await store.remove();
-      res.status(200).json({ message: 'Store deleted successfully' });
+
+      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      if (!store) {
+        return res.status(404).json({ error: 'store_not_found' });
+      }
+
+      store.deleted = true; // Soft delete
+      await store.save();
+
+      res.status(200).json({ message: 'store_deleted_successfully' });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to delete store' });
+      res.status(500).json({ error: 'failed_to_delete_store' });
     }
   }
 };
