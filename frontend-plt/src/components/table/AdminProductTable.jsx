@@ -49,7 +49,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
       key: 'productCode',
       title: t('LABEL_PRODUCT_CODE'),
       dataIndex: 'productCode',
-      width: 120,
+      width: 100,
     },
     {
       key: 'name',
@@ -75,7 +75,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
       key: 'stock',
       title: t('LABEL_STOCK'),
       dataIndex: 'stock',
-      width: 80,
+      width: 100,
       render: (stock, record) => (
         <span style={{ color: stock <= record.minStock ? '#ff4d4f' : '#52c41a' }}>
           {stock}
@@ -183,8 +183,8 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
           render={column.render}
           />
       ))}
-      <Column width={10} key="action" render={(_, record) => (
-        <Space size="middle">
+      <Column key="action" render={(_, record) => (
+        <Space size="small">
 
           <Button type="primary" 
             icon={<EditOutlined />} 
@@ -192,7 +192,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
             disabled={record.isEditing || record.isDeleting}
             onClick={() => handlerEdit(record)}
           >
-            {t('TXT_EDIT')}
+            {/* {t('TXT_EDIT')} */}
           </Button>
 
           <Popconfirm title={t('TITLE_CONFIRM_DELETE')} description={t('MSG_CONFIRM_DELETE_PRODUCT_TYPE')}
@@ -203,7 +203,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
               loading={record.isDeleting}
               disabled={record.isEditing || record.isDeleting}
             >
-              {t('TXT_DELETE')}
+              {/* {t('TXT_DELETE')} */}
             </Button>
           </Popconfirm>
 

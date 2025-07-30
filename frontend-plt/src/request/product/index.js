@@ -50,8 +50,8 @@ export const createMyProduct = async (productData) => {
     const response = await postApi('/products/my-products-stores', productData);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'MSG_PRODUCT_CREATION_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'MSG_PRODUCT_CREATION_FAILED';
   }
 };
 
@@ -62,8 +62,8 @@ export const createMyProductTypeBulk = async (storeCode, products) => {
     });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'MSG_PRODUCT_CREATION_BULK_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'MSG_PRODUCT_CREATION_BULK_FAILED';
   }
 };
 
@@ -84,8 +84,8 @@ export const updateMyProduct = async (id, productData) => {
     const response = await putApi(`/products/my-products-stores/${id}`, productData);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'TXT_PRODUCT_UPDATE_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'TXT_PRODUCT_UPDATE_FAILED';
   }
 };
 

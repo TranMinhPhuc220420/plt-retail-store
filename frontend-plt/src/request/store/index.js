@@ -74,8 +74,8 @@ export const createMyStore = async (storeData) => {
     const response = await postApi('/stores/my-store', storeData);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'TXT_STORE_CREATION_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'TXT_STORE_CREATION_FAILED';
   }
 };
 
@@ -106,8 +106,8 @@ export const updateMyStore = async (storeId, storeData) => {
     const response = await putApi(`/stores/my-store/${storeId}`, storeData);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'TXT_STORE_UPDATE_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'TXT_STORE_UPDATE_FAILED';
   }
 };
 
@@ -130,7 +130,7 @@ export const validateStoreCode = async (storeCode) => {
     const response = await post('/stores/validate-store-code', { storeCode });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'MSG_STORE_CODE_INVALID';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'MSG_STORE_CODE_INVALID';
   }
 }

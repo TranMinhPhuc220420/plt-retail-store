@@ -49,10 +49,10 @@ const LayoutApp = () => {
       setStoreActive(store);
     } catch (error) {
       setIsFetchingStoreActiveError(true);
-      let message = t(error);
-      if (message == error) message = t('TXT_STORE_NOT_FOUND');
-      setMessageStoreActiveError(message);
-      console.error('Failed to load store:', message);
+      let msgError = t(error);
+      if (msgError == error) msgError = t('TXT_STORE_NOT_FOUND');
+      setMessageStoreActiveError(msgError);
+      console.error('Failed to load store:', msgError);
     } finally {
       setStoreActiveIsLoading(false);
       setIsLoading(false);

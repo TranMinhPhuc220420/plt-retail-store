@@ -9,7 +9,8 @@ import { useTranslation } from "react-i18next";
 // Ant Design
 import {
   AuditOutlined, TeamOutlined, HomeOutlined, DashboardFilled, BarChartOutlined,
-  ProductOutlined, ContainerOutlined, ApartmentOutlined, ShopOutlined
+  ProductOutlined, ContainerOutlined, ApartmentOutlined, ShopOutlined,
+  DatabaseOutlined, ExperimentOutlined
 } from '@ant-design/icons';
 
 import { Layout, Menu } from 'antd';
@@ -87,10 +88,26 @@ const SiderApp = ({ isLoading }) => {
           label: t('TXT_PRODUCT_MANAGEMENT'),
         },
         {
-          key: 'admin_inventory_management',
+          key: 'admin_warehouse_management',
           icon: <ContainerOutlined />,
-          pathname: `/store/${storeCode}/admin/kho`,
-          label: t('TXT_INVENTORY_MANAGEMENT'),
+          label: t('TXT_WAREHOUSE_MANAGEMENT'),
+          children: [
+            {
+              key: 'admin_warehouse_list',
+              pathname: `/store/${storeCode}/admin/kho`,
+              label: t('TXT_WAREHOUSES'),
+            },
+            {
+              key: 'admin_ingredient_management',
+              pathname: `/store/${storeCode}/admin/nguyen-lieu`,
+              label: t('TXT_INGREDIENTS'),
+            },
+            {
+              key: 'admin_recipe_management',
+              pathname: `/store/${storeCode}/admin/cong-thuc`,
+              label: t('TXT_RECIPES'),
+            },
+          ],
         },
   
         {

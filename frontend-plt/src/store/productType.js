@@ -25,8 +25,8 @@ const useStoreProductType = create((set) => ({
       const productTypes = data.map((item) => ({
         ...item,
         key: item._id,
-        createdAt: item.createdAt ? moment(item.createdAt).format(DATETIME_FORMAT) : '',
-        updatedAt: item.updatedAt ? moment(item.updatedAt).format(DATETIME_FORMAT) : '',
+        createdAt: item.createdAt ? moment(item.createdAt).format(DATE_FORMAT) : '',
+        updatedAt: item.updatedAt ? moment(item.updatedAt).format(DATE_FORMAT) : '',
       }));
       set({ productTypes, isLoading: false, error: null, success: 'Product types fetched successfully' });
     } catch (error) {

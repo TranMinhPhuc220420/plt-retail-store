@@ -45,11 +45,11 @@ const HeaderApp = ({ }) => {
     try {
       await signOut();
     } catch (error) {
-      const message = t(error);
-      if (message == error) {
-        message = t('TXT_SIGN_OUT_ERROR');
+      let msgError = t(error);
+      if (msgError == error) {
+        msgError = t('TXT_SIGN_OUT_ERROR');
       }
-      messageApi.error(message);
+      messageApi.error(msgError);
     }
   };
   const handleSelectStore = (store) => {

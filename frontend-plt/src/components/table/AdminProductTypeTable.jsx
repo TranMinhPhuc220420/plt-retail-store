@@ -37,7 +37,7 @@ const AdminProductTypeTable = ({ onEdit, onDelete, onSelectionChange }) => {
       key: 'description',
       title: t('LABEL_DESCRIPTION'),
       dataIndex: 'description',
-      width: '45%',
+      width: '40%',
       render: (text) => (
         <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {text}

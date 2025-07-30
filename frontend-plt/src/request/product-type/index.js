@@ -41,8 +41,8 @@ export const getMyProductTypes = async (storeCode) => {
     const response = await getApi(`/product-categories/my-categories-stores/${storeCode}`);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'MSG_ERROR_FETCHING_PRODUCT_TYPES';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'MSG_ERROR_FETCHING_PRODUCT_TYPES';
   }
 };
 
@@ -52,8 +52,8 @@ export const createMyProductType = async (productTypeData) => {
     const response = await postApi('/product-categories/my-categories-stores', productTypeData);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'MSG_PRODUCT_TYPE_CREATION_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'MSG_PRODUCT_TYPE_CREATION_FAILED';
   }
 };
 
@@ -63,8 +63,8 @@ export const createMyProductTypeTypeBulk = async (storeCode, productTypesData) =
     const response = await postApi('/product-categories/my-categories-stores-bulk', { storeCode, categories: productTypesData });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'MSG_PRODUCT_TYPE_CREATION_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'MSG_PRODUCT_TYPE_CREATION_FAILED';
   }
 };
 
@@ -85,8 +85,8 @@ export const updateMyProductType = async (productTypeId, productTypeData) => {
     const response = await putApi(`/product-categories/my-categories-stores/${productTypeId}`, productTypeData);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
   }
 };
 
@@ -96,8 +96,8 @@ export const deleteMyProductType = async (productTypeId) => {
     const response = await deleteApi(`/product-categories/my-categories-stores/${productTypeId}`);
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
   }
 };
 
@@ -106,8 +106,8 @@ export const deleteMyProductTypeBulk = async (ids) => {
     const response = await deleteApi(`/product-categories/my-categories-stores-bulk`, { ids });
     return response.data;
   } catch (error) {
-    let message = error.response?.data?.error;
-    throw message || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
+    let msgError = error.response?.data?.error;
+    throw msgError || 'TXT_PRODUCT_TYPE_UPDATE_FAILED';
   }
 };
 

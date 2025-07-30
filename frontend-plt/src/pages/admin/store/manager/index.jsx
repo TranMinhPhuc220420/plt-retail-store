@@ -88,14 +88,14 @@ const StoreManagerPage = () => {
   }, []);
   useEffect(() => {
     if (error) {
-      let message = t(error);
-      if (message === error) {
-        message = t('TXT_FAILED_TO_FETCH_STORES');
+      let msgError = t(error);
+      if (msgError === error) {
+        msgError = t('TXT_FAILED_TO_FETCH_STORES');
       }
 
       messageApi.open({
         type: 'error',
-        content: message,
+        content: msgError,
         duration: 3,
       });
     }
