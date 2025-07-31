@@ -32,13 +32,13 @@ const CreateIngredientForm = ({
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Common unit options for ingredients
+  // Standardized unit options - only grams/kilograms and milliliters/liters
   const unitOptions = [
-    'kg', 'g', 'mg',
-    'l', 'ml',
-    'piece', 'pack', 'box',
-    'cup', 'tbsp', 'tsp',
-    'oz', 'lb'
+    'g',    // grams (base weight unit)
+    'kg',   // kilograms 
+    'ml',   // milliliters (base volume unit)
+    'l',    // liters
+    'piece' // for countable items that can't be measured by weight/volume
   ];
 
   /**

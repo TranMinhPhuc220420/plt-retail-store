@@ -106,7 +106,13 @@ const RecipeDetailModal = ({
           <div className="space-y-3">
             {recipe.ingredients.map((ingredient, index) => {
               const ingredientData = ingredient.ingredientId;
-              const isAvailable = ingredientData?.stockQuantity >= ingredient.amountUsed;
+              
+              // Find availability info for this ingredient
+              const availabilityInfo = availability?.availability?.find(
+                item => item.ingredientName === ingredientData?.name
+              );
+              
+              const isAvailable = availabilityInfo?.isAvailable || false;
 
               return (
                 <div className="mb-1" key={index}>
@@ -144,11 +150,24 @@ const RecipeDetailModal = ({
                             <Text strong className={isAvailable ? 'text-green-600' : 'text-red-600'}>
                               {ingredientData?.stockQuantity || 0} {ingredientData?.unit || ingredient.unit}
                             </Text>
+                            {availabilityInfo?.availableInRequiredUnit !== null && 
+                             availabilityInfo?.stockUnit !== availabilityInfo?.requiredUnit && (
+                              <Text className="ml-2 text-gray-500">
+                                (≈ {availabilityInfo.availableInRequiredUnit?.toFixed(2)} {ingredient.unit})
+                              </Text>
+                            )}
                           </div>
                           {ingredientData?.warehouseId && (
                             <div>
                               <Text>{t('TXT_WAREHOUSE')}: </Text>
                               <Text>{ingredientData.warehouseId.name}</Text>
+                            </div>
+                          )}
+                          {availabilityInfo?.message && !isAvailable && (
+                            <div className="mt-1">
+                              <Text className="text-red-500 text-xs">
+                                {availabilityInfo.message}
+                              </Text>
                             </div>
                           )}
                         </div>

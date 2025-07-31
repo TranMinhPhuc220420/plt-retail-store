@@ -11,6 +11,7 @@ const productRouter = require('./product.route');
 const warehouseRouter = require('./warehouse.route');
 const ingredientRouter = require('./ingredient.route');
 const recipeRouter = require('./recipe.route');
+const unitRouter = require('./unit.route');
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.use('/products', verifyJWT, isAdmin, productRouter);
 router.use('/warehouses', verifyJWT, isAdmin, warehouseRouter);
 router.use('/ingredients', verifyJWT, isAdmin, ingredientRouter);
 router.use('/recipes', verifyJWT, isAdmin, recipeRouter);
+router.use('/units', verifyJWT, unitRouter); // Unit utilities available to all authenticated users
 
 // export default router;
 module.exports = router;

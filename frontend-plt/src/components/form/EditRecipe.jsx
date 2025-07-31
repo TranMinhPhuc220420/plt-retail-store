@@ -49,13 +49,13 @@ const EditRecipeForm = ({
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Common unit options for recipes
+  // Standardized unit options for recipes - only grams/kilograms and milliliters/liters
   const unitOptions = [
-    'kg', 'g', 'mg',
-    'l', 'ml',
-    'piece', 'pack', 'box',
-    'cup', 'tbsp', 'tsp',
-    'oz', 'lb'
+    'g',    // grams (base weight unit)
+    'kg',   // kilograms 
+    'ml',   // milliliters (base volume unit)
+    'l',    // liters
+    'piece' // for countable items that can't be measured by weight/volume
   ];
 
   /**
@@ -65,10 +65,19 @@ const EditRecipeForm = ({
     console.log(recipe);
     
     if (recipe) {
+      // Convert ingredients to proper format for form
+      const formattedIngredients = recipe.ingredients?.map(ingredient => ({
+        ingredientId: typeof ingredient.ingredientId === 'object' 
+          ? ingredient.ingredientId._id 
+          : ingredient.ingredientId,
+        amountUsed: ingredient.amountUsed,
+        unit: ingredient.unit
+      })) || [{}];
+      
       form.setFieldsValue({
         dishName: recipe.dishName,
         description: recipe.description,
-        ingredients: recipe.ingredients || [{}]
+        ingredients: formattedIngredients
       });
     }
   }, [recipe, form]);
@@ -109,11 +118,9 @@ const EditRecipeForm = ({
    * Get available ingredients that haven't been selected yet
    */
   const getAvailableIngredients = (currentIndex, currentValues) => {
-    let selectedIngredients = currentValues
+    const selectedIngredients = currentValues
       .map((_, index) => form.getFieldValue(['ingredients', index, 'ingredientId']))
       .filter((id, index) => id && index !== currentIndex);
-    
-    selectedIngredients = selectedIngredients.map(item => item._id);
     
     return ingredients.filter(ingredient => 
       !selectedIngredients.includes(ingredient._id)
@@ -219,9 +226,9 @@ const EditRecipeForm = ({
                       <Select
                         placeholder={t('TXT_SELECT_INGREDIENT')}
                         showSearch
-                        // filterOption={(input, option) =>
-                        //   option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                        // }
+                        filterOption={(input, option) =>
+                          option.children?.toLowerCase().includes(input.toLowerCase())
+                        }
                       >
                         {getAvailableIngredients(index, form.getFieldValue('ingredients') || []).map(ingredient => (
                           <Option key={ingredient._id} value={ingredient._id}>

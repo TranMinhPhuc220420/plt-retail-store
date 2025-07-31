@@ -1,6 +1,7 @@
 const Recipe = require('../models/Recipe');
 const Ingredient = require('../models/Ingredient');
 const Store = require('../models/Store');
+const { checkIngredientAvailability } = require('../utils/unitConverter');
 
 const recipeController = {
   // Get all recipes with optional filtering by ownerId and storeCode
@@ -264,22 +265,43 @@ const recipeController = {
       
       const availability = recipe.ingredients.map(recipeIngredient => {
         const ingredient = recipeIngredient.ingredientId;
-        const isAvailable = ingredient.stockQuantity >= recipeIngredient.amountUsed;
+        
+        // Use unit converter to properly check availability
+        const availabilityCheck = checkIngredientAvailability(
+          ingredient.stockQuantity,
+          ingredient.unit,
+          recipeIngredient.amountUsed,
+          recipeIngredient.unit
+        );
         
         return {
           ingredientName: ingredient.name,
           required: recipeIngredient.amountUsed,
           available: ingredient.stockQuantity,
-          unit: recipeIngredient.unit,
-          isAvailable
+          availableInRequiredUnit: availabilityCheck.stockInRequiredUnit,
+          stockUnit: ingredient.unit,
+          requiredUnit: recipeIngredient.unit,
+          isAvailable: availabilityCheck.isAvailable,
+          message: availabilityCheck.message
         };
       });
       
       const canPrepare = availability.every(item => item.isAvailable);
       
+      // Filter out items that couldn't be prepared due to unit incompatibility
+      const missingIngredients = availability.filter(item => !item.isAvailable);
+      
       res.status(200).json({
         canPrepare,
-        availability
+        availability,
+        missingIngredients: missingIngredients.map(item => ({
+          name: item.ingredientName,
+          needed: item.required,
+          available: item.availableInRequiredUnit || item.available,
+          unit: item.requiredUnit,
+          stockUnit: item.stockUnit,
+          message: item.message
+        }))
       });
     } catch (error) {
       res.status(500).json({ error: 'failed_to_check_recipe_availability' });
