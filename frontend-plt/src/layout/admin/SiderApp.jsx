@@ -98,6 +98,11 @@ const SiderApp = ({ isLoading }) => {
               label: t('TXT_WAREHOUSES'),
             },
             {
+              key: 'admin_inventory_management',
+              pathname: `/store/${storeCode}/admin/ton-kho`,
+              label: t('TXT_INVENTORY_MANAGEMENT'),
+            },
+            {
               key: 'admin_ingredient_management',
               pathname: `/store/${storeCode}/admin/nguyen-lieu`,
               label: t('TXT_INGREDIENTS'),

@@ -12,6 +12,7 @@ const warehouseRouter = require('./warehouse.route');
 const ingredientRouter = require('./ingredient.route');
 const recipeRouter = require('./recipe.route');
 const unitRouter = require('./unit.route');
+const inventoryRouter = require('./inventory.route');
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use('/warehouses', verifyJWT, isAdmin, warehouseRouter);
 router.use('/ingredients', verifyJWT, isAdmin, ingredientRouter);
 router.use('/recipes', verifyJWT, isAdmin, recipeRouter);
 router.use('/units', verifyJWT, unitRouter); // Unit utilities available to all authenticated users
+router.use('/inventory', verifyJWT, isAdmin, inventoryRouter); // Inventory management routes
 
 // export default router;
 module.exports = router;

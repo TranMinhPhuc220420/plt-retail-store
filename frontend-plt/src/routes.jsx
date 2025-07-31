@@ -15,6 +15,7 @@ import RevenueManagerPage from "@/pages/admin/revenue/manager";
 import ProductManagerPage from "@/pages/admin/product/manager";
 import InventoryManagerPage from "@/pages/admin/inventory/manager";
 import InventoryDetailPage from "@/pages/admin/inventory/manager/detail";
+import InventoryManagement from "@/pages/admin/inventory/management";
 import IngredientManagerPage from "@/pages/admin/ingredient";
 import RecipeManagerPage from "@/pages/admin/recipe";
 import ReportPage from "@/pages/admin/ReportPage";
@@ -89,6 +90,10 @@ const router = createBrowserRouter([
       {
         path: "kho/:warehouseId",
         element: <InventoryDetailPage />,
+      },
+      {
+        path: "ton-kho",
+        element: <InventoryManagement />,
       },
       {
         path: "nguyen-lieu",
