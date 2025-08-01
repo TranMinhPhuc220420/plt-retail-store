@@ -14,7 +14,8 @@ import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
   FilterOutlined,
-  EyeOutlined
+  EyeOutlined,
+  DatabaseOutlined
 } from "@ant-design/icons";
 import {
   Button,
@@ -45,6 +46,7 @@ import useSupplierStore from "@/store/supplier";
 import CreateIngredientForm from "@/components/form/CreateIngredient";
 import EditIngredientForm from "@/components/form/EditIngredient";
 import ConfirmDeleteIngredient from "@/components/form/ConfirmDeleteIngredient";
+import { formatMoney, parseNumberDecimal } from "@/utils";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -123,8 +125,8 @@ const IngredientManagerPage = () => {
    */
   useEffect(() => {
     if (success) {
-      messageApi.success(success);
-      clearMessages();
+      // messageApi.success(success);
+      // clearMessages();
     }
     if (error) {
       messageApi.error(error);
@@ -294,6 +296,14 @@ const IngredientManagerPage = () => {
   // Enhanced Table columns
   const columns = [
     {
+      title: t('TXT_INGREDIENT_CODE'),
+      dataIndex: 'ingredientCode',
+      key: 'ingredientCode',
+      width: 120,
+      sorter: (a, b) => a.ingredientCode?.localeCompare(b.ingredientCode),
+      render: (code) => <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{code}</span>
+    },
+    {
       title: t('TXT_INGREDIENT_NAME'),
       dataIndex: 'name',
       key: 'name',
@@ -303,7 +313,7 @@ const IngredientManagerPage = () => {
         <div>
           <div style={{ fontWeight: 'bold' }}>{name}</div>
           <div style={{ fontSize: '12px', color: '#666' }}>
-            {record.ingredientCode} • {record.category || 'No Category'}
+            {record.category || 'No Category'} • {record.unit}
           </div>
         </div>
       ),
@@ -326,25 +336,33 @@ const IngredientManagerPage = () => {
       ),
     },
     {
-      title: t('TXT_CURRENT_STOCK'),
-      key: 'currentStock',
-      width: 150,
-      sorter: (a, b) => (a.currentStock || 0) - (b.currentStock || 0),
+      title: t('TXT_STOCK_INFO'),
+      key: 'stockInfo',
+      width: 180,
       render: (_, record) => (
         <div>
-          <div style={{ fontWeight: 'bold' }}>
+          <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
             {record.currentStock || 0} {record.unit}
+          </div>
+          <div style={{ fontSize: '12px', color: '#666' }}>
+            Min: {record.minStock || 0} • Max: {record.maxStock || 'N/A'}
           </div>
           {getStockIndicator(record)}
         </div>
       ),
     },
     {
-      title: t('TXT_MIN_STOCK'),
-      dataIndex: 'minStock',
-      key: 'minStock',
+      title: t('TXT_COST'),
+      dataIndex: 'standardCost',
+      key: 'standardCost',
       width: 100,
-      render: (minStock, record) => `${minStock || 0} ${record.unit}`,
+      align: 'right',
+      sorter: (a, b) => (a.standardCost || 0) - (b.standardCost || 0),
+      render: (cost) => {
+        if (!cost) return;
+        const formattedCost = parseNumberDecimal(cost);
+        return formatMoney(formattedCost);
+      },
     },
     {
       title: t('TXT_WAREHOUSE'),
@@ -357,11 +375,11 @@ const IngredientManagerPage = () => {
     },
     {
       title: t('TXT_SUPPLIER'),
-      key: 'supplier',
+      key: 'defaultSupplierId',
       width: 120,
       render: (_, record) => {
-        const supplier = suppliers?.find(s => s._id === record.defaultSupplierId);
-        return supplier ? supplier.name : '-';
+        let supplierName = record.defaultSupplierId?.name || '-';
+        return supplierName;
       },
     },
     {
@@ -489,6 +507,7 @@ const IngredientManagerPage = () => {
   useEffect(() => {
     fetchIngredients({ ownerId, storeCode });
     fetchWarehouses(storeCode);
+    fetchSuppliers(storeCode);
   }, [storeCode]);
 
   // Effect to show error messages
@@ -509,7 +528,7 @@ const IngredientManagerPage = () => {
 
   // Effect to filter ingredients when dependencies change
   useEffect(() => {
-    filterIngredients();
+    // filterIngredients();
   }, [ingredients, searchText, selectedWarehouse]);
 
   return (
@@ -518,41 +537,107 @@ const IngredientManagerPage = () => {
 
       <Card>
         <div className="flex justify-between items-center mb-4">
-          <Title level={3} className="m-0">
-            {t('TXT_INGREDIENT_MANAGEMENT')}
-          </Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setShowModalCreate(true)}
-          >
-            {t('TXT_CREATE_INGREDIENT')}
-          </Button>
+          <div>
+            <Title level={3} className="m-0">
+              {t('TXT_INGREDIENT_MANAGEMENT')}
+            </Title>
+            <p style={{ margin: '8px 0 0 0', color: '#666' }}>
+              {t('TXT_MANAGE_INGREDIENTS_DESCRIPTION') || 'Manage ingredient master data, categories, and basic information'}
+            </p>
+          </div>
+          <Space>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              loading={isLoading}
+            >
+              {t('TXT_REFRESH')}
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setShowModalCreate(true)}
+            >
+              {t('TXT_CREATE_INGREDIENT')}
+            </Button>
+            <Link to={`/store/${storeCode}/admin/nguyen-lieu/ton-kho`}>
+              <Button icon={<DatabaseOutlined />}>
+                {t('TXT_INVENTORY_MANAGEMENT')}
+              </Button>
+            </Link>
+          </Space>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4 mb-4">
-          <Input
-            placeholder={t('TXT_SEARCH_INGREDIENTS')}
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 300 }}
-          />
-          <Select
-            placeholder={t('TXT_SELECT_WAREHOUSE')}
-            value={selectedWarehouse}
-            onChange={setSelectedWarehouse}
-            style={{ width: 200 }}
-          >
-            <Option value="all">{t('TXT_ALL_WAREHOUSES')}</Option>
-            {warehouses.map(warehouse => (
-              <Option key={warehouse._id} value={warehouse._id}>
-                {warehouse.name}
-              </Option>
-            ))}
-          </Select>
-        </div>
+        <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Col span={8}>
+            <Input
+              placeholder={t('TXT_SEARCH_INGREDIENTS')}
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col span={4}>
+            <Select
+              placeholder={t('TXT_SELECT_WAREHOUSE')}
+              value={selectedWarehouse}
+              onChange={setSelectedWarehouse}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Option value="all">{t('TXT_ALL_WAREHOUSES')}</Option>
+              {warehouses.map(warehouse => (
+                <Option key={warehouse._id} value={warehouse._id}>
+                  {warehouse.name}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col span={4}>
+            <Select
+              placeholder={t('TXT_SELECT_CATEGORY')}
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Option value="all">{t('TXT_ALL_CATEGORIES')}</Option>
+              {getCategories().map(category => (
+                <Option key={category} value={category}>
+                  {category}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col span={4}>
+            <Select
+              placeholder={t('TXT_SELECT_STATUS')}
+              value={selectedStatus}
+              onChange={setSelectedStatus}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Option value="all">{t('TXT_ALL_STATUS')}</Option>
+              <Option value="active">{t('TXT_ACTIVE')}</Option>
+              <Option value="inactive">{t('TXT_INACTIVE')}</Option>
+              <Option value="discontinued">{t('TXT_DISCONTINUED')}</Option>
+            </Select>
+          </Col>
+          <Col span={4}>
+            <Space>
+              <Button icon={<FilterOutlined />} onClick={() => {
+                setSearchText('');
+                setSelectedWarehouse('all');
+                setSelectedCategory('all');
+                setSelectedStatus('all');
+              }}>
+                {t('TXT_CLEAR_FILTERS')}
+              </Button>
+            </Space>
+          </Col>
+        </Row>
 
         {/* Ingredients Table */}
         <Table
@@ -583,6 +668,7 @@ const IngredientManagerPage = () => {
           storeCode={storeCode}
           ownerId={ownerId}
           warehouses={warehouses}
+          suppliers={suppliers}
           onSuccess={handleCreateOk}
           onCancel={handleCancelCreate}
           onFail={handlerCreateOnFail}
@@ -603,6 +689,7 @@ const IngredientManagerPage = () => {
             storeCode={storeCode}
             ownerId={ownerId}
             warehouses={warehouses}
+            suppliers={suppliers}
             onSuccess={handleEditOk}
             onCancel={handleCancelEdit}
             onFail={handlerEditOnFail}

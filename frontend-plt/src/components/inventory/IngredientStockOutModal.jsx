@@ -19,6 +19,7 @@ const IngredientStockOutModal = ({
   ingredients, 
   warehouses,
   stockBalances,
+  selectedRecord,
   onSuccess 
 }) => {
   const { t } = useTranslation();
@@ -28,6 +29,39 @@ const IngredientStockOutModal = ({
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [availableStock, setAvailableStock] = useState(0);
   const [stockInfo, setStockInfo] = useState(null);
+  // Auto-fill form when selectedRecord changes
+  useEffect(() => {
+    if (visible && selectedRecord) {
+      // Find ingredient and warehouse objects
+      const ingredientObj = ingredients.find(i => i._id === (selectedRecord.ingredientId?._id || selectedRecord.ingredientId));
+      const warehouseObj = warehouses.find(w => w._id === (selectedRecord.warehouseId?._id || selectedRecord.warehouseId));
+
+      setSelectedIngredient(ingredientObj || null);
+      setSelectedWarehouse(warehouseObj?._id || null);
+
+      // Update stock info for this ingredient/warehouse
+      updateStockInfo(ingredientObj?._id, warehouseObj?._id);
+
+      // Set form fields
+      form.setFieldsValue({
+        ingredientId: ingredientObj?._id,
+        warehouseId: warehouseObj?._id,
+        unit: ingredientObj?.unit,
+        quantity: 1,
+        batchNumber: selectedRecord.batchNumber || undefined,
+        reason: 'general_use',
+        recipeId: undefined,
+        orderId: undefined,
+        note: ''
+      });
+    } else if (!visible) {
+      form.resetFields();
+      setSelectedIngredient(null);
+      setSelectedWarehouse(null);
+      setAvailableStock(0);
+      setStockInfo(null);
+    }
+  }, [visible, selectedRecord, ingredients, warehouses]);
   
   /**
    * Handle form submission

@@ -83,9 +83,9 @@ export const createIngredient = async (ingredientData) => {
  * @param {string} params.storeCode - Store code for verification
  * @returns {Promise} API response with updated ingredient
  */
-export const updateIngredient = async (id, ingredientData, params = {}) => {
+export const updateIngredient = async (id, ingredientData) => {
   try {
-    const response = await putApi(`/ingredients/${id}`, ingredientData, { params });
+    const response = await putApi(`/ingredients/${id}`, ingredientData);
     return response.data;
   } catch (error) {
     let msgError = error.response?.data?.error;

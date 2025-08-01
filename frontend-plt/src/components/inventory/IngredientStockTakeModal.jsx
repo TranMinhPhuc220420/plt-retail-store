@@ -18,8 +18,38 @@ const IngredientStockTakeModal = ({
   ingredients, 
   warehouses,
   stockBalances,
+  selectedRecord,
   onSuccess 
 }) => {
+  // Auto-select ingredient/warehouse/batch if selectedRecord is provided
+  useEffect(() => {
+    if (selectedRecord && visible) {
+      // Find ingredient and warehouse
+      const ingredient = ingredients.find(i => i._id === selectedRecord.ingredientId?._id || i._id === selectedRecord.ingredientId);
+      const warehouse = warehouses.find(w => w._id === selectedRecord.warehouseId?._id || w._id === selectedRecord.warehouseId);
+      setSelectedIngredient(ingredient || null);
+      setSelectedWarehouse(warehouse?._id || null);
+      // Update stock info for this ingredient/warehouse
+      updateStockInfo(ingredient?._id, warehouse?._id);
+      // Set batch if available
+      form.setFieldsValue({
+        ingredientId: ingredient?._id,
+        warehouseId: warehouse?._id,
+        unit: ingredient?.unit,
+        batchNumber: selectedRecord.batchNumber || undefined,
+        countedQuantity: 0,
+        note: ''
+      });
+    } else if (!visible) {
+      form.resetFields();
+      setSelectedIngredient(null);
+      setSelectedWarehouse(null);
+      setSystemStock(0);
+      setCountedQuantity(0);
+      setVariance(0);
+      setStockInfo(null);
+    }
+  }, [selectedRecord, visible, ingredients, warehouses]);
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const { performIngredientStockTake, isPerformingStockTake } = useIngredientInventoryStore();

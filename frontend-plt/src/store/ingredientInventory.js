@@ -218,7 +218,7 @@ const useIngredientInventoryStore = create((set, get) => ({
     try {
       const result = await getAllIngredientStockBalances(storeCode, params);
       set({ 
-        stockBalances: result.balances || [],
+        stockBalances: result.stockBalances || [],
         isLoadingBalance: false,
         error: null 
       });

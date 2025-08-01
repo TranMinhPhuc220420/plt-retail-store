@@ -172,6 +172,13 @@ const ingredientStockTakeSchema = Joi.object({
 
 // Validation schema for ingredient creation/update
 const ingredientSchema = Joi.object({
+  storeCode: Joi.string().min(3).max(30).required().messages({
+    'string.base': 'store_code_must_be_a_string',
+    'string.empty': 'store_code_is_required',
+    'string.min': 'store_code_too_short',
+    'string.max': 'store_code_too_long',
+    'any.required': 'store_code_is_required'
+  }),
   ingredientCode: Joi.string().min(3).max(50).required().messages({
     'string.base': 'ingredient_code_must_be_a_string',
     'string.empty': 'ingredient_code_is_required',
@@ -243,10 +250,14 @@ const ingredientSchema = Joi.object({
     'string.base': 'status_must_be_a_string',
     'any.only': 'status_must_be_active_inactive_or_discontinued'
   }),
-  imageUrl: Joi.string().uri().optional().messages({
+  imageUrl: Joi.string().uri().allow('').optional().messages({
     'string.base': 'image_url_must_be_a_string',
     'string.uri': 'image_url_must_be_a_valid_url'
-  })
+  }),
+  stockQuantity: Joi.number().min(0).optional().messages({
+    'number.base': 'stock_quantity_must_be_a_number',
+    'number.min': 'stock_quantity_cannot_be_negative'
+  }),
 });
 
 // Middleware functions

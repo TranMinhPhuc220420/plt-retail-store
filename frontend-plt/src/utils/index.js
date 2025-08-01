@@ -92,3 +92,36 @@ export const storeCodeIsValid = (storeCode) => {
     }
   });
 }
+
+export const parseNumberDecimal = (object) => {
+  let number = 0;
+  const parsedObject = { ...object };
+  Object.keys(parsedObject).forEach(key => {
+    if (typeof parsedObject[key] === 'string') {
+      const parsedValue = parseFloat(parsedObject[key].replace(/,/g, ''));
+      if (!isNaN(parsedValue)) {
+        number = parsedValue;
+      }
+    }
+  });
+
+  return number;
+}
+
+export const formatMoney = (value) => {
+  if (typeof value === 'number') {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(value);
+  } else if (typeof value === 'string') {
+    const parsedValue = parseFloat(value.replace(/,/g, ''));
+    if (!isNaN(parsedValue)) {
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+      }).format(parsedValue);
+    }
+  }
+  return value;
+}

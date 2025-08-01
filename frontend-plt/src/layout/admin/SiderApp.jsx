@@ -38,7 +38,7 @@ const SiderApp = ({ isLoading }) => {
   // Process func
   const processSetItemActiveMenuByPath = () => {
     const path = window.location.pathname;
-    
+
     // Check if path is in items
     let item;
     for (let i = 0; i < menuItems.length; i++) {
@@ -54,7 +54,7 @@ const SiderApp = ({ isLoading }) => {
         }
       }
     }
-    
+
     // Set selected key based on path
     if (item) {
       setKeySelected(item.key);
@@ -82,10 +82,28 @@ const SiderApp = ({ isLoading }) => {
           label: t('TXT_PRODUCT_TYPES_MANAGEMENT'),
         },
         {
+          key: 'admin_supplier_management',
+          pathname: `/store/${storeCode}/admin/nha-cung-cap`,
+          icon: <BarChartOutlined />,
+          label: t('TXT_SUPPLIERS'),
+        },
+        {
+          key: 'admin_recipe_management',
+          icon: <ExperimentOutlined />,
+          pathname: `/store/${storeCode}/admin/cong-thuc`,
+          label: t('TXT_RECIPES'),
+        },
+        {
           key: 'admin_product_management',
           icon: <ProductOutlined />,
           pathname: `/store/${storeCode}/admin/san-pham`,
           label: t('TXT_PRODUCT_MANAGEMENT'),
+        },
+        {
+          key: 'admin_ingredient_management',
+          icon: <ProductOutlined />,
+          pathname: `/store/${storeCode}/admin/nguyen-lieu`,
+          label: t('TXT_INGREDIENTS'),
         },
         {
           key: 'admin_warehouse_management',
@@ -103,23 +121,13 @@ const SiderApp = ({ isLoading }) => {
               label: t('TXT_INVENTORY_MANAGEMENT'),
             },
             {
-              key: 'admin_ingredient_management',
-              pathname: `/store/${storeCode}/admin/nguyen-lieu`,
-              label: t('TXT_INGREDIENTS'),
-            },
-            {
-              key: 'admin_recipe_management',
-              pathname: `/store/${storeCode}/admin/cong-thuc`,
-              label: t('TXT_RECIPES'),
-            },
-            {
-              key: 'admin_supplier_management',
-              pathname: `/store/${storeCode}/admin/nha-cung-cap`,
-              label: t('TXT_SUPPLIERS'),
+              key: 'admin_ingredient_inventory',
+              pathname: `/store/${storeCode}/admin/nguyen-lieu/ton-kho`,
+              label: t('TXT_INGREDIENT_INVENTORY'),
             },
           ],
         },
-  
+
         {
           key: 'admin_employee',
           icon: <TeamOutlined />,
@@ -176,7 +184,7 @@ const SiderApp = ({ isLoading }) => {
             },
           ],
         },
-  
+
         {
           key: 'go_to_sale_member_screen',
           icon: <ShopOutlined />,

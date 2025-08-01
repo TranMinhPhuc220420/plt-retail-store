@@ -1,35 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router';
+import { useParams, Link } from 'react-router';
 
-import { 
-  Card, 
-  Table, 
-  Button, 
-  Space, 
-  Select, 
-  Input, 
-  Alert, 
-  Tag, 
-  Tooltip, 
-  Progress, 
-  Row, 
+import {
+  Card,
+  Table,
+  Button,
+  Space,
+  Select,
+  Input,
+  Alert,
+  Tag,
+  Tooltip,
+  Progress,
+  Row,
   Col,
   Statistic,
   message,
   Modal,
   Badge
 } from 'antd';
-import { 
-  PlusOutlined, 
-  MinusOutlined, 
-  AuditOutlined, 
+import {
+  PlusOutlined,
+  MinusOutlined,
+  AuditOutlined,
   HistoryOutlined,
   SearchOutlined,
   ReloadOutlined,
   WarningOutlined,
   ExclamationCircleOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import useIngredientInventoryStore from '@/store/ingredientInventory';
@@ -49,9 +50,9 @@ const { Option } = Select;
  */
 const IngredientInventoryPage = () => {
   const { storeCode } = useParams()
-  
+
   const { t } = useTranslation();
-  
+
   // Store hooks
   const {
     stockBalances,
@@ -64,23 +65,23 @@ const IngredientInventoryPage = () => {
     fetchIngredientLowStockReport,
     fetchExpiringIngredientsReport
   } = useIngredientInventoryStore();
-  
-  const { 
-    ingredients, 
+
+  const {
+    ingredients,
     fetchIngredients,
-    isLoading: isLoadingIngredients 
+    isLoading: isLoadingIngredients
   } = useIngredientStore();
-  
-  const { 
-    warehouses, 
+
+  const {
+    warehouses,
     fetchWarehouses,
-    isLoading: isLoadingWarehouses 
+    isLoading: isLoadingWarehouses
   } = useWarehouseStore();
-  
-  const { 
-    suppliers, 
+
+  const {
+    suppliers,
     fetchSuppliers,
-    isLoading: isLoadingSuppliers 
+    isLoading: isLoadingSuppliers
   } = useSupplierStore();
 
   // State management
@@ -88,10 +89,12 @@ const IngredientInventoryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stockFilter, setStockFilter] = useState('all'); // all, low, expiring, expired
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  
+
   // Modal states
   const [stockInModalVisible, setStockInModalVisible] = useState(false);
+  const [selectedStockInRecord, setSelectedStockInRecord] = useState(null);
   const [stockOutModalVisible, setStockOutModalVisible] = useState(false);
+  const [selectedStockOutRecord, setSelectedStockOutRecord] = useState(null);
   const [stockTakeModalVisible, setStockTakeModalVisible] = useState(false);
   const [transactionHistoryModalVisible, setTransactionHistoryModalVisible] = useState(false);
 
@@ -110,7 +113,7 @@ const IngredientInventoryPage = () => {
   useEffect(() => {
     if (storeCode) {
       loadStockBalances();
-      loadReports();
+      // loadReports();
     }
   }, [storeCode, selectedWarehouse, stockFilter]);
 
@@ -141,7 +144,7 @@ const IngredientInventoryPage = () => {
       ...(stockFilter === 'expiring' && { expiring: true }),
       ...(stockFilter === 'expired' && { expired: true })
     };
-    
+
     fetchAllIngredientStockBalances(storeCode, params);
   };
 
@@ -150,10 +153,7 @@ const IngredientInventoryPage = () => {
    */
   const loadReports = () => {
     if (!selectedWarehouse) return;
-
-    fetchIngredientLowStockReport(storeCode, selectedWarehouse);
-    fetchExpiringIngredientsReport(storeCode, selectedWarehouse);
-  };
+  }
 
   /**
    * Handle refresh
@@ -169,19 +169,19 @@ const IngredientInventoryPage = () => {
    */
   const getStockStatusTag = (balance) => {
     const { quantity, minStock, expirationDate } = balance;
-    
+
     if (expirationDate && moment(expirationDate).isBefore(moment())) {
       return <Tag color="volcano" icon={<ExclamationCircleOutlined />}>EXPIRED</Tag>;
     }
-    
+
     if (expirationDate && moment(expirationDate).diff(moment(), 'days') <= 7) {
       return <Tag color="orange" icon={<ClockCircleOutlined />}>EXPIRING</Tag>;
     }
-    
+
     if (quantity <= minStock) {
       return <Tag color="error" icon={<WarningOutlined />}>LOW STOCK</Tag>;
     }
-    
+
     return <Tag color="success" icon={<CheckCircleOutlined />}>GOOD</Tag>;
   };
 
@@ -190,24 +190,24 @@ const IngredientInventoryPage = () => {
    */
   const getStockProgress = (balance) => {
     const { quantity, minStock, maxStock } = balance;
-    
+
     if (!maxStock || maxStock <= minStock) {
       return null;
     }
-    
+
     const percentage = Math.min((quantity / maxStock) * 100, 100);
     let status = 'normal';
-    
+
     if (quantity <= minStock) {
       status = 'exception';
     } else if (quantity <= minStock * 2) {
       status = 'active';
     }
-    
+
     return (
-      <Progress 
-        percent={percentage} 
-        size="small" 
+      <Progress
+        percent={percentage}
+        size="small"
         status={status}
         showInfo={false}
       />
@@ -301,30 +301,30 @@ const IngredientInventoryPage = () => {
     {
       title: t('TXT_ACTIONS') || 'Actions',
       key: 'actions',
-      width: 200,
+      // width: 120,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Tooltip title={t('TXT_STOCK_IN') || 'Stock In'}>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
               size="small"
               onClick={() => handleStockIn(record)}
             />
           </Tooltip>
           <Tooltip title={t('TXT_STOCK_OUT') || 'Stock Out'}>
-            <Button 
-              danger 
-              icon={<MinusOutlined />} 
+            <Button
+              danger
+              icon={<MinusOutlined />}
               size="small"
               disabled={record.quantity <= 0}
               onClick={() => handleStockOut(record)}
             />
           </Tooltip>
           <Tooltip title={t('TXT_STOCK_TAKE') || 'Stock Take'}>
-            <Button 
-              icon={<AuditOutlined />} 
+            <Button
+              icon={<AuditOutlined />}
               size="small"
               onClick={() => handleStockTake(record)}
             />
@@ -339,7 +339,7 @@ const IngredientInventoryPage = () => {
    */
   const filteredStockBalances = stockBalances.filter(balance => {
     if (!searchTerm) return true;
-    
+
     const searchLower = searchTerm.toLowerCase();
     return (
       balance.ingredientId?.name?.toLowerCase().includes(searchLower) ||
@@ -353,6 +353,7 @@ const IngredientInventoryPage = () => {
    * Handle stock in action
    */
   const handleStockIn = (record) => {
+    setSelectedStockInRecord(record);
     setStockInModalVisible(true);
   };
 
@@ -360,20 +361,26 @@ const IngredientInventoryPage = () => {
    * Handle stock out action
    */
   const handleStockOut = (record) => {
+    setSelectedStockOutRecord(record);
     setStockOutModalVisible(true);
   };
 
   /**
    * Handle stock take action
    */
+
+  const [selectedStockTakeRecord, setSelectedStockTakeRecord] = useState(null);
   const handleStockTake = (record) => {
+    setSelectedStockTakeRecord(record);
     setStockTakeModalVisible(true);
   };
-
   /**
    * Handle modal success (refresh data)
    */
   const handleModalSuccess = () => {
+    setSelectedStockInRecord(null);
+    setSelectedStockOutRecord(null);
+    setSelectedStockTakeRecord(null);
     handleRefresh();
   };
 
@@ -433,11 +440,6 @@ const IngredientInventoryPage = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <div style={{ marginBottom: 24 }}>
-        <h2>{t('TXT_INGREDIENT_INVENTORY_MANAGEMENT') || 'Ingredient Inventory Management'}</h2>
-        <p>{t('TXT_INGREDIENT_INVENTORY_DESCRIPTION') || 'Manage ingredient stock levels, track expiration dates, and monitor inventory movements.'}</p>
-      </div>
-
       {/* Summary Statistics */}
       {getSummaryStats()}
 
@@ -487,7 +489,7 @@ const IngredientInventoryPage = () => {
               allowClear
             />
           </Col>
-          
+
           <Col span={4}>
             <Select
               placeholder={t('TXT_SELECT_WAREHOUSE') || 'All Warehouses'}
@@ -503,7 +505,7 @@ const IngredientInventoryPage = () => {
               ))}
             </Select>
           </Col>
-          
+
           <Col span={4}>
             <Select
               value={stockFilter}
@@ -528,7 +530,7 @@ const IngredientInventoryPage = () => {
               </Option>
             </Select>
           </Col>
-          
+
           <Col span={10}>
             <Space style={{ float: 'right' }}>
               <Button
@@ -580,7 +582,7 @@ const IngredientInventoryPage = () => {
           pagination={{
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => 
+            showTotal: (total, range) =>
               `${range[0]}-${range[1]} ${t('TXT_OF') || 'of'} ${total} ${t('TXT_ITEMS') || 'items'}`,
           }}
           rowSelection={{
@@ -596,31 +598,43 @@ const IngredientInventoryPage = () => {
       {/* Modals */}
       <IngredientStockInModal
         visible={stockInModalVisible}
-        onClose={() => setStockInModalVisible(false)}
+        onClose={() => {
+          setStockInModalVisible(false);
+          setSelectedStockInRecord(null);
+        }}
         storeCode={storeCode}
         ingredients={ingredients}
         warehouses={warehouses}
         suppliers={suppliers}
+        selectedRecord={selectedStockInRecord}
         onSuccess={handleModalSuccess}
       />
 
       <IngredientStockOutModal
         visible={stockOutModalVisible}
-        onClose={() => setStockOutModalVisible(false)}
+        onClose={() => {
+          setStockOutModalVisible(false);
+          setSelectedStockOutRecord(null);
+        }}
         storeCode={storeCode}
         ingredients={ingredients}
         warehouses={warehouses}
         stockBalances={stockBalances}
+        selectedRecord={selectedStockOutRecord}
         onSuccess={handleModalSuccess}
       />
 
       <IngredientStockTakeModal
         visible={stockTakeModalVisible}
-        onClose={() => setStockTakeModalVisible(false)}
+        onClose={() => {
+          setStockTakeModalVisible(false);
+          setSelectedStockTakeRecord(null);
+        }}
         storeCode={storeCode}
         ingredients={ingredients}
         warehouses={warehouses}
         stockBalances={stockBalances}
+        selectedRecord={selectedStockTakeRecord}
         onSuccess={handleModalSuccess}
       />
 

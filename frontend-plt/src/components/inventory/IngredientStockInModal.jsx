@@ -19,6 +19,7 @@ const IngredientStockInModal = ({
   ingredients,
   warehouses,
   suppliers,
+  selectedRecord,
   onSuccess
 }) => {
   const { t } = useTranslation();
@@ -97,6 +98,22 @@ const IngredientStockInModal = ({
       }
     }
   };
+
+  // Auto-select ingredient when modal opens with selectedRecord
+  useEffect(() => {
+    if (visible && selectedRecord && selectedRecord.ingredientId) {
+      const ingredientId = selectedRecord.ingredientId._id || selectedRecord.ingredientId;
+      form.setFieldsValue({ ingredientId });
+      handleIngredientChange(ingredientId);
+      // Nếu có warehouseId thì set luôn
+      if (selectedRecord.warehouseId) {
+        form.setFieldsValue({ warehouseId: selectedRecord.warehouseId._id || selectedRecord.warehouseId });
+      }
+    }
+    if (!visible) {
+      setSelectedIngredient(null);
+    }
+  }, [visible, selectedRecord, ingredients]);
 
   /**
    * Handle warehouse selection change
