@@ -16,9 +16,13 @@ import ProductManagerPage from "@/pages/admin/product/manager";
 import InventoryManagerPage from "@/pages/admin/inventory/manager";
 import InventoryDetailPage from "@/pages/admin/inventory/manager/detail";
 import InventoryManagement from "@/pages/admin/inventory/management";
-import IngredientManagerPage from "@/pages/admin/ingredient";
+import IngredientInventoryPage from "@/pages/admin/ingredient/InventoryManagement";
 import RecipeManagerPage from "@/pages/admin/recipe";
 import ReportPage from "@/pages/admin/ReportPage";
+
+// Supplier pages
+import SuppliersPage from "@/pages/admin/suppliers";
+import SupplierDetailPage from "@/pages/admin/suppliers/[id]";
 
 import ManagerEmployeePage from "@/pages/admin/manager";
 import DashboardEmployeePage from "@/pages/employee/DashboardPage";
@@ -97,11 +101,19 @@ const router = createBrowserRouter([
       },
       {
         path: "nguyen-lieu",
-        element: <IngredientManagerPage />,
+        element: <IngredientInventoryPage />,
       },
       {
         path: "cong-thuc",
         element: <RecipeManagerPage />,
+      },
+      {
+        path: "nha-cung-cap",
+        element: <SuppliersPage />,
+      },
+      {
+        path: "nha-cung-cap/:supplierId",
+        element: <SupplierDetailPage />,
       },
       {
         path: "nhan-vien",

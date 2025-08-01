@@ -112,6 +112,11 @@ const SiderApp = ({ isLoading }) => {
               pathname: `/store/${storeCode}/admin/cong-thuc`,
               label: t('TXT_RECIPES'),
             },
+            {
+              key: 'admin_supplier_management',
+              pathname: `/store/${storeCode}/admin/nha-cung-cap`,
+              label: t('TXT_SUPPLIERS'),
+            },
           ],
         },
   

@@ -1,13 +1,15 @@
 const Ingredient = require('../models/Ingredient');
+const IngredientStockBalance = require('../models/IngredientStockBalance');
 const Warehouse = require('../models/Warehouse');
 const Store = require('../models/Store');
+const Supplier = require('../models/Supplier');
 
 const ingredientController = {
   // Get all ingredients with optional filtering by ownerId and storeCode
   getAll: async (req, res) => {
     try {
       const ownerId = req.user?._id || req.query.ownerId;
-      const { storeCode } = req.query;
+      const { storeCode, category, status, warehouseId } = req.query;
       const filter = { deleted: false };
       
       // Add owner filter if available
@@ -22,13 +24,40 @@ const ingredientController = {
         filter.storeId = store._id;
       }
       
+      // Add additional filters
+      if (category) filter.category = category;
+      if (status) filter.status = status;
+      if (warehouseId) filter.warehouseId = warehouseId;
+      
       const ingredients = await Ingredient.find(filter)
         .populate('warehouseId', 'name address')
         .populate('ownerId', 'name email')
         .populate('storeId', 'name storeCode')
-        .sort({ createdAt: -1 });
-      res.status(200).json(ingredients);
+        .populate('defaultSupplierId', 'name contactInfo')
+        .sort({ name: 1 });
+      
+      // Optionally include current stock levels from IngredientStockBalance
+      const ingredientsWithStock = await Promise.all(ingredients.map(async (ingredient) => {
+        const stockBalances = await IngredientStockBalance.find({
+          ingredientId: ingredient._id,
+          deleted: false,
+          quantity: { $gt: 0 }
+        });
+        
+        const totalStock = stockBalances.reduce((sum, balance) => sum + balance.quantity, 0);
+        const isLowStock = totalStock <= (ingredient.minStock || 0);
+        
+        return {
+          ...ingredient.toObject(),
+          currentStock: totalStock,
+          stockBalances: stockBalances.length,
+          isLowStock
+        };
+      }));
+      
+      res.status(200).json(ingredientsWithStock);
     } catch (error) {
+      console.error('Get all ingredients error:', error);
       res.status(500).json({ error: 'failed_to_fetch_ingredients' });
     }
   },
@@ -38,7 +67,7 @@ const ingredientController = {
     try {
       const { id } = req.params;
       const ownerId = req.user?._id || req.query.ownerId;
-      const { storeCode } = req.query;
+      const { storeCode, includeStock } = req.query;
       const filter = { _id: id, deleted: false };
       
       // Add owner filter if available
@@ -56,14 +85,48 @@ const ingredientController = {
       const ingredient = await Ingredient.findOne(filter)
         .populate('warehouseId', 'name address manager')
         .populate('ownerId', 'name email')
-        .populate('storeId', 'name storeCode');
+        .populate('storeId', 'name storeCode')
+        .populate('defaultSupplierId', 'name contactInfo');
       
       if (!ingredient) {
         return res.status(404).json({ error: 'ingredient_not_found' });
       }
       
-      res.status(200).json(ingredient);
+      let result = ingredient.toObject();
+      
+      // Include stock information if requested
+      if (includeStock === 'true') {
+        const stockBalances = await IngredientStockBalance.find({
+          ingredientId: ingredient._id,
+          deleted: false
+        })
+        .populate('warehouseId', 'name address')
+        .populate('supplierId', 'name contactInfo')
+        .sort({ expirationDate: 1, createdAt: 1 });
+        
+        const totalStock = stockBalances.reduce((sum, balance) => sum + balance.quantity, 0);
+        const lowStockBalances = stockBalances.filter(balance => 
+          balance.quantity <= (balance.minStock || ingredient.minStock || 0)
+        );
+        const expiringBalances = stockBalances.filter(balance => {
+          if (!balance.expirationDate) return false;
+          const warningDate = new Date();
+          warningDate.setDate(warningDate.getDate() + 7);
+          return balance.expirationDate <= warningDate;
+        });
+        
+        result.stockInfo = {
+          totalStock,
+          stockBalances,
+          lowStockBalances,
+          expiringBalances,
+          isLowStock: totalStock <= (ingredient.minStock || 0)
+        };
+      }
+      
+      res.status(200).json(result);
     } catch (error) {
+      console.error('Get ingredient by ID error:', error);
       res.status(500).json({ error: 'failed_to_fetch_ingredient' });
     }
   },
@@ -73,7 +136,7 @@ const ingredientController = {
     try {
       const { warehouseId } = req.params;
       const ownerId = req.user?._id || req.query.ownerId;
-      const { storeCode } = req.query;
+      const { storeCode, includeStock } = req.query;
       const filter = { 
         warehouseId, 
         deleted: false 
@@ -94,19 +157,60 @@ const ingredientController = {
       const ingredients = await Ingredient.find(filter)
         .populate('ownerId', 'name email')
         .populate('storeId', 'name storeCode')
+        .populate('defaultSupplierId', 'name contactInfo')
         .sort({ name: 1 });
       
-      res.status(200).json(ingredients);
+      let result = ingredients;
+      
+      // Include stock information if requested
+      if (includeStock === 'true') {
+        result = await Promise.all(ingredients.map(async (ingredient) => {
+          const stockBalances = await IngredientStockBalance.find({
+            ingredientId: ingredient._id,
+            warehouseId,
+            deleted: false
+          });
+          
+          const totalStock = stockBalances.reduce((sum, balance) => sum + balance.quantity, 0);
+          
+          return {
+            ...ingredient.toObject(),
+            stockInfo: {
+              totalStock,
+              stockBalances: stockBalances.length,
+              isLowStock: totalStock <= (ingredient.minStock || 0)
+            }
+          };
+        }));
+      }
+      
+      res.status(200).json(result);
     } catch (error) {
-      res.status(500).json({ error: 'failed_to_fetch_warehouse_ingredients' });
+      console.error('Get ingredients by warehouse error:', error);
+      res.status(500).json({ error: 'failed_to_fetch_ingredients_by_warehouse' });
     }
   },
 
-  // Create new ingredient with ownerId and storeCode lookup
+  // Create new ingredient with enhanced inventory support
   create: async (req, res) => {
     try {
       const ownerId = req.user?._id || req.body.ownerId;
-      const { name, unit, stockQuantity, warehouseId, storeCode } = req.body;
+      const { 
+        ingredientCode,
+        name, 
+        description,
+        category,
+        unit, 
+        minStock,
+        maxStock,
+        standardCost,
+        warehouseId, 
+        storeCode,
+        properties,
+        defaultSupplierId,
+        status,
+        imageUrl
+      } = req.body;
       
       // Look up store by storeCode to get storeId
       let storeId = null;
@@ -129,23 +233,41 @@ const ingredientController = {
       }
       
       const newIngredient = new Ingredient({
+        ingredientCode,
         name,
+        description,
+        category,
         unit,
-        stockQuantity,
+        minStock,
+        maxStock,
+        standardCost,
+        stockQuantity: 0, // Initialize with 0, will be managed through inventory transactions
         warehouseId,
         ownerId,
-        storeId
+        storeId,
+        properties,
+        defaultSupplierId,
+        status: status || 'active',
+        imageUrl
       });
       
       const savedIngredient = await newIngredient.save();
       
-      // Add ingredient reference to warehouse
-      warehouse.ingredients.push(savedIngredient._id);
-      await warehouse.save();
+      // Populate for response
+      const populatedIngredient = await Ingredient.findById(savedIngredient._id)
+        .populate('warehouseId', 'name address')
+        .populate('ownerId', 'name email')
+        .populate('storeId', 'name storeCode')
+        .populate('defaultSupplierId', 'name contactInfo');
       
-      res.status(201).json(savedIngredient);
+      res.status(201).json(populatedIngredient);
     } catch (error) {
-      res.status(500).json({ error: 'failed_to_create_ingredient' });
+      console.error('Create ingredient error:', error);
+      if (error.code === 11000) {
+        res.status(400).json({ error: 'ingredient_code_already_exists' });
+      } else {
+        res.status(500).json({ error: 'failed_to_create_ingredient' });
+      }
     }
   },
 
@@ -154,15 +276,16 @@ const ingredientController = {
     try {
       const { id } = req.params;
       const ownerId = req.user?._id || req.body.ownerId;
-      const { name, unit, stockQuantity, warehouseId, storeCode: queryStoreCode } = req.body;
+      const updateData = req.body;
+      const { storeCode } = req.query;
       const filter = { _id: id, deleted: false };
       
       // Add owner filter if available
       if (ownerId) filter.ownerId = ownerId;
       
       // Look up store by storeCode if provided in query
-      if (queryStoreCode) {
-        const store = await Store.findOne({ storeCode: queryStoreCode, deleted: false });
+      if (storeCode) {
+        const store = await Store.findOne({ storeCode, deleted: false });
         if (!store) {
           return res.status(404).json({ error: 'store_not_found' });
         }
@@ -175,8 +298,8 @@ const ingredientController = {
       }
       
       // If changing warehouse, verify new warehouse exists and belongs to same owner/store
-      if (warehouseId && warehouseId !== ingredient.warehouseId.toString()) {
-        const newWarehouseFilter = { _id: warehouseId, deleted: false };
+      if (updateData.warehouseId && updateData.warehouseId !== ingredient.warehouseId.toString()) {
+        const newWarehouseFilter = { _id: updateData.warehouseId, deleted: false };
         if (ingredient.ownerId) newWarehouseFilter.ownerId = ingredient.ownerId;
         if (ingredient.storeId) newWarehouseFilter.storeId = ingredient.storeId;
         
@@ -184,28 +307,32 @@ const ingredientController = {
         if (!newWarehouse) {
           return res.status(404).json({ error: 'new_warehouse_not_found' });
         }
-        
-        // Remove from old warehouse and add to new warehouse
-        const oldWarehouse = await Warehouse.findById(ingredient.warehouseId);
-        if (oldWarehouse) {
-          oldWarehouse.ingredients.pull(ingredient._id);
-          await oldWarehouse.save();
-        }
-        
-        newWarehouse.ingredients.push(ingredient._id);
-        await newWarehouse.save();
       }
       
-      // Update fields if provided
-      if (name !== undefined) ingredient.name = name;
-      if (unit !== undefined) ingredient.unit = unit;
-      if (stockQuantity !== undefined) ingredient.stockQuantity = stockQuantity;
-      if (warehouseId !== undefined) ingredient.warehouseId = warehouseId;
+      // Remove fields that shouldn't be directly updated
+      delete updateData.ownerId;
+      delete updateData.storeId;
+      delete updateData.stockQuantity; // This should be managed through inventory transactions
+      delete updateData.deleted;
       
-      const updatedIngredient = await ingredient.save();
+      const updatedIngredient = await Ingredient.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true, runValidators: true }
+      )
+      .populate('warehouseId', 'name address')
+      .populate('ownerId', 'name email')
+      .populate('storeId', 'name storeCode')
+      .populate('defaultSupplierId', 'name contactInfo');
+      
       res.status(200).json(updatedIngredient);
     } catch (error) {
-      res.status(500).json({ error: 'failed_to_update_ingredient' });
+      console.error('Update ingredient error:', error);
+      if (error.code === 11000) {
+        res.status(400).json({ error: 'ingredient_code_already_exists' });
+      } else {
+        res.status(500).json({ error: 'failed_to_update_ingredient' });
+      }
     }
   },
 
@@ -235,18 +362,34 @@ const ingredientController = {
         return res.status(404).json({ error: 'ingredient_not_found' });
       }
       
-      // Remove ingredient reference from warehouse
-      const warehouse = await Warehouse.findById(ingredient.warehouseId);
-      if (warehouse) {
-        warehouse.ingredients.pull(ingredient._id);
-        await warehouse.save();
+      // Check if ingredient has active stock balances
+      const activeStockBalances = await IngredientStockBalance.find({
+        ingredientId: ingredient._id,
+        deleted: false,
+        quantity: { $gt: 0 }
+      });
+      
+      if (activeStockBalances.length > 0) {
+        return res.status(400).json({ 
+          error: 'cannot_delete_ingredient_with_stock',
+          message: 'Cannot delete ingredient with active stock balances'
+        });
       }
       
+      // Soft delete the ingredient
       ingredient.deleted = true;
+      ingredient.status = 'discontinued';
       await ingredient.save();
+      
+      // Also soft delete any zero-quantity stock balances
+      await IngredientStockBalance.updateMany(
+        { ingredientId: ingredient._id },
+        { deleted: true }
+      );
       
       res.status(200).json({ message: 'ingredient_deleted_successfully' });
     } catch (error) {
+      console.error('Delete ingredient error:', error);
       res.status(500).json({ error: 'failed_to_delete_ingredient' });
     }
   }

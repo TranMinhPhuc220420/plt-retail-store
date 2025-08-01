@@ -5,7 +5,10 @@ import moment from 'moment';
 import { 
   getAllIngredients, 
   getIngredientById, 
-  getIngredientsByWarehouse 
+  getIngredientsByWarehouse,
+  createIngredient,
+  updateIngredient,
+  deleteIngredient
 } from '@/request/ingredient';
 
 import { DATE_FORMAT } from '@/constant';
@@ -108,6 +111,117 @@ const useIngredientStore = create((set) => ({
         return;
       }
       set({ isLoading: false, error: error.message || 'Failed to fetch warehouse ingredients', success: null });
+    }
+  },
+
+  /**
+   * Create new ingredient
+   * @param {Object} ingredientData - Ingredient data to create
+   */
+  createIngredient: async (ingredientData) => {
+    set({ isLoading: true, error: null, success: null });
+    try {
+      const newIngredient = await createIngredient(ingredientData);
+      const formattedIngredient = {
+        ...newIngredient,
+        key: newIngredient._id,
+        createdAt: newIngredient.createdAt ? moment(newIngredient.createdAt).format(DATE_FORMAT) : '',
+        updatedAt: newIngredient.updatedAt ? moment(newIngredient.updatedAt).format(DATE_FORMAT) : '',
+        warehouseName: newIngredient.warehouseId?.name || 'N/A',
+        ownerName: newIngredient.ownerId?.name || 'N/A',
+        storeName: newIngredient.storeId?.name || 'N/A',
+        storeCode: newIngredient.storeId?.storeCode || 'N/A',
+      };
+      
+      // Add to ingredients list
+      set((state) => ({ 
+        ingredients: [formattedIngredient, ...state.ingredients],
+        isLoading: false, 
+        error: null, 
+        success: 'Ingredient created successfully' 
+      }));
+      
+      return newIngredient;
+    } catch (error) {
+      if (error.status === 401) {
+        window.location.href = '/dang-nhap';
+        return;
+      }
+      set({ isLoading: false, error: error.message || 'Failed to create ingredient', success: null });
+      throw error;
+    }
+  },
+
+  /**
+   * Update ingredient
+   * @param {string} ingredientId - Ingredient ID to update
+   * @param {Object} ingredientData - Updated ingredient data
+   * @param {Object} params - Query parameters (e.g., storeCode)
+   */
+  updateIngredient: async (ingredientId, ingredientData, params = {}) => {
+    set({ isLoading: true, error: null, success: null });
+    try {
+      const updatedIngredient = await updateIngredient(ingredientId, ingredientData, params);
+      const formattedIngredient = {
+        ...updatedIngredient,
+        key: updatedIngredient._id,
+        createdAt: updatedIngredient.createdAt ? moment(updatedIngredient.createdAt).format(DATE_FORMAT) : '',
+        updatedAt: updatedIngredient.updatedAt ? moment(updatedIngredient.updatedAt).format(DATE_FORMAT) : '',
+        warehouseName: updatedIngredient.warehouseId?.name || 'N/A',
+        ownerName: updatedIngredient.ownerId?.name || 'N/A',
+        storeName: updatedIngredient.storeId?.name || 'N/A',
+        storeCode: updatedIngredient.storeId?.storeCode || 'N/A',
+      };
+      
+      // Update in ingredients list
+      set((state) => ({
+        ingredients: state.ingredients.map(ingredient => 
+          ingredient._id === ingredientId ? formattedIngredient : ingredient
+        ),
+        ingredientDetail: state.ingredientDetail?._id === ingredientId ? formattedIngredient : state.ingredientDetail,
+        isLoading: false, 
+        error: null, 
+        success: 'Ingredient updated successfully' 
+      }));
+      
+      return updatedIngredient;
+    } catch (error) {
+      if (error.status === 401) {
+        window.location.href = '/dang-nhap';
+        return;
+      }
+      set({ isLoading: false, error: error.message || 'Failed to update ingredient', success: null });
+      throw error;
+    }
+  },
+
+  /**
+   * Delete ingredient
+   * @param {string} ingredientId - Ingredient ID to delete
+   * @param {Object} params - Query parameters (e.g., storeCode)
+   */
+  deleteIngredient: async (ingredientId, params = {}) => {
+    set({ isLoading: true, error: null, success: null });
+    try {
+      await deleteIngredient(ingredientId, params);
+      
+      // Remove from ingredients list
+      set((state) => ({
+        ingredients: state.ingredients.filter(ingredient => ingredient._id !== ingredientId),
+        ingredientDetail: state.ingredientDetail?._id === ingredientId ? null : state.ingredientDetail,
+        isLoading: false, 
+        error: null, 
+        success: 'Ingredient deleted successfully' 
+      }));
+      
+      return true;
+    } catch (error) {
+      if (error.status === 401) {
+        window.location.href = '/dang-nhap';
+        return;
+      }
+      set({ isLoading: false, error: error.message || 'Failed to delete ingredient', success: null });
+      throw error;
     }
   },
 

@@ -17,6 +17,25 @@ const apiFormDataClient = axios.create({
   },
 });
 
+// Request interceptor for debugging
+apiClient.interceptors.request.use(
+  config => {
+    console.log('API Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: `${config.baseURL}${config.url}`,
+      params: config.params,
+      data: config.data
+    });
+    return config;
+  },
+  error => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
+);
+
 // Interceptor to handle request errors
 apiClient.interceptors.response.use(
   response => response,
@@ -32,8 +51,14 @@ apiClient.interceptors.response.use(
         // window.location.href = '/dang-nhap';
       }
     } else {
-      // Handle other errors
-      console.error('API request error:', error);
+      // Handle other errors with more detailed logging
+      console.error('API request error:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        data: error.response?.data
+      });
     }
     return Promise.reject(error);
   }
