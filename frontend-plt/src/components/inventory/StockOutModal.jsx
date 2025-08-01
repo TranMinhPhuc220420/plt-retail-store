@@ -88,6 +88,8 @@ const StockOutModal = ({ visible, onClose, storeCode, products, stockBalances, o
    * Get products that have stock available
    */
   const getProductsWithStock = () => {
+    console.log(products);
+    
     return products.filter(product => {
       const balance = stockBalances.find(b => b.productId._id === product._id);
       return balance && balance.quantity > 0;
