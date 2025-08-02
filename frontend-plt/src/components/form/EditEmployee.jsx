@@ -69,7 +69,6 @@ const EditEmployee = ({ employeeId, employeeEdit, onOK, onFail, onCancel }) => {
       resetField("level", { defaultValue: employeeEdit.level });
       resetField("salary", { defaultValue: employeeEdit.salary });
     }
-    console.log(employeeEdit);
 
   }, [employeeEdit, resetField]);
 

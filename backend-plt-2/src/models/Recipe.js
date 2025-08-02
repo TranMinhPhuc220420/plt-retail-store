@@ -20,6 +20,24 @@ const recipeSchema = new mongoose.Schema(
     // Optional recipe description or cooking instructions
     description: String,
 
+    // Product relationships
+    products: [{ 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Product' 
+    }], // Multiple products can use this recipe
+    
+    // Recipe yield information
+    yield: {
+      quantity: { type: Number, default: 1 }, // How many units this recipe produces
+      unit: { type: String, default: 'kg' } // Unit of production - simplified to kg or l only
+    },
+    
+    // Cost calculation
+    costPerUnit: { 
+      type: mongoose.Schema.Types.Decimal128, 
+      default: null 
+    }, // Calculated cost per unit based on ingredients
+
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
     

@@ -202,7 +202,7 @@ const IngredientManagerPage = () => {
     } else if (currentStock <= minStock) {
       return <Tag color="warning" icon={<WarningOutlined />}>{t('TXT_LOW_STOCK')}</Tag>;
     } else if (currentStock <= minStock * 2) {
-      return <Tag color="processing" icon={<ClockCircleOutlined />}>{Zt('TXT_MODERATE_STOCK')}</Tag>;
+      return <Tag color="processing" icon={<ClockCircleOutlined />}>{t('TXT_MODERATE_STOCK')}</Tag>;
     } else {
       return <Tag color="success">{t('TXT_GOOD_STOCK')}</Tag>;
     }

@@ -45,13 +45,10 @@ const EditIngredientForm = ({
     'nuts', 'legumes', 'frozen', 'canned', 'bakery', 'general'
   ];
 
-  // Standardized unit options - only grams/kilograms and milliliters/liters
+  // Simplified unit options - only kg and liter for consistency
   const unitOptions = [
-    'g',    // grams (base weight unit)
-    'kg',   // kilograms 
-    'ml',   // milliliters (base volume unit)
-    'l',    // liters
-    'piece' // for countable items that can't be measured by weight/volume
+    'kg',   // kilograms for weight measurements
+    'l'     // liters for volume measurements
   ];
 
   // Storage temperature options
@@ -73,8 +70,6 @@ const EditIngredientForm = ({
    */
   useEffect(() => {
     if (ingredient) {
-      console.log(ingredient);
-      
       form.setFieldsValue({
         ingredientCode: ingredient.ingredientCode,
         name: ingredient.name,
@@ -416,80 +411,6 @@ const EditIngredientForm = ({
           rows={2}
           maxLength={500}
         />
-      </Form.Item>
-      {/* Ingredient Name */}
-      <Form.Item
-        label={t('TXT_INGREDIENT_NAME')}
-        name="name"
-        rules={[
-          { required: true, message: t('MSG_INGREDIENT_NAME_REQUIRED') },
-          { min: 2, message: t('MSG_INGREDIENT_NAME_MIN_LENGTH') },
-          { max: 100, message: t('MSG_INGREDIENT_NAME_MAX_LENGTH') }
-        ]}
-      >
-        <Input
-          placeholder={t('TXT_ENTER_INGREDIENT_NAME')}
-          maxLength={100}
-        />
-      </Form.Item>
-
-      {/* Unit of Measurement */}
-      <Form.Item
-        label={t('TXT_UNIT_OF_MEASUREMENT')}
-        name="unit"
-        rules={[
-          { required: true, message: t('MSG_UNIT_REQUIRED') }
-        ]}
-      >
-        <Select
-          placeholder={t('TXT_SELECT_UNIT')}
-          showSearch
-          allowClear
-        >
-          {unitOptions.map(unit => (
-            <Option key={unit} value={unit}>
-              {unit}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-
-      {/* Stock Quantity */}
-      {/* <Form.Item
-        label={t('TXT_STOCK_QUANTITY')}
-        name="stockQuantity"
-        rules={[
-          { required: true, message: t('MSG_STOCK_QUANTITY_REQUIRED') },
-          { type: 'number', min: 0, message: t('MSG_STOCK_QUANTITY_MIN') }
-        ]}
-      >
-        <InputNumber
-          placeholder={t('TXT_ENTER_STOCK_QUANTITY')}
-          min={0}
-          precision={2}
-          style={{ width: '100%' }}
-          addonAfter={form.getFieldValue('unit') || t('TXT_UNIT')}
-        />
-      </Form.Item> */}
-
-      {/* Warehouse Selection */}
-      <Form.Item
-        label={t('TXT_WAREHOUSE')}
-        name="warehouseId"
-        rules={[
-          { required: true, message: t('MSG_WAREHOUSE_REQUIRED') }
-        ]}
-      >
-        <Select
-          placeholder={t('TXT_SELECT_WAREHOUSE')}
-          showSearch
-        >
-          {warehouses.map(warehouse => (
-            <Option key={warehouse._id} value={warehouse._id}>
-              {warehouse.name} - {warehouse.address}
-            </Option>
-          ))}
-        </Select>
       </Form.Item>
 
       {/* Action Buttons */}

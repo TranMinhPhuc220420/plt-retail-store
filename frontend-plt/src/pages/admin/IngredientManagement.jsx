@@ -449,7 +449,7 @@ const IngredientManagement = () => {
                 label="Unit"
                 rules={[{ required: true, message: 'Please enter unit' }]}
               >
-                <Input placeholder="kg, liter, piece, etc." />
+                <Input placeholder="kg or l only" />
               </Form.Item>
             </Col>
             <Col span={8}>

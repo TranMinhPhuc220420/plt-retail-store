@@ -20,6 +20,17 @@ const productSchema = new mongoose.Schema(
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductType' }],
     orderItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'OrderItem' }],
     inventoryTransactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'InventoryTransaction' }],
+    
+    // Recipe relationships
+    recipes: [{ 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Recipe' 
+    }], // Multiple recipes can be used for one product
+    defaultRecipeId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Recipe', 
+      default: null 
+    }, // Primary recipe for cost calculation
   },
   { timestamps: true }
 );

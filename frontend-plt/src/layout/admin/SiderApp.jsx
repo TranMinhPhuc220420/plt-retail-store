@@ -110,6 +110,12 @@ const SiderApp = ({ isLoading, collapsed }) => {
           label: t('TXT_RECIPES'),
         },
         {
+          key: 'admin_product_recipe_management',
+          icon: <DatabaseOutlined />,
+          pathname: `/store/${storeCode}/admin/san-pham-cong-thuc`,
+          label: t('TXT_PRODUCT_RECIPE_MANAGEMENT'),
+        },
+        {
           key: 'admin_warehouse_management',
           icon: <ContainerOutlined />,
           label: t('TXT_WAREHOUSE_MANAGEMENT'),

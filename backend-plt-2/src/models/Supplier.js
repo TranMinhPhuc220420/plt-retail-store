@@ -140,8 +140,7 @@ const supplierSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Create indexes for better performance
-supplierSchema.index({ supplierCode: 1 }, { unique: true });
+// Create indexes for better performance (only for non-unique fields)
 supplierSchema.index({ name: 1 });
 supplierSchema.index({ ownerId: 1, storeId: 1 });
 supplierSchema.index({ status: 1 });

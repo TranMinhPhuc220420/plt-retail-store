@@ -47,13 +47,10 @@ const CreateRecipeForm = ({
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Standardized unit options for recipes - only grams/kilograms and milliliters/liters
+  // Simplified unit options for recipes - only kg and liter for consistency
   const unitOptions = [
-    'g',    // grams (base weight unit)
-    'kg',   // kilograms 
-    'ml',   // milliliters (base volume unit)
-    'l',    // liters
-    'piece' // for countable items that can't be measured by weight/volume
+    'kg',   // kilograms for weight measurements
+    'l'     // liters for volume measurements
   ];
 
   /**

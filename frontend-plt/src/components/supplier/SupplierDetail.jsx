@@ -95,7 +95,7 @@ const SupplierDetail = () => {
         setPerformanceData(data);
       }
     } catch (error) {
-      console.log('Could not load performance data:', error);
+      // Error loading performance data
     }
   };
 
@@ -149,8 +149,6 @@ const SupplierDetail = () => {
   if (isLoadingDetail || !supplierDetail) {
     return <Loading />;
   }
-
-  console.log(supplierDetail.deliveryInfo);
 
   return (
     <div style={{ padding: '24px' }}>

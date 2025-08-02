@@ -106,7 +106,7 @@ const ingredientInventoryController = {
       
       await stockTransaction.save();
       
-      // Update or create stock balance
+      // Update or create stock balance using atomic operations to prevent race conditions
       let stockBalance = await IngredientStockBalance.findOne({
         ingredientId,
         storeId: store._id,
@@ -116,20 +116,37 @@ const ingredientInventoryController = {
       });
       
       if (stockBalance) {
-        // Update existing balance
-        stockBalance.quantity += quantity;
-        stockBalance.lastTransactionDate = new Date();
-        stockBalance.lastTransactionId = stockTransaction._id;
+        // Calculate new cost information if provided
+        let updateFields = {
+          $inc: { quantity: quantity },
+          $set: {
+            lastTransactionDate: new Date(),
+            lastTransactionId: stockTransaction._id
+          }
+        };
         
-        // Update cost information if provided
         if (costPerUnit) {
-          const totalCurrentCost = stockBalance.costPerUnit ? stockBalance.costPerUnit * (stockBalance.quantity - quantity) : 0;
+          const currentQuantity = stockBalance.quantity;
+          const totalCurrentCost = stockBalance.costPerUnit ? stockBalance.costPerUnit * currentQuantity : 0;
           const newCost = costPerUnit * quantity;
-          stockBalance.costPerUnit = (totalCurrentCost + newCost) / stockBalance.quantity;
-          stockBalance.totalCost = stockBalance.costPerUnit * stockBalance.quantity;
+          const newTotalQuantity = currentQuantity + quantity;
+          const newCostPerUnit = (totalCurrentCost + newCost) / newTotalQuantity;
+          
+          updateFields.$set.costPerUnit = newCostPerUnit;
+          updateFields.$set.totalCost = newCostPerUnit * newTotalQuantity;
         }
         
-        await stockBalance.save();
+        stockBalance = await IngredientStockBalance.findOneAndUpdate(
+          {
+            ingredientId,
+            storeId: store._id,
+            warehouseId,
+            batchNumber: batchNumber || null,
+            expirationDate: expirationDate ? new Date(expirationDate) : null
+          },
+          updateFields,
+          { new: true }
+        );
       } else {
         // Create new balance record
         stockBalance = new IngredientStockBalance({
@@ -304,21 +321,44 @@ const ingredientInventoryController = {
       
       await stockTransaction.save();
       
-      // Update stock balance
-      stockBalance.quantity -= quantity;
-      stockBalance.lastTransactionDate = new Date();
-      stockBalance.lastTransactionId = stockTransaction._id;
+      // Update stock balance using atomic operations to prevent race conditions
+      const updatedStockBalance = await IngredientStockBalance.findOneAndUpdate(
+        {
+          _id: stockBalance._id,
+          quantity: { $gte: quantity } // Ensure sufficient stock
+        },
+        {
+          $inc: { quantity: -quantity },
+          $set: {
+            lastTransactionDate: new Date(),
+            lastTransactionId: stockTransaction._id,
+            deleted: { $cond: { if: { $eq: [{ $subtract: ['$quantity', quantity] }, 0] }, then: true, else: false } }
+          }
+        },
+        { new: true }
+      );
       
-      // If quantity becomes 0, mark as deleted (soft delete)
-      if (stockBalance.quantity === 0) {
-        stockBalance.deleted = true;
+      if (!updatedStockBalance) {
+        // Rollback transaction if stock update failed
+        await IngredientStockTransaction.findByIdAndDelete(stockTransaction._id);
+        
+        // Re-check current stock to provide accurate error message
+        const currentBalance = await IngredientStockBalance.findById(stockBalance._id);
+        const available = currentBalance ? currentBalance.quantity : 0;
+        
+        return res.status(400).json({
+          error: 'insufficient_stock',
+          message: `Insufficient stock. Available: ${available}, Requested: ${quantity}`,
+          availableStock: available
+        });
       }
       
-      await stockBalance.save();
-      
-      // Update ingredient's total stock quantity (for backward compatibility)
-      ingredient.stockQuantity = Math.max(0, ingredient.stockQuantity - quantity);
-      await ingredient.save();
+      // Update ingredient's total stock quantity (for backward compatibility) using atomic operation
+      await Ingredient.findOneAndUpdate(
+        { _id: ingredientId },
+        { $inc: { stockQuantity: -quantity } },
+        { new: true }
+      );
       
       // Populate transaction for response
       const populatedTransaction = await IngredientStockTransaction.findById(stockTransaction._id)

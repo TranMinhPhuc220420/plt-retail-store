@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest"
+    "test": "jest",
+    "migrate:simplify-units": "node migrate_simplify_units.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

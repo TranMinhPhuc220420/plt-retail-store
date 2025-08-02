@@ -17,6 +17,49 @@ const apiFormDataClient = axios.create({
   },
 });
 
+// Response interceptor for form data client (same as regular client)
+apiFormDataClient.interceptors.response.use(
+  response => {
+    // Transform new backend response format to maintain compatibility
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+      if (response.data.success) {
+        response.data = response.data.data;
+      } else {
+        const error = new Error(response.data.message || 'API Error');
+        error.response = response;
+        error.response.data = {
+          message: response.data.message,
+          error: response.data.message, // Also set error field for backward compatibility
+          details: response.data.details
+        };
+        throw error;
+      }
+    }
+    return response;
+  },
+  error => {
+    // Same error handling as regular client
+    if (error.response && error.response.status === 401) {
+      console.error('Unauthorized access - redirecting to login');
+      const requestURL = error.config.url;
+      if (requestURL && requestURL.includes('/auth/login')) {
+        console.error('Login request failed, but not redirecting to login page again.');
+      } else {
+        // window.location.href = '/dang-nhap';
+      }
+    } else {
+      console.error('API request error:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        data: error.response?.data
+      });
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Request interceptor for debugging
 apiClient.interceptors.request.use(
   config => {
@@ -36,9 +79,31 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Interceptor to handle request errors
+// Interceptor to handle request errors and transform new API response format
 apiClient.interceptors.response.use(
-  response => response,
+  response => {
+    // Transform new backend response format to maintain compatibility
+    // New format: { success: true, message: "...", data: {...} }
+    // Old expected format: direct data in response.data
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+      // If it's the new standardized response format
+      if (response.data.success) {
+        // For success responses, return the data directly to maintain compatibility
+        response.data = response.data.data;
+      } else {
+        // For error responses, throw an error with the message
+        const error = new Error(response.data.message || 'API Error');
+        error.response = response;
+        error.response.data = {
+          message: response.data.message,
+          error: response.data.message, // Also set error field for backward compatibility
+          details: response.data.details
+        };
+        throw error;
+      }
+    }
+    return response;
+  },
   error => {
     if (error.response && error.response.status === 401) {
       // Handle unauthorized access, e.g., redirect to login

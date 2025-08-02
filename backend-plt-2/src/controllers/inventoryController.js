@@ -83,21 +83,28 @@ const inventoryController = {
       
       await stockTransaction.save();
       
-      // Update or create stock balance
-      let stockBalance = await StockBalance.findOne({
-        productId,
-        storeId: store._id,
-        warehouseId
-      });
+      // Update or create stock balance using atomic operations to prevent race conditions
+      let stockBalance = await StockBalance.findOneAndUpdate(
+        {
+          productId,
+          storeId: store._id,
+          warehouseId
+        },
+        {
+          $inc: { quantity: quantity },
+          $set: {
+            lastTransactionDate: new Date(),
+            lastTransactionId: stockTransaction._id
+          }
+        },
+        { 
+          new: true,
+          upsert: false
+        }
+      );
       
-      if (stockBalance) {
-        // Update existing balance
-        stockBalance.quantity += quantity;
-        stockBalance.lastTransactionDate = new Date();
-        stockBalance.lastTransactionId = stockTransaction._id;
-        await stockBalance.save();
-      } else {
-        // Create new balance record
+      if (!stockBalance) {
+        // Create new balance record if doesn't exist
         stockBalance = new StockBalance({
           productId,
           storeId: store._id,
@@ -190,23 +197,7 @@ const inventoryController = {
         return res.status(404).json({ error: 'warehouse_not_found' });
       }
       
-      // Check current stock balance
-      const stockBalance = await StockBalance.findOne({
-        productId,
-        storeId: store._id,
-        warehouseId
-      });
-      
-      if (!stockBalance || stockBalance.quantity < quantity) {
-        const available = stockBalance ? stockBalance.quantity : 0;
-        return res.status(400).json({ 
-          error: 'insufficient_stock',
-          message: `Insufficient stock. Available: ${available}, Requested: ${quantity}`,
-          availableStock: available
-        });
-      }
-      
-      // Create stock transaction record
+      // Create stock transaction record first
       const stockTransaction = new StockTransaction({
         type: 'out',
         productId,
@@ -222,11 +213,42 @@ const inventoryController = {
       
       await stockTransaction.save();
       
-      // Update stock balance
-      stockBalance.quantity -= quantity;
-      stockBalance.lastTransactionDate = new Date();
-      stockBalance.lastTransactionId = stockTransaction._id;
-      await stockBalance.save();
+      // Update stock balance using atomic operations to prevent race conditions
+      const updatedStockBalance = await StockBalance.findOneAndUpdate(
+        {
+          productId,
+          storeId: store._id,
+          warehouseId,
+          quantity: { $gte: quantity } // Ensure sufficient stock
+        },
+        {
+          $inc: { quantity: -quantity },
+          $set: {
+            lastTransactionDate: new Date(),
+            lastTransactionId: stockTransaction._id
+          }
+        },
+        { new: true }
+      );
+      
+      if (!updatedStockBalance) {
+        // Rollback transaction if stock update failed
+        await StockTransaction.findByIdAndDelete(stockTransaction._id);
+        
+        // This means either stock balance doesn't exist or insufficient stock
+        const currentBalance = await StockBalance.findOne({
+          productId,
+          storeId: store._id,
+          warehouseId
+        });
+        const available = currentBalance ? currentBalance.quantity : 0;
+        
+        return res.status(400).json({ 
+          error: 'insufficient_stock',
+          message: `Insufficient stock. Available: ${available}, Requested: ${quantity}`,
+          availableStock: available
+        });
+      }
       
       // Populate transaction for response
       const populatedTransaction = await StockTransaction.findById(stockTransaction._id)

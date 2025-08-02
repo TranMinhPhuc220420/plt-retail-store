@@ -124,6 +124,8 @@ function AuthProvider({ children }) {
       }
     }
 
+    console.log(pageToRedirect);
+    
     if (pageToRedirect) {
       navigate(pageToRedirect, { replace: true });
     }

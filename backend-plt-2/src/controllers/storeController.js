@@ -1,12 +1,13 @@
 const Store = require('../models/Store');
+const { responses } = require('../utils/responseFormatter');
 
 const storeController = {
   getAllMy: async (req, res) => {
     try {
-      const stores = await Store.find({ owner: req.user.id, deleted: false });
-      res.status(200).json(stores);
+      const stores = await Store.find({ ownerId: req.user._id, deleted: false });
+      return responses.success(res, stores, 'stores_retrieved_successfully');
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch stores' });
+      return responses.serverError(res, 'failed_to_fetch_stores', error);
     }
   },
 
@@ -14,17 +15,17 @@ const storeController = {
     try {
       const { storeCode } = req.params;
       if (!storeCode) {
-        return res.status(400).json({ error: 'store_code_is_required' });
+        return responses.badRequest(res, 'store_code_required');
       }
 
-      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
       if (!store) {
-        return res.status(404).json({ error: 'store_not_found' });
+        return responses.notFound(res, 'store_not_found');
       }
       
-      res.status(200).json(store);
+      return responses.success(res, store, 'store_retrieved_successfully');
     } catch (error) {
-      res.status(500).json({ error: 'fetch_store_failed' });
+      return responses.serverError(res, 'failed_to_fetch_store', error);
     }
   },
 
@@ -37,26 +38,26 @@ const storeController = {
       
       const savedStore = await newStore.save();
       
-      res.status(201).json(savedStore);
+      return responses.created(res, savedStore, 'store_created_successfully');
     } catch (error) {
-      res.status(500).json({ error: 'Failed to create store' });
+      return responses.serverError(res, 'failed_to_create_store', error);
     }
   },
 
   updateMy: async (req, res) => {
     try {
       const { storeCode } = req.body;
-      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
       if (!store) {
-        return res.status(404).json({ error: 'store_not_found' });
+        return responses.notFound(res, 'store_not_found');
       }
       
       Object.assign(store, req.body);
       const updatedStore = await store.save();
 
-      res.status(200).json(updatedStore);
+      return responses.updated(res, updatedStore, 'store_updated_successfully');
     } catch (error) {
-      res.status(500).json({ error: 'Failed to update store' });
+      return responses.serverError(res, 'failed_to_update_store', error);
     }
   },
 
@@ -64,20 +65,20 @@ const storeController = {
     try {
       const { storeCode } = req.params;
       if (!storeCode) {
-        return res.status(400).json({ error: 'store_code_is_required' });
+        return responses.badRequest(res, 'store_code_required');
       }
 
-      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
       if (!store) {
-        return res.status(404).json({ error: 'store_not_found' });
+        return responses.notFound(res, 'store_not_found');
       }
 
       store.deleted = true; // Soft delete
       await store.save();
 
-      res.status(200).json({ message: 'store_deleted_successfully' });
+      return responses.deleted(res, 'store_deleted_successfully');
     } catch (error) {
-      res.status(500).json({ error: 'failed_to_delete_store' });
+      return responses.serverError(res, 'failed_to_delete_store', error);
     }
   }
 };

@@ -75,8 +75,6 @@ const ManagerEmployee = () => {
 
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-
       setEmployeeSelected(selectedRows);
     },
     getCheckboxProps: record => ({
@@ -127,8 +125,6 @@ const ManagerEmployee = () => {
   };
   const handlerConfirmDelete = async (employee) => {
     // Call the delete function here
-    console.log("Delete employee with id: ", employee);
-
     const { key } = employee;
     setIdEmployeeDeleting(key);
 
@@ -146,7 +142,6 @@ const ManagerEmployee = () => {
   }
   const handlerConfirmDeleteSelected = async () => {
     // Call the delete function here
-    console.log("Delete employee with id: ", employeeSelected);
     setIsDeletingLoading(true);
     setEmployeeListLoading(true);
 
@@ -181,8 +176,6 @@ const ManagerEmployee = () => {
 
   const handleEdit = (employee) => {
     // Call the edit function here
-    console.log("Edit employee with id: ", employee);
-
     const { key } = employee;
     setIdEmployeeEditing(key);
 

@@ -1,7 +1,12 @@
 const Recipe = require('../models/Recipe');
 const Ingredient = require('../models/Ingredient');
 const Store = require('../models/Store');
+const Product = require('../models/Product');
 const { checkIngredientAvailability } = require('../utils/unitConverter');
+const { 
+  calculateRecipeIngredientCost, 
+  updateRecipeCostCalculation 
+} = require('../utils/costCalculation');
 
 const recipeController = {
   // Get all recipes with optional filtering by ownerId and storeCode
@@ -32,6 +37,7 @@ const recipeController = {
             select: 'name'
           }
         })
+        .populate('products', 'name productCode costPrice sellingPrice')
         .populate('ownerId', 'name email')
         .populate('storeId', 'name storeCode')
         .sort({ createdAt: -1 });
@@ -305,6 +311,239 @@ const recipeController = {
       });
     } catch (error) {
       res.status(500).json({ error: 'failed_to_check_recipe_availability' });
+    }
+  },
+
+  // Link product to recipe
+  linkProductToRecipe: async (req, res) => {
+    try {
+      const { recipeId, productId } = req.params;
+      
+      const recipe = await Recipe.findOne({ 
+        _id: recipeId, 
+        ownerId: req.user._id,
+        deleted: false 
+      });
+      
+      if (!recipe) {
+        return res.status(404).json({ error: 'recipe_not_found' });
+      }
+
+      const product = await Product.findOne({ 
+        _id: productId, 
+        ownerId: req.user._id,
+        storeId: recipe.storeId,
+        deleted: false 
+      });
+      
+      if (!product) {
+        return res.status(404).json({ error: 'product_not_found' });
+      }
+
+      // Add product to recipe if not already linked
+      if (!recipe.products.includes(productId)) {
+        await Recipe.findByIdAndUpdate(recipeId, {
+          $addToSet: { products: productId }
+        });
+      }
+
+      // Add recipe to product if not already linked
+      if (!product.recipes.includes(recipeId)) {
+        const updateProduct = { $addToSet: { recipes: recipeId } };
+        
+        // Set as default if no default exists
+        if (!product.defaultRecipeId) {
+          updateProduct.defaultRecipeId = recipeId;
+        }
+        
+        await Product.findByIdAndUpdate(productId, updateProduct);
+      }
+
+      const updatedRecipe = await Recipe.findById(recipeId)
+        .populate('products', 'name productCode price')
+        .populate('ingredients.ingredientId', 'name unit');
+
+      res.status(200).json({
+        message: 'product_linked_successfully',
+        recipe: updatedRecipe
+      });
+      
+    } catch (error) {
+      console.error('Link product error:', error);
+      res.status(500).json({ error: 'failed_to_link_product' });
+    }
+  },
+
+  // Unlink product from recipe
+  unlinkProductFromRecipe: async (req, res) => {
+    try {
+      const { recipeId, productId } = req.params;
+      
+      const recipe = await Recipe.findOne({ 
+        _id: recipeId, 
+        ownerId: req.user._id,
+        deleted: false 
+      });
+      
+      if (!recipe) {
+        return res.status(404).json({ error: 'recipe_not_found' });
+      }
+
+      // Remove product from recipe
+      await Recipe.findByIdAndUpdate(recipeId, {
+        $pull: { products: productId }
+      });
+
+      // Remove recipe from product and clear default if needed
+      const product = await Product.findById(productId);
+      if (product) {
+        const updateProduct = { $pull: { recipes: recipeId } };
+        
+        if (product.defaultRecipeId?.toString() === recipeId) {
+          updateProduct.defaultRecipeId = null;
+        }
+        
+        await Product.findByIdAndUpdate(productId, updateProduct);
+      }
+
+      const updatedRecipe = await Recipe.findById(recipeId)
+        .populate('products', 'name productCode price')
+        .populate('ingredients.ingredientId', 'name unit');
+
+      res.status(200).json({
+        message: 'product_unlinked_successfully',
+        recipe: updatedRecipe
+      });
+      
+    } catch (error) {
+      console.error('Unlink product error:', error);
+      res.status(500).json({ error: 'failed_to_unlink_product' });
+    }
+  },
+
+  // Get recipe with products
+  getRecipeWithProducts: async (req, res) => {
+    try {
+      const { recipeId } = req.params;
+      
+      const recipe = await Recipe.findOne({ 
+        _id: recipeId, 
+        ownerId: req.user._id,
+        deleted: false 
+      })
+      .populate({
+        path: 'products',
+        select: 'name productCode price retailPrice costPrice categories',
+        populate: {
+          path: 'categories',
+          select: 'name'
+        }
+      })
+      .populate('ingredients.ingredientId', 'name unit standardCost stockQuantity');
+
+      if (!recipe) {
+        return res.status(404).json({ error: 'recipe_not_found' });
+      }
+
+      res.status(200).json(recipe);
+      
+    } catch (error) {
+      console.error('Get recipe with products error:', error);
+      res.status(500).json({ error: 'failed_to_fetch_recipe_products' });
+    }
+  },
+
+  // Calculate recipe cost
+  calculateRecipeCost: async (req, res) => {
+    try {
+      const { recipeId } = req.params;
+      
+      const costCalculation = await calculateRecipeIngredientCost(recipeId);
+      res.status(200).json(costCalculation);
+      
+    } catch (error) {
+      console.error('Calculate recipe cost error:', error);
+      res.status(500).json({ error: 'failed_to_calculate_recipe_cost' });
+    }
+  },
+
+  // Update recipe cost calculation
+  updateRecipeCostCalculation: async (req, res) => {
+    try {
+      const { recipeId } = req.params;
+      
+      const result = await updateRecipeCostCalculation(recipeId);
+      
+      res.status(200).json({
+        message: 'recipe_cost_updated_successfully',
+        result
+      });
+      
+    } catch (error) {
+      console.error('Update recipe cost error:', error);
+      res.status(500).json({ error: 'failed_to_update_recipe_cost' });
+    }
+  },
+
+  // Get all recipes with cost information
+  getAllWithCosts: async (req, res) => {
+    try {
+      const { storeCode } = req.query;
+      const ownerId = req.user?._id;
+      const filter = { deleted: false };
+      
+      // Add owner filter if available
+      if (ownerId) filter.ownerId = ownerId;
+      
+      // Look up store by storeCode if provided
+      if (storeCode) {
+        const store = await Store.findOne({ storeCode, deleted: false });
+        if (!store) {
+          return res.status(404).json({ error: 'store_not_found' });
+        }
+        filter.storeId = store._id;
+      }
+      
+      const recipes = await Recipe.find(filter)
+        .populate({
+          path: 'ingredients.ingredientId',
+          select: 'name unit stockQuantity standardCost averageCost',
+          populate: {
+            path: 'warehouseId',
+            select: 'name'
+          }
+        })
+        .populate('products', 'name productCode price')
+        .populate('ownerId', 'name email')
+        .populate('storeId', 'name storeCode')
+        .sort({ createdAt: -1 });
+
+      // Calculate costs for each recipe
+      const recipesWithCosts = await Promise.all(
+        recipes.map(async (recipe) => {
+          try {
+            const costCalculation = await calculateRecipeIngredientCost(recipe._id);
+            return {
+              ...recipe.toObject(),
+              calculatedCost: costCalculation
+            };
+          } catch (error) {
+            return {
+              ...recipe.toObject(),
+              calculatedCost: {
+                totalCost: 0,
+                costPerUnit: 0,
+                error: error.message
+              }
+            };
+          }
+        })
+      );
+
+      res.status(200).json(recipesWithCosts);
+    } catch (error) {
+      console.error('Get all recipes with costs error:', error);
+      res.status(500).json({ error: 'failed_to_fetch_recipes_with_costs' });
     }
   }
 };

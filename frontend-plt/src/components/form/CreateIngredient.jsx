@@ -42,13 +42,10 @@ const CreateIngredientForm = ({
     'nuts', 'legumes', 'frozen', 'canned', 'bakery', 'general'
   ];
 
-  // Standardized unit options - only grams/kilograms and milliliters/liters
+  // Simplified unit options - only kg and liter for consistency
   const unitOptions = [
-    'g',    // grams (base weight unit)
-    'kg',   // kilograms 
-    'ml',   // milliliters (base volume unit)
-    'l',    // liters
-    'piece' // for countable items that can't be measured by weight/volume
+    'kg',   // kilograms for weight measurements
+    'l'     // liters for volume measurements
   ];
 
   // Storage temperature options

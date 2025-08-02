@@ -19,6 +19,7 @@ import InventoryManagement from "@/pages/admin/inventory/management";
 import IngredientManagerPage from "@/pages/admin/ingredient";
 import IngredientInventoryPage from "@/pages/admin/ingredient/InventoryManagement";
 import RecipeManagerPage from "@/pages/admin/recipe";
+import ProductRecipeManagement from "@/pages/admin/ProductRecipeManagement";
 import ReportPage from "@/pages/admin/ReportPage";
 
 // Supplier pages
@@ -111,6 +112,10 @@ const router = createBrowserRouter([
       {
         path: "cong-thuc",
         element: <RecipeManagerPage />,
+      },
+      {
+        path: "san-pham-cong-thuc",
+        element: <ProductRecipeManagement />,
       },
       {
         path: "nha-cung-cap",

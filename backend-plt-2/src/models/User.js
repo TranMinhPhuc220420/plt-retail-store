@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   username: { type: String, unique: true, required: true, trim: true },
   email: { type: String, unique: true, required: true, lowercase: true },
   password: { type: String, minlength: 6 },
-  googleId: { type: String, unique: true },
+  googleId: { type: String, unique: true, sparse: true },
 
   avatar: { type: String, default: null },
   displayName: { type: String, default: null },
@@ -19,5 +19,9 @@ const userSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Add indexes for better query performance (only for non-unique fields)
+userSchema.index({ role: 1 });
+userSchema.index({ deleted: 1 });
 
 module.exports = mongoose.model('User', userSchema);

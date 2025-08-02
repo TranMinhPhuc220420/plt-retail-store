@@ -14,8 +14,8 @@ const ingredientSchema = new mongoose.Schema(
     // Category of ingredient (e.g., dairy, meat, vegetables, spices)
     category: { type: String, default: 'general' },
     
-    // Unit of measurement (e.g., kg, liter, piece, gram)
-    unit: { type: String, required: true },
+    // Unit of measurement - simplified to kg (weight) or l (volume) only
+    unit: { type: String, required: true, enum: ['kg', 'l'] },
     
     // Current stock quantity available (deprecated - use IngredientStockBalance instead)
     stockQuantity: { type: Number, default: 0, min: 0 },
@@ -83,8 +83,7 @@ const ingredientSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Create indexes for better performance
-ingredientSchema.index({ ingredientCode: 1 }, { unique: true });
+// Create indexes for better performance (only for non-unique fields)
 ingredientSchema.index({ name: 1 });
 ingredientSchema.index({ category: 1 });
 ingredientSchema.index({ ownerId: 1, storeId: 1 });

@@ -24,8 +24,6 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
   // Auto-select product/warehouse/batch if selectedRecord is provided
   useEffect(() => {
     if (selectedRecord && visible) {
-      console.log(selectedRecord);
-      
       // Find product and warehouse
       const product = products.find(p => p._id === selectedRecord.productId?._id || p._id === selectedRecord.productId);
       const warehouse = warehouses.find(w => w._id === selectedRecord.warehouseId?._id || w._id === selectedRecord.warehouseId);

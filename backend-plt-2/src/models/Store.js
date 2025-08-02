@@ -24,4 +24,10 @@ const storeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Add indexes for better query performance (only for non-unique fields)
+storeSchema.index({ ownerId: 1 });
+storeSchema.index({ storeCode: 1, ownerId: 1 });
+storeSchema.index({ deleted: 1 });
+storeSchema.index({ name: 1 });
+
 module.exports = mongoose.model('Store', storeSchema);

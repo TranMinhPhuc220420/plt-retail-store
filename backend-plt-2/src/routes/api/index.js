@@ -15,6 +15,7 @@ const unitRouter = require('./unit.route');
 const inventoryRouter = require('./inventory.route');
 const ingredientInventoryRouter = require('./ingredientInventory.route');
 const supplierRouter = require('./supplier.route');
+const productRecipeRouter = require('./product_recipe.route');
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use('/units', verifyJWT, unitRouter); // Unit utilities available to all 
 router.use('/inventory', verifyJWT, isAdmin, inventoryRouter); // Product inventory management routes
 router.use('/ingredient-inventory', verifyJWT, isAdmin, ingredientInventoryRouter); // Ingredient inventory management routes
 router.use('/suppliers', verifyJWT, isAdmin, supplierRouter); // Supplier management routes
+router.use('/', verifyJWT, isAdmin, productRecipeRouter); // Product-Recipe relationship management routes
 
 // export default router;
 module.exports = router;

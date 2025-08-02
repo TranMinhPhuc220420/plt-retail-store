@@ -67,7 +67,6 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
   };
 
   const handleAvatarChange = async (info) => {
-    console.log("Avatar change info:", info);
     const file = info.file;
 
     if (file) {

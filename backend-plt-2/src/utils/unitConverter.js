@@ -4,39 +4,25 @@
  * This ensures consistency between ingredient stock units and recipe requirement units
  */
 
-// Standard base units (what we'll convert everything to internally)
+// Standard base units (simplified to kg and liter only)
 const BASE_UNITS = {
-  WEIGHT: 'g',  // grams for weight
-  VOLUME: 'ml'  // milliliters for volume
+  WEIGHT: 'kg',  // kilograms for weight
+  VOLUME: 'l'    // liters for volume
 };
 
-// Unit conversion factors (to base units)
+// Unit conversion factors (simplified to kg and liter only)
 const UNIT_CONVERSIONS = {
-  // Weight conversions (to grams)
-  'g': 1,
-  'kg': 1000,
-  'mg': 0.001,
+  // Weight conversions (only kg)
+  'kg': 1,
   
-  // Volume conversions (to milliliters)
-  'ml': 1,
-  'l': 1000,
-  
-  // Count-based units (no conversion needed)
-  'piece': 1,
-  'pack': 1,
-  'box': 1,
-  'cup': 1,
-  'tbsp': 1,
-  'tsp': 1,
-  'oz': 1,
-  'lb': 1
+  // Volume conversions (only liter)
+  'l': 1
 };
 
-// Unit categories
+// Unit categories (simplified)
 const UNIT_CATEGORIES = {
-  WEIGHT: ['g', 'kg', 'mg'],
-  VOLUME: ['ml', 'l'],
-  COUNT: ['piece', 'pack', 'box', 'cup', 'tbsp', 'tsp', 'oz', 'lb']
+  WEIGHT: ['kg'],
+  VOLUME: ['l']
 };
 
 /**
@@ -182,14 +168,13 @@ function checkIngredientAvailability(stockQuantity, stockUnit, requiredQuantity,
 
 /**
  * Get recommended units for frontend dropdowns
- * Returns only gram and milliliter based units as requested
+ * Returns only kg and liter as requested for simplification
  * @returns {Object} Object with weight and volume unit arrays
  */
 function getRecommendedUnits() {
   return {
-    weight: ['g', 'kg'],  // Only gram-based units
-    volume: ['ml', 'l'],  // Only milliliter-based units
-    count: ['piece', 'pack', 'box'] // Keep some count units for items that can't be measured by weight/volume
+    weight: ['kg'],  // Only kilograms
+    volume: ['l']    // Only liters
   };
 }
 

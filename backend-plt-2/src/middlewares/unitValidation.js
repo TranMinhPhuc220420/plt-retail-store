@@ -6,16 +6,11 @@
 const { getRecommendedUnits, areUnitsCompatible } = require('../utils/unitConverter');
 
 /**
- * Get allowed units for the system
+ * Get allowed units for the system (simplified to kg and liter only)
  * @returns {Array} Array of allowed unit strings
  */
 function getAllowedUnits() {
-  const recommended = getRecommendedUnits();
-  return [
-    ...recommended.weight,
-    ...recommended.volume,
-    ...recommended.count
-  ];
+  return ['kg', 'l']; // Simplified to only kg and liter
 }
 
 /**
@@ -95,63 +90,38 @@ function validateRecipeUnits(req, res, next) {
 }
 
 /**
- * Suggest better units for frontend based on quantity
+ * Suggest better units for frontend based on quantity (simplified)
  * @param {number} quantity - Quantity value
  * @param {string} currentUnit - Current unit
  * @returns {Object} Suggestion object
  */
 function suggestBetterUnit(quantity, currentUnit) {
   if (!isUnitAllowed(currentUnit)) {
-    return {
-      shouldChange: true,
-      suggestedUnit: 'piece',
-      reason: `Unit '${currentUnit}' is not allowed`
-    };
-  }
-  
-  // Suggest kg for large gram quantities
-  if (currentUnit === 'g' && quantity >= 1000) {
+    // For old units, suggest kg for weight-like items, l for volume-like items
+    if (['g', 'mg', 'kg', 'lb', 'oz'].includes(currentUnit)) {
+      return {
+        shouldChange: true,
+        suggestedUnit: 'kg',
+        reason: `Converting ${currentUnit} to kg for consistency`
+      };
+    }
+    if (['ml', 'l', 'cup', 'tbsp', 'tsp'].includes(currentUnit)) {
+      return {
+        shouldChange: true,
+        suggestedUnit: 'l',
+        reason: `Converting ${currentUnit} to liter for consistency`
+      };
+    }
     return {
       shouldChange: true,
       suggestedUnit: 'kg',
-      suggestedQuantity: quantity / 1000,
-      reason: 'Large quantities are better expressed in kg'
-    };
-  }
-  
-  // Suggest g for small kg quantities
-  if (currentUnit === 'kg' && quantity < 1) {
-    return {
-      shouldChange: true,
-      suggestedUnit: 'g',
-      suggestedQuantity: quantity * 1000,
-      reason: 'Small quantities are better expressed in g'
-    };
-  }
-  
-  // Suggest l for large ml quantities
-  if (currentUnit === 'ml' && quantity >= 1000) {
-    return {
-      shouldChange: true,
-      suggestedUnit: 'l',
-      suggestedQuantity: quantity / 1000,
-      reason: 'Large quantities are better expressed in l'
-    };
-  }
-  
-  // Suggest ml for small l quantities
-  if (currentUnit === 'l' && quantity < 1) {
-    return {
-      shouldChange: true,
-      suggestedUnit: 'ml',
-      suggestedQuantity: quantity * 1000,
-      reason: 'Small quantities are better expressed in ml'
+      reason: `Unit '${currentUnit}' is not allowed, defaulting to kg`
     };
   }
   
   return {
     shouldChange: false,
-    reason: 'Unit is appropriate for the quantity'
+    reason: 'Unit is appropriate'
   };
 }
 

@@ -103,14 +103,18 @@ const verifyFormUpdateStore = async (req, res, next) => {
     error = error.details[0].message;
   } else {
     const { storeCode } = req.body;
-    const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+    const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
     if (!store) {
       error = 'store_not_found';
     }
   }
 
   if (error) {
-    return res.status(400).json({ error: error });
+    return res.status(400).json({ 
+      success: false,
+      error: error,
+      message: 'Validation failed'
+    });
   }
 
   next();

@@ -3,12 +3,16 @@
 ## Project Description
 PLT Retail Store is a comprehensive retail management system designed to streamline store operations, inventory management, and sales tracking. It is developed by PLT Solutions to provide an efficient and user-friendly experience for retail businesses.
 
+## ⚡ Recent Updates - Unit Simplification
+**Important**: The system has been simplified to use only **kg** and **liter** for all measurements, eliminating complexity from multiple units (g, ml, piece, etc.). See [Unit Simplification Guide](UNIT_SIMPLIFICATION_GUIDE.md) for details.
+
 ## Features
-- Real-time inventory tracking and management.
-- Sales analytics and revenue forecasting.
-- Employee shift scheduling and optimization.
-- Multi-store management with detailed reporting.
-- Integration with external systems for data import/export.
+- Real-time inventory tracking and management with simplified kg/liter units
+- Sales analytics and revenue forecasting
+- Employee shift scheduling and optimization
+- Multi-store management with detailed reporting
+- Integration with external systems for data import/export
+- **Simplified unit system**: Only kg (weight) and l (volume) for consistency
 
 ## Prerequisites
 - Node.js v18+.
