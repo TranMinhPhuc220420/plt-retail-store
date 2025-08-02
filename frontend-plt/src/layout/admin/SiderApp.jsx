@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from "react-router";
 
-// Redux
+// Zustand store
+import useStoreApp from '@/store/app';
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -16,7 +17,7 @@ import {
 import { Layout, Menu } from 'antd';
 const { Sider } = Layout;
 
-const SiderApp = ({ isLoading }) => {
+const SiderApp = ({ isLoading, collapsed }) => {
   // Router
   const navigate = useNavigate();
   const { storeCode } = useParams();
@@ -24,9 +25,12 @@ const SiderApp = ({ isLoading }) => {
   const { t } = useTranslation();
 
   // State
-  const [collapsed, setCollapsed] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
   const [keySelected, setKeySelected] = useState(false);
+
+  // Zustand store
+  const { sidebarClosed } = useStoreApp((state) => state);
+  const { setSidebarClosed } = useStoreApp();
 
   // Classes - clsx
   const classes = {
@@ -88,12 +92,6 @@ const SiderApp = ({ isLoading }) => {
           label: t('TXT_SUPPLIERS'),
         },
         {
-          key: 'admin_recipe_management',
-          icon: <ExperimentOutlined />,
-          pathname: `/store/${storeCode}/admin/cong-thuc`,
-          label: t('TXT_RECIPES'),
-        },
-        {
           key: 'admin_product_management',
           icon: <ProductOutlined />,
           pathname: `/store/${storeCode}/admin/san-pham`,
@@ -104,6 +102,12 @@ const SiderApp = ({ isLoading }) => {
           icon: <ProductOutlined />,
           pathname: `/store/${storeCode}/admin/nguyen-lieu`,
           label: t('TXT_INGREDIENTS'),
+        },
+        {
+          key: 'admin_recipe_management',
+          icon: <ExperimentOutlined />,
+          pathname: `/store/${storeCode}/admin/cong-thuc`,
+          label: t('TXT_RECIPES'),
         },
         {
           key: 'admin_warehouse_management',
@@ -215,24 +219,34 @@ const SiderApp = ({ isLoading }) => {
   useEffect(() => {
     processSetItemActiveMenuByPath();
   }, [storeCode, menuItems]);
-
-  if (!keySelected) return <></>;
+  useEffect(() => {
+    // Get sidebar state from localStorage
+    const storedSidebarClosed = localStorage.getItem('sidebarClosed');
+    const isClosed = storedSidebarClosed === 'true' || storedSidebarClosed === null;
+    setSidebarClosed(isClosed);
+  }, []);
 
   return (
-    <div>
+    <div className='h-full'>
       {/* Logo */}
       <div className={classes.wrapLogo}>
         <div className='flex items-center cursor-pointer' onClick={() => navigate('/overview')}>
           <img src="/favicon.ico" className='h-10' alt="Logo" />
-          <span className='app-name text-lg font-bold ml-2'>{t('TXT_COMPANY_NAME')}</span>
+          {!sidebarClosed &&
+            (
+              <span className='app-name text-lg font-bold ml-2'>{t('TXT_COMPANY_NAME')}</span>
+            )
+          }
         </div>
       </div>
 
       {/* Sider */}
-      <Sider collapsed={collapsed} className={classes.wrapMenu} width={220} style={{ backgroundColor: '#fff' }}>
-        {!isLoading &&
-          <Menu defaultSelectedKeys={[keySelected]} mode="inline" items={menuItems} onSelect={handlerOnSelectMenuItem} />
-        }
+      <Sider collapsed={sidebarClosed} className={classes.wrapMenu} width={210} style={{ backgroundColor: '#fff' }}>
+        <div className='overflow-y-auto h-full'>
+          {!isLoading &&
+            <Menu defaultSelectedKeys={[keySelected]} mode="inline" items={menuItems} onSelect={handlerOnSelectMenuItem} />
+          }
+        </div>
       </Sider>
     </div>
   );

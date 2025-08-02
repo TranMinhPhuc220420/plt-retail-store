@@ -9,6 +9,13 @@ const stockInSchema = Joi.object({
     'string.max': 'store_code_too_long',
     'any.required': 'store_code_is_required'
   }),
+  warehouseId: Joi.string().hex().length(24).required().messages({
+    'string.base': 'warehouse_id_must_be_a_string',
+    'string.empty': 'warehouse_id_is_required',
+    'string.hex': 'warehouse_id_must_be_valid_object_id',
+    'string.length': 'warehouse_id_must_be_24_characters',
+    'any.required': 'warehouse_id_is_required'
+  }),
   productId: Joi.string().hex().length(24).required().messages({
     'string.base': 'product_id_must_be_a_string',
     'string.empty': 'product_id_is_required',
@@ -43,6 +50,13 @@ const stockOutSchema = Joi.object({
     'string.max': 'store_code_too_long',
     'any.required': 'store_code_is_required'
   }),
+  warehouseId: Joi.string().hex().length(24).required().messages({
+    'string.base': 'warehouse_id_must_be_a_string',
+    'string.empty': 'warehouse_id_is_required',
+    'string.hex': 'warehouse_id_must_be_valid_object_id',
+    'string.length': 'warehouse_id_must_be_24_characters',
+    'any.required': 'warehouse_id_is_required'
+  }),
   productId: Joi.string().hex().length(24).required().messages({
     'string.base': 'product_id_must_be_a_string',
     'string.empty': 'product_id_is_required',
@@ -76,6 +90,13 @@ const stockTakeSchema = Joi.object({
     'string.min': 'store_code_too_short',
     'string.max': 'store_code_too_long',
     'any.required': 'store_code_is_required'
+  }),
+  warehouseId: Joi.string().hex().length(24).required().messages({
+    'string.base': 'warehouse_id_must_be_a_string',
+    'string.empty': 'warehouse_id_is_required',
+    'string.hex': 'warehouse_id_must_be_valid_object_id',
+    'string.length': 'warehouse_id_must_be_24_characters',
+    'any.required': 'warehouse_id_is_required'
   }),
   productId: Joi.string().hex().length(24).required().messages({
     'string.base': 'product_id_must_be_a_string',

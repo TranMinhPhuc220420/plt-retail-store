@@ -24,6 +24,13 @@ const stockTransactionSchema = new mongoose.Schema(
       required: true 
     },
     
+    // Reference to the warehouse where transaction occurs
+    warehouseId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Warehouse', 
+      required: true 
+    },
+    
     // Quantity being moved (positive for in/adjustment up, negative for out/adjustment down)
     quantity: { 
       type: Number, 
@@ -84,8 +91,10 @@ const stockTransactionSchema = new mongoose.Schema(
 
 // Create indexes for better query performance
 stockTransactionSchema.index({ productId: 1, storeId: 1 });
+stockTransactionSchema.index({ productId: 1, storeId: 1, warehouseId: 1 });
 stockTransactionSchema.index({ type: 1 });
 stockTransactionSchema.index({ date: -1 });
 stockTransactionSchema.index({ ownerId: 1, storeId: 1 });
+stockTransactionSchema.index({ warehouseId: 1 }); // For warehouse queries
 
 module.exports = mongoose.model('StockTransaction', stockTransactionSchema);

@@ -171,18 +171,18 @@ const IngredientInventoryPage = () => {
     const { quantity, minStock, expirationDate } = balance;
 
     if (expirationDate && moment(expirationDate).isBefore(moment())) {
-      return <Tag color="volcano" icon={<ExclamationCircleOutlined />}>EXPIRED</Tag>;
+      return <Tag color="volcano" icon={<ExclamationCircleOutlined />}>{t('TXT_EXPIRED')}</Tag>;
     }
 
     if (expirationDate && moment(expirationDate).diff(moment(), 'days') <= 7) {
-      return <Tag color="orange" icon={<ClockCircleOutlined />}>EXPIRING</Tag>;
+      return <Tag color="orange" icon={<ClockCircleOutlined />}>{t('TXT_EXPIRING_SOON')}</Tag>;
     }
 
     if (quantity <= minStock) {
-      return <Tag color="error" icon={<WarningOutlined />}>LOW STOCK</Tag>;
+      return <Tag color="error" icon={<WarningOutlined />}>{t('TXT_LOW_STOCK')}</Tag>;
     }
 
-    return <Tag color="success" icon={<CheckCircleOutlined />}>GOOD</Tag>;
+    return <Tag color="success" icon={<CheckCircleOutlined />}>{t('TXT_GOOD_STOCK')}</Tag>;
   };
 
   /**
@@ -259,7 +259,7 @@ const IngredientInventoryPage = () => {
     {
       title: t('TXT_MIN_MAX_STOCK') || 'Min/Max Stock',
       key: 'minMaxStock',
-      width: 120,
+      width: 130,
       render: (_, record) => (
         <div style={{ fontSize: '12px' }}>
           <div>Min: {record.minStock} {record.unit}</div>
@@ -287,11 +287,11 @@ const IngredientInventoryPage = () => {
     {
       title: t('TXT_STATUS') || 'Status',
       key: 'status',
-      width: 120,
+      width: 150,
       render: (_, record) => getStockStatusTag(record)
     },
     {
-      title: t('TXT_LAST_UPDATED') || 'Last Updated',
+      title: t('LABEL_UPDATED_AT'),
       dataIndex: 'lastTransactionDate',
       key: 'lastUpdated',
       width: 120,
@@ -299,9 +299,9 @@ const IngredientInventoryPage = () => {
       sorter: (a, b) => moment(a.lastTransactionDate).unix() - moment(b.lastTransactionDate).unix()
     },
     {
-      title: t('TXT_ACTIONS') || 'Actions',
+      // title: t('TXT_ACTIONS') || 'Actions',
       key: 'actions',
-      // width: 120,
+      width: 110,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -407,7 +407,7 @@ const IngredientInventoryPage = () => {
         <Col span={6}>
           <Card size="small">
             <Statistic
-              title={t('TXT_LOW_STOCK_ITEMS') || 'Low Stock'}
+              title={t('TXT_LOW_STOCK')}
               value={lowStockItems}
               valueStyle={{ fontSize: '20px', color: lowStockItems > 0 ? '#ff4d4f' : '#52c41a' }}
               prefix={lowStockItems > 0 ? <WarningOutlined /> : <CheckCircleOutlined />}
@@ -515,7 +515,7 @@ const IngredientInventoryPage = () => {
               <Option value="all">{t('TXT_ALL_ITEMS') || 'All Items'}</Option>
               <Option value="low">
                 <Badge count={lowStockReport.totalLowStockItems} size="small">
-                  {t('TXT_LOW_STOCK') || 'Low Stock'}
+                  {t('TXT_LOW_STOCK')}
                 </Badge>
               </Option>
               <Option value="expiring">

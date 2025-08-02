@@ -114,6 +114,10 @@ const ingredientStockOutSchema = Joi.object({
     'string.base': 'batch_number_must_be_a_string',
     'string.max': 'batch_number_too_long'
   }),
+  reason: Joi.string().max(500).allow('').optional().messages({
+    'string.base': 'reason_must_be_a_string',
+    'string.max': 'reason_too_long'
+  }),
   recipeId: Joi.string().hex().length(24).optional().messages({
     'string.base': 'recipe_id_must_be_a_string',
     'string.hex': 'recipe_id_must_be_valid_object_id',

@@ -409,7 +409,7 @@ const IngredientInventory = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Low Stock"
+              title={t('TXT_LOW_STOCK')}
               value={lowStockCount}
               valueStyle={{ color: '#faad14' }}
               prefix={<WarningOutlined />}

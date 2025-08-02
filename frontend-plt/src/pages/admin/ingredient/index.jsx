@@ -139,11 +139,11 @@ const IngredientManagerPage = () => {
    */
   const loadData = async () => {
     try {
-      // await Promise.all([
-      //   fetchIngredients({ ownerId, storeCode }),
-      //   fetchWarehouses({ ownerId, storeCode }),
-      //   fetchSuppliers({ ownerId, storeCode })
-      // ]);
+      await Promise.all([
+        fetchIngredients({ ownerId, storeCode }),
+        fetchWarehouses(storeCode),
+        fetchSuppliers(storeCode)
+      ]);
     } catch (error) {
       messageApi.error(t('MSG_FAILED_TO_LOAD_DATA') || 'Failed to load data');
     }
@@ -164,6 +164,21 @@ const IngredientManagerPage = () => {
     return categories.sort();
   };
 
+  const getNameCategory = (category) => {
+    switch (category) {
+      case 'frozen':
+        return t('TXT_FROZEN') || 'Frozen';
+      case 'general':
+        return t('TXT_GENERAL') || 'General';
+      case 'refrigerated':
+        return t('TXT_REFRIGERATED') || 'Refrigerated';
+      case 'room_temp':
+        return t('TXT_ROOM_TEMPERATURE') || 'Room Temperature';
+      default:
+        return category;
+    }
+  }
+
   /**
    * Get ingredient status color
    */
@@ -183,13 +198,13 @@ const IngredientManagerPage = () => {
     const { currentStock = 0, minStock = 0 } = ingredient;
 
     if (currentStock === 0) {
-      return <Tag color="volcano" icon={<ExclamationCircleOutlined />}>OUT OF STOCK</Tag>;
+      return <Tag color="volcano" icon={<ExclamationCircleOutlined />}>{t('TXT_OUT_OF_STOCK')}</Tag>;
     } else if (currentStock <= minStock) {
-      return <Tag color="warning" icon={<WarningOutlined />}>LOW STOCK</Tag>;
+      return <Tag color="warning" icon={<WarningOutlined />}>{t('TXT_LOW_STOCK')}</Tag>;
     } else if (currentStock <= minStock * 2) {
-      return <Tag color="processing" icon={<ClockCircleOutlined />}>MODERATE</Tag>;
+      return <Tag color="processing" icon={<ClockCircleOutlined />}>{Zt('TXT_MODERATE_STOCK')}</Tag>;
     } else {
-      return <Tag color="success">GOOD</Tag>;
+      return <Tag color="success">{t('TXT_GOOD_STOCK')}</Tag>;
     }
   };
 
@@ -274,7 +289,7 @@ const IngredientManagerPage = () => {
         <Col span={6}>
           <Card size="small">
             <Statistic
-              title={t('TXT_LOW_STOCK') || 'Low Stock'}
+              title={t('TXT_LOW_STOCK')}
               value={lowStockIngredients}
               valueStyle={{ fontSize: '20px', color: lowStockIngredients > 0 ? '#faad14' : '#52c41a' }}
             />
@@ -329,11 +344,23 @@ const IngredientManagerPage = () => {
         { text: t('TXT_DISCONTINUED') || 'Discontinued', value: 'discontinued' },
       ],
       onFilter: (value, record) => record.status === value,
-      render: (status) => (
-        <Tag color={getStatusColor(status)}>
-          {status?.toUpperCase()}
-        </Tag>
-      ),
+      render: (status) => {
+        let message = '';
+        if (status === 'active') {
+          message = t('TXT_ACTIVE');
+        } else if (status === 'inactive') {
+          message = t('TXT_INACTIVE');
+        } else if (status === 'discontinued') {
+          message = t('TXT_DISCONTINUED');
+        } else {
+          message = t('TXT_UNKNOWN_STATUS');
+        }
+        return (
+          <Tag color={getStatusColor(status)}>
+            {message}
+          </Tag>
+        )
+      },
     },
     {
       title: t('TXT_STOCK_INFO'),
@@ -532,7 +559,7 @@ const IngredientManagerPage = () => {
   }, [ingredients, searchText, selectedWarehouse]);
 
   return (
-    <div className="h-full mt-2 p-4 bg-gray-100 overflow-auto">
+    <div className="h-full mt-2 p-4 bg-gray-100">
       {contextHolder}
 
       <Card>
@@ -606,7 +633,7 @@ const IngredientManagerPage = () => {
               <Option value="all">{t('TXT_ALL_CATEGORIES')}</Option>
               {getCategories().map(category => (
                 <Option key={category} value={category}>
-                  {category}
+                  {getNameCategory(category) || category}
                 </Option>
               ))}
             </Select>

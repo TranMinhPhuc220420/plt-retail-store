@@ -63,7 +63,8 @@ const useInventoryStore = create((set, get) => ({
       const { stockBalances } = get();
       if (stockBalances.length > 0) {
         const updatedBalances = stockBalances.map(balance => {
-          if (balance.productId._id === stockInData.productId) {
+          if (balance.productId._id === stockInData.productId && 
+              balance.warehouseId._id === stockInData.warehouseId) {
             return {
               ...balance,
               quantity: result.balance.quantity,
@@ -104,7 +105,8 @@ const useInventoryStore = create((set, get) => ({
       const { stockBalances } = get();
       if (stockBalances.length > 0) {
         const updatedBalances = stockBalances.map(balance => {
-          if (balance.productId._id === stockOutData.productId) {
+          if (balance.productId._id === stockOutData.productId && 
+              balance.warehouseId._id === stockOutData.warehouseId) {
             return {
               ...balance,
               quantity: result.balance.quantity,
@@ -145,7 +147,8 @@ const useInventoryStore = create((set, get) => ({
       const { stockBalances } = get();
       if (stockBalances.length > 0) {
         const updatedBalances = stockBalances.map(balance => {
-          if (balance.productId._id === stockTakeData.productId) {
+          if (balance.productId._id === stockTakeData.productId && 
+              balance.warehouseId._id === stockTakeData.warehouseId) {
             return {
               ...balance,
               quantity: result.balance.quantity,
@@ -179,12 +182,12 @@ const useInventoryStore = create((set, get) => ({
   },
   
   /**
-   * Fetch stock balance for specific product
+   * Fetch stock balance for specific product in warehouse
    */
-  fetchStockBalance: async (storeCode, productId) => {
+  fetchStockBalance: async (storeCode, productId, warehouseId) => {
     set({ isLoadingBalance: true, error: null });
     try {
-      const balance = await getStockBalance(storeCode, productId);
+      const balance = await getStockBalance(storeCode, productId, warehouseId);
       set({ 
         currentBalance: balance,
         isLoadingBalance: false,
@@ -204,10 +207,10 @@ const useInventoryStore = create((set, get) => ({
   /**
    * Fetch all stock balances for a store
    */
-  fetchAllStockBalances: async (storeCode) => {
+  fetchAllStockBalances: async (storeCode, params = {}) => {
     set({ isLoadingBalance: true, error: null });
     try {
-      const balances = await getAllStockBalances(storeCode);
+      const balances = await getAllStockBalances(storeCode, params);
       const formattedBalances = balances.map((balance, index) => ({
         ...balance,
         key: balance._id || index,
@@ -272,17 +275,17 @@ const useInventoryStore = create((set, get) => ({
   /**
    * Fetch low stock report
    */
-  fetchLowStockReport: async (storeCode) => {
+  fetchLowStockReport: async (storeCode, warehouseId = null) => {
     set({ isLoadingReport: true, error: null });
     try {
-      const report = await getLowStockReport(storeCode);
+      const report = await getLowStockReport(storeCode, warehouseId);
       const formattedLowStockItems = report.lowStockItems.map((item, index) => ({
         ...item,
         key: item._id || index,
         lastTransactionDateFormatted: item.lastTransactionDate 
           ? moment(item.lastTransactionDate).format(DATETIME_FORMAT)
           : '',
-        stockLevel: item.quantity <= 0 ? 'Out of Stock' : 'Low Stock'
+        stockLevel: item.quantity <= 0 ? 'TXT_OUT_OF_STOCK' : 'TXT_LOW_STOCK'
       }));
       
       set({ 

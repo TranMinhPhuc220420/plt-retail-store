@@ -11,12 +11,14 @@ const { TextArea } = Input;
  * Stock Out Modal Component
  * Allows users to issue inventory from warehouse
  */
-const StockOutModal = ({ visible, onClose, storeCode, products, stockBalances, onSuccess }) => {
+const StockOutModal = ({ visible, onClose, storeCode, products, warehouses, stockBalances, onSuccess, selectedRecord }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const { performStockOut, isStockingOut } = useInventoryStore();
   const [selectedProductBalance, setSelectedProductBalance] = useState(null);
   const [availableQuantity, setAvailableQuantity] = useState(0);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   
   /**
    * Handle form submission
@@ -26,6 +28,7 @@ const StockOutModal = ({ visible, onClose, storeCode, products, stockBalances, o
       const stockOutData = {
         storeCode,
         productId: values.productId,
+        warehouseId: values.warehouseId,
         quantity: values.quantity,
         unit: values.unit,
         note: values.note || ''
@@ -50,18 +53,48 @@ const StockOutModal = ({ visible, onClose, storeCode, products, stockBalances, o
   
   /**
    * Handle product selection change
-   * Auto-fill unit field and show available quantity
    */
   const handleProductChange = (productId) => {
     const selectedProduct = products.find(p => p._id === productId);
-    const productBalance = stockBalances.find(b => b.productId._id === productId);
+    setSelectedProduct(selectedProduct);
     
     if (selectedProduct) {
       form.setFieldsValue({
-        unit: selectedProduct.unit
+        unit: selectedProduct.unit,
+        warehouseId: undefined, // Reset warehouse selection
+        quantity: null
       });
     }
     
+    setSelectedWarehouse(null);
+    setSelectedProductBalance(null);
+    setAvailableQuantity(0);
+  };
+
+  /**
+   * Handle warehouse selection change
+   */
+  const handleWarehouseChange = (warehouseId) => {
+    setSelectedWarehouse(warehouseId);
+    updateAvailableQuantity(selectedProduct?._id, warehouseId);
+  };
+
+  /**
+   * Update available quantity for selected product and warehouse
+   */
+  const updateAvailableQuantity = (productId, warehouseId) => {
+    if (!productId || !warehouseId) {
+      setAvailableQuantity(0);
+      setSelectedProductBalance(null);
+      return;
+    }
+
+    const productBalance = stockBalances.find(
+      b => b.productId._id === productId && 
+           b.warehouseId && 
+           b.warehouseId._id === warehouseId
+    );
+
     if (productBalance) {
       setSelectedProductBalance(productBalance);
       setAvailableQuantity(productBalance.quantity);
@@ -69,30 +102,89 @@ const StockOutModal = ({ visible, onClose, storeCode, products, stockBalances, o
       setSelectedProductBalance(null);
       setAvailableQuantity(0);
     }
-    
-    // Reset quantity field when product changes
+
+    // Reset quantity field when warehouse changes
     form.setFieldsValue({ quantity: null });
   };
+
+  // When modal opens with selectedRecord, set form values and state
+  useEffect(() => {
+    if (visible && selectedRecord) {
+      const product = products.find(p => p._id === selectedRecord.productId._id);
+      const warehouse = warehouses?.find(w => w._id === selectedRecord.warehouseId?._id);
+      
+      setSelectedProduct(product);
+      setSelectedWarehouse(warehouse?._id);
+      
+      form.setFieldsValue({
+        productId: selectedRecord.productId._id,
+        warehouseId: selectedRecord.warehouseId?._id,
+        unit: selectedRecord.unit,
+        quantity: null,
+        note: ''
+      });
+      
+      if (selectedRecord.warehouseId?._id) {
+        setSelectedProductBalance(selectedRecord);
+        setAvailableQuantity(selectedRecord.quantity);
+      } else {
+        setSelectedProductBalance(null);
+        setAvailableQuantity(0);
+      }
+    } else if (visible) {
+      form.resetFields();
+      setSelectedProduct(null);
+      setSelectedWarehouse(null);
+      setSelectedProductBalance(null);
+      setAvailableQuantity(0);
+    }
+    // eslint-disable-next-line
+  }, [visible, selectedRecord, products, warehouses]);
   
   /**
    * Handle modal cancel
    */
   const handleCancel = () => {
     form.resetFields();
+    setSelectedProduct(null);
+    setSelectedWarehouse(null);
     setSelectedProductBalance(null);
     setAvailableQuantity(0);
     onClose();
   };
   
   /**
+   * Get available warehouses for selected product
+   */
+  const getAvailableWarehouses = () => {
+    if (!selectedProduct) return [];
+    
+    const warehouseIds = [...new Set(
+      stockBalances
+        .filter(balance => 
+          balance.productId._id === selectedProduct._id && 
+          balance.quantity > 0 &&
+          balance.warehouseId && 
+          balance.warehouseId._id
+        )
+        .map(balance => balance.warehouseId._id)
+    )];
+    
+    return warehouses?.filter(warehouse => warehouseIds.includes(warehouse._id)) || [];
+  };
+  
+  /**
    * Get products that have stock available
    */
   const getProductsWithStock = () => {
-    console.log(products);
-    
     return products.filter(product => {
-      const balance = stockBalances.find(b => b.productId._id === product._id);
-      return balance && balance.quantity > 0;
+      const balance = stockBalances.find(b => 
+        b.productId._id === product._id && 
+        b.quantity > 0 &&
+        b.warehouseId && 
+        b.warehouseId._id
+      );
+      return balance;
     });
   };
   
@@ -142,6 +234,28 @@ const StockOutModal = ({ visible, onClose, storeCode, products, stockBalances, o
             })}
           </Select>
         </Form.Item>
+        
+        {/* Warehouse Selection */}
+        {selectedProduct && (
+          <Form.Item
+            label={t('TXT_WAREHOUSE')}
+            name="warehouseId"
+            rules={[
+              { required: true, message: t('MSG_PLEASE_SELECT_WAREHOUSE') }
+            ]}
+          >
+            <Select
+              placeholder={t('TXT_SELECT_WAREHOUSE')}
+              onChange={handleWarehouseChange}
+            >
+              {getAvailableWarehouses().map(warehouse => (
+                <Option key={warehouse._id} value={warehouse._id}>
+                  {warehouse.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        )}
         
         {/* Show current stock information */}
         {selectedProductBalance && (

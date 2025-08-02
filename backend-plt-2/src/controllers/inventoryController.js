@@ -2,6 +2,7 @@ const StockTransaction = require('../models/StockTransaction');
 const StockBalance = require('../models/StockBalance');
 const Product = require('../models/Product');
 const Store = require('../models/Store');
+const Warehouse = require('../models/Warehouse');
 const mongoose = require('mongoose');
 
 const inventoryController = {
@@ -12,15 +13,15 @@ const inventoryController = {
    */
   stockIn: async (req, res) => {
     try {
-      const { storeCode, productId, quantity, unit, note } = req.body;
+      const { storeCode, productId, warehouseId, quantity, unit, note } = req.body;
       const userId = req.user._id;
       const ownerId = req.user._id;
       
       // Validate required fields
-      if (!storeCode || !productId || !quantity || !unit) {
+      if (!storeCode || !productId || !warehouseId || !quantity || !unit) {
         return res.status(400).json({ 
           error: 'missing_required_fields',
-          message: 'storeCode, productId, quantity, and unit are required'
+          message: 'storeCode, productId, warehouseId, quantity, and unit are required'
         });
       }
       
@@ -54,11 +55,24 @@ const inventoryController = {
         return res.status(404).json({ error: 'product_not_found' });
       }
       
+      // Verify warehouse exists and belongs to owner
+      const warehouse = await Warehouse.findOne({
+        _id: warehouseId,
+        ownerId,
+        storeId: store._id,
+        deleted: false
+      });
+      
+      if (!warehouse) {
+        return res.status(404).json({ error: 'warehouse_not_found' });
+      }
+      
       // Create stock transaction record
       const stockTransaction = new StockTransaction({
         type: 'in',
         productId,
         storeId: store._id,
+        warehouseId,
         quantity,
         unit,
         userId,
@@ -72,7 +86,8 @@ const inventoryController = {
       // Update or create stock balance
       let stockBalance = await StockBalance.findOne({
         productId,
-        storeId: store._id
+        storeId: store._id,
+        warehouseId
       });
       
       if (stockBalance) {
@@ -86,6 +101,7 @@ const inventoryController = {
         stockBalance = new StockBalance({
           productId,
           storeId: store._id,
+          warehouseId,
           quantity,
           unit,
           ownerId,
@@ -99,6 +115,7 @@ const inventoryController = {
       const populatedTransaction = await StockTransaction.findById(stockTransaction._id)
         .populate('productId', 'name productCode')
         .populate('storeId', 'name storeCode')
+        .populate('warehouseId', 'name address')
         .populate('userId', 'username displayName');
       
       res.status(201).json({
@@ -119,15 +136,15 @@ const inventoryController = {
    */
   stockOut: async (req, res) => {
     try {
-      const { storeCode, productId, quantity, unit, note } = req.body;
+      const { storeCode, productId, warehouseId, quantity, unit, note } = req.body;
       const userId = req.user._id;
       const ownerId = req.user._id;
       
       // Validate required fields
-      if (!storeCode || !productId || !quantity || !unit) {
+      if (!storeCode || !productId || !warehouseId || !quantity || !unit) {
         return res.status(400).json({ 
           error: 'missing_required_fields',
-          message: 'storeCode, productId, quantity, and unit are required'
+          message: 'storeCode, productId, warehouseId, quantity, and unit are required'
         });
       }
       
@@ -161,16 +178,31 @@ const inventoryController = {
         return res.status(404).json({ error: 'product_not_found' });
       }
       
+      // Verify warehouse exists
+      const warehouse = await Warehouse.findOne({
+        _id: warehouseId,
+        ownerId,
+        storeId: store._id,
+        deleted: false
+      });
+      
+      if (!warehouse) {
+        return res.status(404).json({ error: 'warehouse_not_found' });
+      }
+      
       // Check current stock balance
       const stockBalance = await StockBalance.findOne({
         productId,
-        storeId: store._id
+        storeId: store._id,
+        warehouseId
       });
       
       if (!stockBalance || stockBalance.quantity < quantity) {
+        const available = stockBalance ? stockBalance.quantity : 0;
         return res.status(400).json({ 
           error: 'insufficient_stock',
-          message: `Insufficient stock. Available: ${stockBalance ? stockBalance.quantity : 0}, Requested: ${quantity}`
+          message: `Insufficient stock. Available: ${available}, Requested: ${quantity}`,
+          availableStock: available
         });
       }
       
@@ -179,6 +211,7 @@ const inventoryController = {
         type: 'out',
         productId,
         storeId: store._id,
+        warehouseId,
         quantity,
         unit,
         userId,
@@ -199,6 +232,7 @@ const inventoryController = {
       const populatedTransaction = await StockTransaction.findById(stockTransaction._id)
         .populate('productId', 'name productCode')
         .populate('storeId', 'name storeCode')
+        .populate('warehouseId', 'name address')
         .populate('userId', 'username displayName');
       
       res.status(201).json({
@@ -219,15 +253,15 @@ const inventoryController = {
    */
   stockTake: async (req, res) => {
     try {
-      const { storeCode, productId, physicalCount, unit, note } = req.body;
+      const { storeCode, productId, warehouseId, physicalCount, unit, note } = req.body;
       const userId = req.user._id;
       const ownerId = req.user._id;
       
       // Validate required fields
-      if (!storeCode || !productId || physicalCount === undefined || !unit) {
+      if (!storeCode || !productId || !warehouseId || physicalCount === undefined || !unit) {
         return res.status(400).json({ 
           error: 'missing_required_fields',
-          message: 'storeCode, productId, physicalCount, and unit are required'
+          message: 'storeCode, productId, warehouseId, physicalCount, and unit are required'
         });
       }
       
@@ -261,10 +295,23 @@ const inventoryController = {
         return res.status(404).json({ error: 'product_not_found' });
       }
       
+      // Verify warehouse exists
+      const warehouse = await Warehouse.findOne({
+        _id: warehouseId,
+        ownerId,
+        storeId: store._id,
+        deleted: false
+      });
+      
+      if (!warehouse) {
+        return res.status(404).json({ error: 'warehouse_not_found' });
+      }
+      
       // Get current stock balance
       let stockBalance = await StockBalance.findOne({
         productId,
-        storeId: store._id
+        storeId: store._id,
+        warehouseId
       });
       
       const systemQuantity = stockBalance ? stockBalance.quantity : 0;
@@ -277,6 +324,7 @@ const inventoryController = {
           type: 'adjustment',
           productId,
           storeId: store._id,
+          warehouseId,
           quantity: difference, // Positive for increase, negative for decrease
           unit,
           userId,
@@ -299,6 +347,7 @@ const inventoryController = {
           stockBalance = new StockBalance({
             productId,
             storeId: store._id,
+            warehouseId,
             quantity: physicalCount,
             unit,
             ownerId,
@@ -312,6 +361,7 @@ const inventoryController = {
         const populatedTransaction = await StockTransaction.findById(stockTransaction._id)
           .populate('productId', 'name productCode')
           .populate('storeId', 'name storeCode')
+          .populate('warehouseId', 'name address')
           .populate('userId', 'username displayName');
         
         res.status(201).json({
@@ -345,9 +395,12 @@ const inventoryController = {
   /**
    * Get stock balance for specific product in store
    */
+  /**
+   * Get stock balance for specific product in warehouse
+   */
   getStockBalance: async (req, res) => {
     try {
-      const { storeCode, productId } = req.params;
+      const { storeCode, productId, warehouseId } = req.params;
       const ownerId = req.user._id;
       
       // Find store by storeCode
@@ -365,10 +418,12 @@ const inventoryController = {
       const stockBalance = await StockBalance.findOne({
         productId,
         storeId: store._id,
+        warehouseId,
         deleted: false
       })
       .populate('productId', 'name productCode unit')
       .populate('storeId', 'name storeCode')
+      .populate('warehouseId', 'name address')
       .populate('lastTransactionId', 'type date note');
       
       if (!stockBalance) {
@@ -392,6 +447,7 @@ const inventoryController = {
   getAllStockBalances: async (req, res) => {
     try {
       const { storeCode } = req.params;
+      const { warehouseId } = req.query;
       const ownerId = req.user._id;
       
       // Find store by storeCode
@@ -405,13 +461,21 @@ const inventoryController = {
         return res.status(404).json({ error: 'store_not_found' });
       }
       
-      // Get all stock balances for the store
-      const stockBalances = await StockBalance.find({
+      // Build query for stock balances
+      const query = {
         storeId: store._id,
         deleted: false
-      })
+      };
+      
+      if (warehouseId) {
+        query.warehouseId = warehouseId;
+      }
+      
+      // Get all stock balances for the store
+      const stockBalances = await StockBalance.find(query)
       .populate('productId', 'name productCode unit minStock')
       .populate('storeId', 'name storeCode')
+      .populate('warehouseId', 'name address')
       .populate('lastTransactionId', 'type date note')
       .sort({ 'productId.name': 1 });
       
@@ -430,7 +494,8 @@ const inventoryController = {
     try {
       const { storeCode } = req.params;
       const { 
-        productId, 
+        productId,
+        warehouseId, 
         type, 
         startDate, 
         endDate, 
@@ -461,6 +526,10 @@ const inventoryController = {
         filter.productId = productId;
       }
       
+      if (warehouseId) {
+        filter.warehouseId = warehouseId;
+      }
+      
       if (type && ['in', 'out', 'adjustment'].includes(type)) {
         filter.type = type;
       }
@@ -482,6 +551,7 @@ const inventoryController = {
       const transactions = await StockTransaction.find(filter)
         .populate('productId', 'name productCode unit')
         .populate('storeId', 'name storeCode')
+        .populate('warehouseId', 'name address')
         .populate('userId', 'username displayName')
         .sort({ date: -1 })
         .skip(skip)
@@ -512,6 +582,7 @@ const inventoryController = {
   getLowStockReport: async (req, res) => {
     try {
       const { storeCode } = req.params;
+      const { warehouseId } = req.query;
       const ownerId = req.user._id;
       
       // Find store by storeCode
@@ -525,13 +596,21 @@ const inventoryController = {
         return res.status(404).json({ error: 'store_not_found' });
       }
       
-      // Get all stock balances with product details
-      const stockBalances = await StockBalance.find({
+      // Build query for stock balances
+      const query = {
         storeId: store._id,
         deleted: false
-      })
+      };
+      
+      if (warehouseId) {
+        query.warehouseId = warehouseId;
+      }
+      
+      // Get all stock balances with product details
+      const stockBalances = await StockBalance.find(query)
       .populate('productId', 'name productCode unit minStock')
-      .populate('storeId', 'name storeCode');
+      .populate('storeId', 'name storeCode')
+      .populate('warehouseId', 'name address');
       
       // Filter for low stock items
       const lowStockItems = stockBalances.filter(balance => {

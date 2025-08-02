@@ -20,14 +20,14 @@ const apiFormDataClient = axios.create({
 // Request interceptor for debugging
 apiClient.interceptors.request.use(
   config => {
-    console.log('API Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      baseURL: config.baseURL,
-      fullURL: `${config.baseURL}${config.url}`,
-      params: config.params,
-      data: config.data
-    });
+    // console.log('API Request:', {
+    //   method: config.method?.toUpperCase(),
+    //   url: config.url,
+    //   baseURL: config.baseURL,
+    //   fullURL: `${config.baseURL}${config.url}`,
+    //   params: config.params,
+    //   data: config.data
+    // });
     return config;
   },
   error => {

@@ -17,6 +17,13 @@ const stockBalanceSchema = new mongoose.Schema(
       required: true 
     },
     
+    // Reference to the warehouse where product is stored
+    warehouseId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Warehouse', 
+      required: true 
+    },
+    
     // Current quantity in stock
     quantity: { 
       type: Number, 
@@ -59,9 +66,10 @@ const stockBalanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Create compound unique index to ensure one balance record per product-store combination
-stockBalanceSchema.index({ productId: 1, storeId: 1 }, { unique: true });
+// Create compound unique index to ensure one balance record per product-store-warehouse combination
+stockBalanceSchema.index({ productId: 1, storeId: 1, warehouseId: 1 }, { unique: true });
 stockBalanceSchema.index({ ownerId: 1, storeId: 1 });
 stockBalanceSchema.index({ quantity: 1 }); // For low stock queries
+stockBalanceSchema.index({ warehouseId: 1 }); // For warehouse queries
 
 module.exports = mongoose.model('StockBalance', stockBalanceSchema);

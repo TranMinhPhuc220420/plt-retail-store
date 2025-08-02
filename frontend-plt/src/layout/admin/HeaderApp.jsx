@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import useAuth from "@/hooks/useAuth";
 
 // Ant Design
-import { LoadingOutlined, BellOutlined } from '@ant-design/icons';
+import { LoadingOutlined, BellOutlined, ArrowLeftOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Layout, Button, Dropdown, Badge, message } from 'antd';
 const { Header } = Layout;
 
@@ -32,14 +32,16 @@ const HeaderApp = ({ }) => {
 
   // Zustand store
   const { isLoading, stores, fetchStores } = useStoreStore();
+  const { sidebarClosed } = useStoreApp((state) => state);
+  const { toggleSidebar, closeSidebar } = useStoreApp();
   const { isFetchingStoreActiveError, messageStoreActiveError } = useStoreApp();
-
+  
   // State
-  const [collapsed, setCollapsed] = React.useState(false);
   const [storeActive, setStoreActive] = React.useState(null);
 
   // Handler
   const handleCollapse = () => {
+    toggleSidebar();
   };
   const handlerOnSelectMenuItem = async () => {
     try {
@@ -135,6 +137,16 @@ const HeaderApp = ({ }) => {
       <div className='flex items-center justify-between h-full'>
 
         <div className='flex items-center justify-end gap-3'>
+          {/* Collapse button */}
+          <Button 
+            type='text'
+            shape="circle" 
+            icon={!sidebarClosed ? <LeftOutlined /> : <RightOutlined />}
+            onClick={handleCollapse}
+            className='border-none text-gray-500 hover:text-gray-700'
+          />
+
+          {/* Store selection dropdown */}
           <Dropdown
             menu={{
               items: stores.map(store => ({

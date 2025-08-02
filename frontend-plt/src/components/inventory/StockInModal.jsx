@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Modal, Form, Select, InputNumber, Input, Button, message, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -11,11 +11,25 @@ const { TextArea } = Input;
  * Stock In Modal Component
  * Allows users to receive inventory into warehouse
  */
-const StockInModal = ({ visible, onClose, storeCode, products, onSuccess }) => {
+const StockInModal = ({ visible, onClose, storeCode, products, warehouses, onSuccess, selectedRecord }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const { performStockIn, isStockingIn } = useInventoryStore();
   
+  // Set default selected product when modal opens
+  useEffect(() => {
+    if (visible && selectedRecord) {
+      form.setFieldsValue({
+        productId: selectedRecord.productId?._id || selectedRecord.productId,
+        unit: selectedRecord.unit,
+        quantity: selectedRecord.quantity || 1,
+        note: ''
+      });
+    } else if (visible) {
+      form.resetFields();
+    }
+  }, [visible, selectedRecord, form]);
+
   /**
    * Handle form submission
    */
@@ -24,6 +38,7 @@ const StockInModal = ({ visible, onClose, storeCode, products, onSuccess }) => {
       const stockInData = {
         storeCode,
         productId: values.productId,
+        warehouseId: values.warehouseId,
         quantity: values.quantity,
         unit: values.unit,
         note: values.note || ''
@@ -106,6 +121,29 @@ const StockInModal = ({ visible, onClose, storeCode, products, onSuccess }) => {
             {products.map(product => (
               <Option key={product._id} value={product._id}>
                 {product.productCode} - {product.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        
+        <Form.Item
+          label={t('TXT_WAREHOUSE')}
+          name="warehouseId"
+          rules={[
+            { required: true, message: t('MSG_PLEASE_SELECT_WAREHOUSE') }
+          ]}
+        >
+          <Select
+            placeholder={t('TXT_SELECT_WAREHOUSE')}
+            showSearch
+            optionFilterProp="children"
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {warehouses?.map(warehouse => (
+              <Option key={warehouse._id} value={warehouse._id}>
+                {warehouse.name}
               </Option>
             ))}
           </Select>

@@ -325,8 +325,8 @@ const IngredientManagement = () => {
               style={{ width: '100%' }}
             >
               <Option value="all">All Status</Option>
-              <Option value="active">Active</Option>
-              <Option value="inactive">Inactive</Option>
+              <Option value="active">{t('TXT_ACTIVE')}</Option>
+              <Option value="inactive">{t('TXT_INACTIVE')}</Option>
             </Select>
           </Col>
           <Col span={8} style={{ textAlign: 'right' }}>
@@ -476,8 +476,8 @@ const IngredientManagement = () => {
               label="Status"
             >
               <Select>
-                <Option value="active">Active</Option>
-                <Option value="inactive">Inactive</Option>
+                <Option value="active">{t('TXT_ACTIVE')}</Option>
+                <Option value="inactive">{t('TXT_INACTIVE')}</Option>
               </Select>
             </Form.Item>
           )}

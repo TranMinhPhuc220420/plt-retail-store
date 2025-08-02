@@ -23,23 +23,35 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
   const [stockInfo, setStockInfo] = useState(null);
   // Auto-select product/warehouse/batch if selectedRecord is provided
   useEffect(() => {
-    if (selectedRecord && visible) {  
+    if (selectedRecord && visible) {
+      console.log(selectedRecord);
+      
       // Find product and warehouse
       const product = products.find(p => p._id === selectedRecord.productId?._id || p._id === selectedRecord.productId);
       const warehouse = warehouses.find(w => w._id === selectedRecord.warehouseId?._id || w._id === selectedRecord.warehouseId);
       setSelectedProduct(product || null);
       setSelectedWarehouse(warehouse?._id || null);
+
       // Update stock info for this product/warehouse
       updateStockInfo(product?._id, warehouse?._id);
+
       // Set batch if available
       form.setFieldsValue({
         productId: product?._id,
         warehouseId: warehouse?._id,
         unit: product?.unit,
         batchNumber: selectedRecord.batchNumber || undefined,
-        countedQuantity: 0,
-        note: ''
+        countedQuantity: selectedRecord.countedQuantity || 0,
+        note: selectedRecord.note || ''
       });
+
+      // Set countedQuantity and variance state
+      setCountedQuantity(selectedRecord.countedQuantity || 0);
+      // Calculate variance based on selectedRecord.countedQuantity and systemStock
+      // But systemStock is set async, so use a timeout to sync after updateStockInfo
+      setTimeout(() => {
+        setVariance((selectedRecord.countedQuantity || 0) - (systemStock || 0));
+      }, 100);
     } else if (!visible) {
       form.resetFields();
       setSelectedProduct(null);
@@ -176,14 +188,12 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
    */
   const getAvailableWarehouses = () => {
     if (!selectedProduct || !stockBalances) return warehouses;
-    
     const warehouseIds = [...new Set(
       stockBalances
-        .filter(balance => balance.productId._id === selectedProduct._id)
-        .map(balance => balance.warehouseId._id)
+        .filter(balance => balance.productId && balance.productId._id === selectedProduct._id)
+        .map(balance => balance.warehouseId?._id)
     )];
-    
-    return warehouses.filter(warehouse => warehouseIds.includes(warehouse._id));
+    return warehouses;
   };
 
   /**

@@ -148,14 +148,14 @@ const InventoryManagement = () => {
     const { quantity, minStock } = balance;
 
     if (quantity <= 0) {
-      return <Tag color="error" icon={<WarningOutlined />}>OUT OF STOCK</Tag>;
+      return <Tag color="error" icon={<WarningOutlined />}>{t('TXT_OUT_OF_STOCK')}</Tag>;
     }
 
     if (quantity <= minStock) {
-      return <Tag color="error" icon={<WarningOutlined />}>LOW STOCK</Tag>;
+      return <Tag color="error" icon={<WarningOutlined />}>{t('TXT_LOW_STOCK')}</Tag>;
     }
 
-    return <Tag color="success" icon={<CheckCircleOutlined />}>GOOD</Tag>;
+    return <Tag color="success" icon={<CheckCircleOutlined />}>{t('TXT_GOOD_STOCK')}</Tag>;
   };
 
   /**
@@ -284,7 +284,6 @@ const InventoryManagement = () => {
       sorter: (a, b) => moment(a.lastTransactionDate).unix() - moment(b.lastTransactionDate).unix()
     },
     {
-      title: t('TXT_ACTIONS') || 'Actions',
       key: 'actions',
       width: 120,
       fixed: 'right',
@@ -416,7 +415,7 @@ const InventoryManagement = () => {
         <Col span={6}>
           <Card size="small">
             <Statistic
-              title={t('TXT_LOW_STOCK_ITEMS') || 'Low Stock'}
+              title={t('TXT_LOW_STOCK')}
               value={lowStockItems}
               prefix={<WarningOutlined />}
               valueStyle={{ color: '#faad14' }}
@@ -494,14 +493,13 @@ const InventoryManagement = () => {
       width: 100,
       render: (_, record) => (
         <Tag color={record.quantity <= 0 ? 'red' : 'orange'}>
-          {record.stockLevel}
+          {t(record.stockLevel)}
         </Tag>
       )
     },
     {
-      title: t('LABEL_ACTIONS'),
       key: 'actions',
-      width: 150,
+      width: 120,
       render: (_, record) => (
         <Button
           type="primary"
@@ -517,36 +515,13 @@ const InventoryManagement = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      {/* Page Header */}
-      {/* <div style={{ marginBottom: '24px' }}>
-        <Row justify="space-between" align="middle">
-          <Col>
-            <h1 style={{ margin: 0 }}>{t('TXT_INVENTORY_MANAGEMENT')}</h1>
-            <p style={{ margin: '8px 0 0 0', color: '#666' }}>
-              {t('MSG_COMPREHENSIVE_PRODUCT_INVENTORY') || 'Comprehensive product inventory management with advanced tracking'}
-            </p>
-          </Col>
-          <Col>
-            <Space>
-              <Button 
-                icon={<ReloadOutlined />} 
-                onClick={handleRefresh}
-                loading={isLoadingBalance || isLoadingReport}
-              >
-                {t('TXT_REFRESH')}
-              </Button>
-            </Space>
-          </Col>
-        </Row>
-      </div> */}
-
       {/* Summary Statistics */}
       {getSummaryStats()}
 
       {/* Enhanced Controls */}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={16} align="middle">
-          <Col span={4}>
+          <Col span={6}>
             <Input
               placeholder={t('TXT_SEARCH_PRODUCTS') || 'Search products...'}
               value={searchTerm}
@@ -578,10 +553,10 @@ const InventoryManagement = () => {
               onChange={setStockFilter}
               style={{ width: '100%' }}
             >
-              <Option value="all">{t('TXT_ALL_STOCK') || 'All Stock'}</Option>
-              <Option value="good">{t('TXT_GOOD_STOCK') || 'Good Stock'}</Option>
-              <Option value="low">{t('TXT_LOW_STOCK') || 'Low Stock'}</Option>
-              <Option value="out">{t('TXT_OUT_OF_STOCK') || 'Out of Stock'}</Option>
+              <Option value="all">{t('TXT_ALL_STOCK')}</Option>
+              <Option value="good">{t('TXT_GOOD_STOCK')}</Option>
+              <Option value="low">{t('TXT_LOW_STOCK')}</Option>
+              <Option value="out">{t('TXT_OUT_OF_STOCK')}</Option>
             </Select>
           </Col>
 
@@ -691,10 +666,11 @@ const InventoryManagement = () => {
         visible={stockInVisible}
         onClose={() => {
           setStockInVisible(false);
+          setSelectedStockInRecord(null);
           setSelectedRowKeys([]);
         }}
         onSuccess={handleRefresh}
-        selectedProducts={stockBalances.filter(item => selectedRowKeys.includes(item._id))}
+        selectedRecord={selectedStockInRecord}
         warehouses={warehouses}
         suppliers={suppliers}
         storeCode={storeCode}
@@ -707,10 +683,11 @@ const InventoryManagement = () => {
         visible={stockOutVisible}
         onClose={() => {
           setStockOutVisible(false);
+          setSelectedStockOutRecord(null);
           setSelectedRowKeys([]);
         }}
         onSuccess={handleRefresh}
-        selectedProducts={stockBalances.filter(item => selectedRowKeys.includes(item._id))}
+        selectedRecord={selectedStockOutRecord}
         warehouses={warehouses}
         storeCode={storeCode}
         products={products}
@@ -726,6 +703,7 @@ const InventoryManagement = () => {
         storeCode={storeCode}
         products={products}
         stockBalances={stockBalances}
+        selectedRecord={selectedStockTakeRecord}
       />
 
       {/* Transaction History Modal */}
