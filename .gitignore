@@ -45,3 +45,9 @@ dist/
 build/
 
 storage/
+
+# Ignore file .md but not README.md
+*.md
+backend-plt-2/*.md
+frontend-plt/*.md
+!README.md
