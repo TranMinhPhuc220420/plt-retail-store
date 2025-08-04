@@ -13,6 +13,7 @@ import ProductTypeManager from "@/pages/admin/product-types/manager";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import RevenueManagerPage from "@/pages/admin/revenue/manager";
 import ProductManagerPage from "@/pages/admin/product/manager";
+import CompositeProductManagerPage from "@/pages/admin/composite-product/manager";
 import InventoryManagerPage from "@/pages/admin/inventory/manager";
 import InventoryDetailPage from "@/pages/admin/inventory/manager/detail";
 import InventoryManagement from "@/pages/admin/inventory/management";
@@ -25,6 +26,9 @@ import ReportPage from "@/pages/admin/ReportPage";
 // Supplier pages
 import SuppliersPage from "@/pages/admin/suppliers";
 import SupplierDetailPage from "@/pages/admin/suppliers/[id]";
+
+// Cost Analysis page
+import CostAnalysisPage from "@/pages/admin/cost-analysis";
 
 import ManagerEmployeePage from "@/pages/admin/manager";
 import DashboardEmployeePage from "@/pages/employee/DashboardPage";
@@ -90,6 +94,10 @@ const router = createBrowserRouter([
         element: <ProductManagerPage />,
       },
       {
+        path: "composite-products",
+        element: <CompositeProductManagerPage />,
+      },
+      {
         path: "kho",
         element: <InventoryManagerPage />,
       },
@@ -126,6 +134,10 @@ const router = createBrowserRouter([
         element: <SupplierDetailPage />,
       },
       {
+        path: "phan-tich-chi-phi",
+        element: <CostAnalysisPage />,
+      },
+      {
         path: "nhan-vien",
         children: [
           {
@@ -133,6 +145,22 @@ const router = createBrowserRouter([
             element: <ManagerEmployeePage />,
           },
         ],
+      },
+    ],
+  },
+
+  // Admin routes with storeCode
+  {
+    path: "/admin/composite-products/:storeCode",
+    element: (
+      <ProtectedRoute
+        element={<LayoutAdmin />}
+      />
+    ),
+    children: [
+      {
+        index: true,
+        element: <CompositeProductManagerPage />,
       },
     ],
   },

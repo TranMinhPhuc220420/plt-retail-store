@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import * as XLSX from 'xlsx';
 
-import { PlusOutlined, FileExcelOutlined, DeleteOutlined, ShoppingOutlined, DownloadOutlined, ProductOutlined } from "@ant-design/icons";
+import { 
+  PlusOutlined, 
+  FileExcelOutlined, 
+  DeleteOutlined, 
+  ShoppingOutlined, 
+  DownloadOutlined, 
+  ProductOutlined,
+  ExperimentOutlined
+} from "@ant-design/icons";
 import { Breadcrumb, Button, Dropdown, Modal, message, Popconfirm } from "antd";
 
 // Components
@@ -22,6 +30,7 @@ import useStoreProduct from "@/store/product";
 
 const ProductManagerPage = () => {
   const { storeCode } = useParams();
+  const navigate = useNavigate();
 
   // Ref
   const inputRef = useRef(null);
@@ -191,6 +200,10 @@ const ProductManagerPage = () => {
     inputRef.current.click();
   };
 
+  const handleGoToCompositeProducts = () => {
+    navigate(`/admin/composite-products/${storeCode}`);
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
 
@@ -352,6 +365,16 @@ const ProductManagerPage = () => {
               disabled={isAddingByExcelLoading || isDeletingLoading}
             >
               {t('TXT_ADD_NEW')}
+            </Button>
+
+            <Button 
+              type="default" 
+              icon={<ExperimentOutlined />} 
+              className="ml-2" 
+              onClick={handleGoToCompositeProducts}
+              disabled={isAddingByExcelLoading || isDeletingLoading}
+            >
+              {t('TXT_COMPOSITE_PRODUCTS')}
             </Button>
 
             {/* <Dropdown.Button

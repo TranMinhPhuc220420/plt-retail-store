@@ -34,16 +34,16 @@ const RecipeSelector = ({
   const [searchValue, setSearchValue] = useState('');
 
   useEffect(() => {
-    if (storeCode && ownerId) {
+    if (storeCode || ownerId) {
       fetchRecipes({ storeCode, ownerId });
     }
   }, [storeCode, ownerId, fetchRecipes]);
 
-  const filteredRecipes = recipes.filter(recipe => 
+  const filteredRecipes = recipes.filter(recipe =>
     !excludeIds.includes(recipe._id) &&
-    (searchValue === '' || 
-     recipe.dishName.toLowerCase().includes(searchValue.toLowerCase()) ||
-     recipe.description?.toLowerCase().includes(searchValue.toLowerCase()))
+    (searchValue === '' ||
+      recipe.dishName.toLowerCase().includes(searchValue.toLowerCase()) ||
+      recipe.description?.toLowerCase().includes(searchValue.toLowerCase()))
   );
 
   const handleChange = (selectedValues) => {
@@ -57,7 +57,7 @@ const RecipeSelector = ({
   };
 
   const renderOption = (recipe) => (
-    <Option key={recipe._id} value={recipe._id}>
+    <Option key={recipe._id} value={recipe._id} label={recipe.dishName}>
       <div className="flex justify-between items-center">
         <div className="flex-1">
           <div className="font-medium">{recipe.dishName}</div>
@@ -70,6 +70,16 @@ const RecipeSelector = ({
             <Tag color="blue" size="small">
               {recipe.ingredientCount || recipe.ingredients?.length || 0} {t('TXT_INGREDIENTS')}
             </Tag>
+            {recipe.yield && (
+              <Tag color="orange" size="small">
+                {t('TXT_YIELD')}: {recipe.yield.quantity} {recipe.yield.unit}
+              </Tag>
+            )}
+            {recipe.expiryHours && (
+              <Tag color="purple" size="small">
+                {t('TXT_EXPIRY')}: {recipe.expiryHours}h
+              </Tag>
+            )}
             {showCost && recipe.costPerUnit && (
               <Tag color="green" size="small">
                 {parseFloat(recipe.costPerUnit.toString()).toFixed(2)} VND/{t('TXT_UNIT')}
@@ -80,24 +90,6 @@ const RecipeSelector = ({
       </div>
     </Option>
   );
-
-  const renderValue = (selectedValue) => {
-    const recipe = recipes.find(r => r._id === selectedValue);
-    if (!recipe) return selectedValue;
-
-    return (
-      <Tooltip title={recipe.description || recipe.dishName}>
-        <Tag color="blue" style={{ margin: '2px' }}>
-          {recipe.dishName}
-          {showCost && recipe.costPerUnit && (
-            <span className="ml-1 text-xs">
-              ({parseFloat(recipe.costPerUnit.toString()).toFixed(2)} VND)
-            </span>
-          )}
-        </Tag>
-      </Tooltip>
-    );
-  };
 
   return (
     <Select
@@ -111,6 +103,7 @@ const RecipeSelector = ({
       showSearch
       allowClear
       filterOption={false}
+      optionLabelProp={multiple ? undefined : "label"}
       style={{ width: '100%' }}
       tagRender={multiple ? ({ label, value: tagValue, closable, onClose }) => {
         const recipe = recipes.find(r => r._id === tagValue);
@@ -121,13 +114,8 @@ const RecipeSelector = ({
             onClose={onClose}
             style={{ marginRight: 3 }}
           >
-            <Tooltip title={recipe?.description || recipe?.dishName}>
+            <Tooltip title={recipe?.description ? `${recipe.dishName} - ${recipe.description}` : recipe?.dishName}>
               {recipe?.dishName || tagValue}
-              {showCost && recipe?.costPerUnit && (
-                <span className="ml-1 text-xs">
-                  ({parseFloat(recipe.costPerUnit.toString()).toFixed(2)})
-                </span>
-              )}
             </Tooltip>
           </Tag>
         );

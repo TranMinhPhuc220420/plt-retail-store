@@ -5,6 +5,7 @@ const Store = require('../models/Store');
 const Warehouse = require('../models/Warehouse');
 const Supplier = require('../models/Supplier');
 const mongoose = require('mongoose');
+const costUpdateManager = require('../utils/costUpdateManager'); // ✅ THÊM COST UPDATE MANAGER
 
 const ingredientInventoryController = {
   
@@ -175,7 +176,27 @@ const ingredientInventoryController = {
       }
       
       // Update ingredient's total stock quantity (for backward compatibility)
+      const oldCost = parseFloat(ingredient.averageCost?.toString() || ingredient.standardCost?.toString() || 0);
       ingredient.stockQuantity += quantity;
+      
+      // ✅ UPDATE AVERAGE COST IF NEW COST PROVIDED
+      if (costPerUnit) {
+        const totalCurrentValue = oldCost * (ingredient.stockQuantity - quantity);
+        const newValue = costPerUnit * quantity;
+        const newAverageCost = (totalCurrentValue + newValue) / ingredient.stockQuantity;
+        
+        ingredient.averageCost = mongoose.Types.Decimal128.fromString(newAverageCost.toString());
+        
+        // ✅ TRIGGER REAL-TIME COST UPDATES
+        await costUpdateManager.onIngredientCostChange(ingredientId, {
+          oldCost,
+          newCost: newAverageCost,
+          changeType: 'STOCK_IN',
+          quantity,
+          batchNumber
+        });
+      }
+      
       await ingredient.save();
       
       // Populate transaction for response

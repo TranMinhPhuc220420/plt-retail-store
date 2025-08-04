@@ -45,6 +45,15 @@ const authController = {
         const userExists = await User.findOne({ username: email, email });
         if (!userExists) {
           User.create(payload);
+        } else {
+          // Update existing user
+          await User.updateOne({ username: email, email }, {
+            $set: {
+              displayName: user.displayName,
+              avatar: user.photos && user.photos[0] ? user.photos[0].value : null,
+              provider: user.provider
+            }
+          });
         }
 
         // Create JWT token

@@ -108,6 +108,17 @@ const ENGLISH_TRANSLATIONS = {
     "MSG_NO_PRODUCTS_FOUND": "No products found",
     "MSG_FAILED_TO_FETCH_PRODUCT_DETAILS": "Failed to fetch product details",
     "MSG_FAILED_TO_FETCH_RECIPE_DETAILS": "Failed to fetch recipe details",
+    
+    // Cost Analysis
+    "TXT_COST_ANALYSIS": "Cost Analysis",
+    "TXT_COST_ANALYSIS_DASHBOARD": "Cost Analysis Dashboard",
+    "TXT_CLEAR_CACHE": "Clear Cache",
+    "TXT_RECALCULATE_ALL": "Recalculate All",
+    "TXT_REFRESH": "Refresh",
+    "TXT_SUPPLIERS": "Suppliers",
+    "TXT_RETAIL_PRICE": "Retail Price",
+    "TXT_MARGIN": "Margin",
+    "TXT_PROFITABILITY": "Profitability",
   }
 };
 

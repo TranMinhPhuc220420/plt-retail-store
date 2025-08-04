@@ -1,14 +1,14 @@
 const Product = require('../models/Product');
 const Store = require('../models/Store');
 const Recipe = require('../models/Recipe');
-const { 
-  calculateProductCostFromRecipe, 
-  getCostBreakdown, 
-  updateProductPricingBasedOnCost 
+const {
+  calculateProductCostFromRecipe,
+  getCostBreakdown,
+  updateProductPricingBasedOnCost
 } = require('../utils/costCalculation');
-const { 
-  checkProductionFeasibility, 
-  createProductionTransaction 
+const {
+  checkProductionFeasibility,
+  createProductionTransaction
 } = require('../utils/inventoryIntegration');
 
 const productController = {
@@ -54,7 +54,7 @@ const productController = {
         .populate('defaultRecipeId', 'dishName description')
         .populate('productCategory', 'name');
       res.status(200).json(products);
-      
+
     } catch (error) {
       res.status(500).json({ error: 'failed_to_fetch_product' });
     }
@@ -76,12 +76,12 @@ const productController = {
   updateMy: async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       const product = await Product.findOne({ _id: id, ownerId: req.user._id });
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
-      
+
       Object.assign(product, req.body);
       const updatedProduct = await product.save();
 
@@ -101,7 +101,7 @@ const productController = {
 
       await product.deleteOne();
       res.status(200).json({ message: 'product_deleted_successfully' });
-      
+
     } catch (error) {
       res.status(500).json({ error: 'failed_to_delete_product' });
     }
@@ -119,7 +119,13 @@ const productController = {
         return res.status(404).json({ error: 'store_not_found' });
       }
 
-      let products = await Product.find({ storeId: store._id, owner: req.user.id, deleted: false });
+      let products = await Product.find({
+        storeId: store._id, owner: req.user.id, deleted: false,
+        $or: [
+          { isComposite: { $exists: false } }, // Sản phẩm cũ chưa có field isComposite
+          { isComposite: false } // Sản phẩm thường
+        ]
+      });
       res.status(200).json(products);
 
     } catch (error) {
@@ -133,13 +139,13 @@ const productController = {
         ...req.body,
         ownerId: req.user._id
       });
-      
+
       const savedProduct = await newProduct.save();
       res.status(201).json(savedProduct);
-      
+
     } catch (error) {
       console.log(error);
-      
+
       res.status(500).json({ error: 'failed_to_create_store' });
     }
   },
@@ -148,17 +154,17 @@ const productController = {
     try {
       const { id } = req.params;
       const { storeCode } = req.body;
-      
+
       const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
-      
+
       const product = await Product.findOne({ _id: id, owner: req.user.id, storeId: store._id, deleted: false });
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
-      
+
       Object.assign(product, req.body);
       const updatedProduct = await product.save();
 
@@ -188,10 +194,10 @@ const productController = {
       }
 
       product.deleted = true;
-      await product.save();      
-      
+      await product.save();
+
       res.status(200).json({ message: 'product_deleted_successfully' });
-      
+
     } catch (error) {
       res.status(500).json({ error: 'failed_to_delete_product' });
     }
@@ -202,24 +208,24 @@ const productController = {
     try {
       const { productId, recipeId } = req.params;
       const { setAsDefault } = req.body;
-      
-      const product = await Product.findOne({ 
-        _id: productId, 
+
+      const product = await Product.findOne({
+        _id: productId,
         ownerId: req.user._id,
         deleted: false
       });
-      
+
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
 
-      const recipe = await Recipe.findOne({ 
-        _id: recipeId, 
+      const recipe = await Recipe.findOne({
+        _id: recipeId,
         ownerId: req.user._id,
         storeId: product.storeId,
-        deleted: false 
+        deleted: false
       });
-      
+
       if (!recipe) {
         return res.status(404).json({ error: 'recipe_not_found' });
       }
@@ -254,7 +260,7 @@ const productController = {
         message: 'recipe_linked_successfully',
         product: updatedProduct
       });
-      
+
     } catch (error) {
       console.error('Link recipe error:', error);
       res.status(500).json({ error: 'failed_to_link_recipe' });
@@ -265,13 +271,13 @@ const productController = {
   unlinkRecipeFromProduct: async (req, res) => {
     try {
       const { productId, recipeId } = req.params;
-      
-      const product = await Product.findOne({ 
-        _id: productId, 
+
+      const product = await Product.findOne({
+        _id: productId,
         ownerId: req.user._id,
-        deleted: false 
+        deleted: false
       });
-      
+
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
@@ -301,7 +307,7 @@ const productController = {
         message: 'recipe_unlinked_successfully',
         product: updatedProduct
       });
-      
+
     } catch (error) {
       console.error('Unlink recipe error:', error);
       res.status(500).json({ error: 'failed_to_unlink_recipe' });
@@ -312,13 +318,13 @@ const productController = {
   setDefaultRecipe: async (req, res) => {
     try {
       const { productId, recipeId } = req.params;
-      
-      const product = await Product.findOne({ 
-        _id: productId, 
+
+      const product = await Product.findOne({
+        _id: productId,
         ownerId: req.user._id,
-        deleted: false 
+        deleted: false
       });
-      
+
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
@@ -340,7 +346,7 @@ const productController = {
         message: 'default_recipe_set_successfully',
         product: updatedProduct
       });
-      
+
     } catch (error) {
       console.error('Set default recipe error:', error);
       res.status(500).json({ error: 'failed_to_set_default_recipe' });
@@ -351,28 +357,28 @@ const productController = {
   getProductWithRecipes: async (req, res) => {
     try {
       const { productId } = req.params;
-      
-      const product = await Product.findOne({ 
-        _id: productId, 
+
+      const product = await Product.findOne({
+        _id: productId,
         ownerId: req.user._id,
-        deleted: false 
+        deleted: false
       })
-      .populate({
-        path: 'recipes',
-        select: 'dishName description ingredients yield costPerUnit',
-        populate: {
-          path: 'ingredients.ingredientId',
-          select: 'name unit standardCost'
-        }
-      })
-      .populate('defaultRecipeId', 'dishName description ingredients yield costPerUnit');
+        .populate({
+          path: 'recipes',
+          select: 'dishName description ingredients yield costPerUnit',
+          populate: {
+            path: 'ingredients.ingredientId',
+            select: 'name unit standardCost'
+          }
+        })
+        .populate('defaultRecipeId', 'dishName description ingredients yield costPerUnit');
 
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
       }
 
       res.status(200).json(product);
-      
+
     } catch (error) {
       console.error('Get product with recipes error:', error);
       res.status(500).json({ error: 'failed_to_fetch_product_recipes' });
@@ -384,10 +390,10 @@ const productController = {
     try {
       const { productId } = req.params;
       const { recipeId } = req.query;
-      
+
       const costCalculation = await calculateProductCostFromRecipe(productId, recipeId);
       res.status(200).json(costCalculation);
-      
+
     } catch (error) {
       console.error('Calculate product cost error:', error);
       res.status(500).json({ error: 'failed_to_calculate_cost' });
@@ -398,10 +404,10 @@ const productController = {
   getCostBreakdown: async (req, res) => {
     try {
       const { productId } = req.params;
-      
+
       const costBreakdown = await getCostBreakdown(productId);
       res.status(200).json(costBreakdown);
-      
+
     } catch (error) {
       console.error('Get cost breakdown error:', error);
       res.status(500).json({ error: 'failed_to_get_cost_breakdown' });
@@ -413,18 +419,18 @@ const productController = {
     try {
       const { productId } = req.params;
       const { updateCostPrice, updateRetailPrice, profitMarginPercent } = req.body;
-      
+
       const result = await updateProductPricingBasedOnCost(productId, {
         updateCostPrice,
         updateRetailPrice,
         profitMarginPercent
       });
-      
+
       res.status(200).json({
         message: 'pricing_updated_successfully',
         result
       });
-      
+
     } catch (error) {
       console.error('Update product pricing error:', error);
       res.status(500).json({ error: 'failed_to_update_pricing' });
@@ -436,15 +442,15 @@ const productController = {
     try {
       const { productId } = req.params;
       const { quantity, recipeId } = req.query;
-      
+
       const feasibilityCheck = await checkProductionFeasibility(
-        productId, 
-        parseInt(quantity), 
+        productId,
+        parseInt(quantity),
         recipeId
       );
-      
+
       res.status(200).json(feasibilityCheck);
-      
+
     } catch (error) {
       console.error('Check production feasibility error:', error);
       res.status(500).json({ error: 'failed_to_check_feasibility' });
@@ -456,7 +462,7 @@ const productController = {
     try {
       const { productId } = req.params;
       const { recipeId, quantity, notes, updateProductStock } = req.body;
-      
+
       const productionResult = await createProductionTransaction(
         productId,
         recipeId,
@@ -469,15 +475,48 @@ const productController = {
           updateProductStock
         }
       );
-      
+
       res.status(201).json({
         message: 'production_completed_successfully',
         production: productionResult
       });
-      
+
     } catch (error) {
       console.error('Create production error:', error);
       res.status(500).json({ error: 'failed_to_create_production' });
+    }
+  },
+
+  // Lấy danh sách sản phẩm thường (không phải composite) để làm child products
+  getRegularProductsForComposite: async (req, res) => {
+    try {
+      const { storeCode } = req.params;
+
+      let filter = {
+        ownerId: req.user._id,
+        deleted: false,
+        $or: [
+          { isComposite: { $exists: false } }, // Sản phẩm cũ chưa có field isComposite
+          { isComposite: false } // Sản phẩm thường
+        ]
+      };
+
+      if (storeCode) {
+        const store = await Store.findOne({ storeCode, ownerId: req.user._id });
+        if (!store) {
+          return res.status(404).json({ error: 'store_not_found' });
+        }
+        filter.storeId = store._id;
+      }
+
+      const products = await Product.find(filter)
+        .select('_id name unit costPrice retailPrice description')
+        .sort('name');
+
+      res.status(200).json(products);
+    } catch (error) {
+      console.error('Error fetching regular products:', error);
+      res.status(500).json({ error: 'failed_to_fetch_regular_products' });
     }
   },
 };

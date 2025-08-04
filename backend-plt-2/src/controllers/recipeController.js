@@ -92,7 +92,7 @@ const recipeController = {
   // Create new recipe with ownerId and storeCode lookup
   create: async (req, res) => {
     try {
-      const { dishName, ingredients, description, storeCode } = req.body;
+      const { dishName, ingredients, description, yield: recipeYield, expiryHours, storeCode } = req.body;
       const ownerId = req.user?._id;
       
       // Look up store by storeCode to get storeId
@@ -122,13 +122,29 @@ const recipeController = {
         return res.status(400).json({ error: 'some_ingredients_not_found' });
       }
       
-      const newRecipe = new Recipe({
+      // Prepare recipe data
+      const recipeData = {
         dishName,
         ingredients,
         description,
         ownerId,
         storeId
-      });
+      };
+      
+      // Add yield if provided
+      if (recipeYield && recipeYield.quantity && recipeYield.unit) {
+        recipeData.yield = {
+          quantity: parseInt(recipeYield.quantity),
+          unit: recipeYield.unit
+        };
+      }
+      
+      // Add expiry hours if provided
+      if (expiryHours !== undefined) {
+        recipeData.expiryHours = parseInt(expiryHours);
+      }
+      
+      const newRecipe = new Recipe(recipeData);
       
       const savedRecipe = await newRecipe.save();
       
@@ -140,6 +156,7 @@ const recipeController = {
       
       res.status(201).json(savedRecipe);
     } catch (error) {
+      console.error('Failed to create recipe:', error);
       res.status(500).json({ error: 'failed_to_create_recipe' });
     }
   },
@@ -148,7 +165,7 @@ const recipeController = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { dishName, ingredients, description, storeCode: queryStoreCode } = req.body;
+      const { dishName, ingredients, description, yield: recipeYield, expiryHours, storeCode: queryStoreCode } = req.body;
       const ownerId = req.user?._id;
       const filter = { _id: id, deleted: false };
       
@@ -193,6 +210,27 @@ const recipeController = {
       if (ingredients !== undefined) recipe.ingredients = ingredients;
       if (description !== undefined) recipe.description = description;
       
+      // Update yield if provided
+      if (recipeYield !== undefined) {
+        if (recipeYield && recipeYield.quantity && recipeYield.unit) {
+          recipe.yield = {
+            quantity: parseInt(recipeYield.quantity),
+            unit: recipeYield.unit
+          };
+        } else {
+          // If yield is explicitly set to null/empty, reset to default
+          recipe.yield = {
+            quantity: 1,
+            unit: 'phần'
+          };
+        }
+      }
+      
+      // Update expiry hours if provided
+      if (expiryHours !== undefined) {
+        recipe.expiryHours = parseInt(expiryHours);
+      }
+      
       const updatedRecipe = await recipe.save();
       
       // Populate ingredient details before returning
@@ -203,6 +241,7 @@ const recipeController = {
       
       res.status(200).json(updatedRecipe);
     } catch (error) {
+      console.error('Failed to update recipe:', error);
       res.status(500).json({ error: 'failed_to_update_recipe' });
     }
   },

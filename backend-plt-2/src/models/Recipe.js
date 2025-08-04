@@ -29,7 +29,15 @@ const recipeSchema = new mongoose.Schema(
     // Recipe yield information
     yield: {
       quantity: { type: Number, default: 1 }, // How many units this recipe produces
-      unit: { type: String, default: 'kg' } // Unit of production - simplified to kg or l only
+      unit: { type: String, default: 'phần' } // Unit of production - kg, l, or phần
+    },
+    
+    // Expiry time for products made from this recipe
+    expiryHours: {
+      type: Number,
+      default: 24,
+      min: 1,
+      max: 168 // Maximum 1 week
     },
     
     // Cost calculation

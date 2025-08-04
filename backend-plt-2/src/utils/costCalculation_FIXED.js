@@ -3,14 +3,24 @@ const Product = require('../models/Product');
 const Ingredient = require('../models/Ingredient');
 const mongoose = require('mongoose');
 const { convertUnit } = require('./unitConverter'); // ✅ THÊM IMPORT
+const costCache = require('./costCache'); // ✅ THÊM CACHE SUPPORT
 
 /**
  * Calculate the total cost of ingredients for a recipe
  * @param {string} recipeId - Recipe ID
+ * @param {boolean} useCache - Whether to use cache (default: true)
  * @returns {Promise<Object>} Cost breakdown and total
  */
-const calculateRecipeIngredientCost = async (recipeId) => {
+const calculateRecipeIngredientCost = async (recipeId, useCache = true) => {
   try {
+    // ✅ CHECK CACHE FIRST
+    if (useCache) {
+      const cachedResult = costCache.getRecipeCost(recipeId);
+      if (cachedResult) {
+        return cachedResult;
+      }
+    }
+
     const recipe = await Recipe.findById(recipeId)
       .populate('ingredients.ingredientId', 'name standardCost averageCost unit');
 
@@ -94,6 +104,11 @@ const calculateRecipeIngredientCost = async (recipeId) => {
     // ✅ LOG CẢNH BÁO NẾU CÓ LỖI CHUYỂN ĐỔI
     if (conversionErrors.length > 0) {
       console.warn(`⚠️  Recipe ${recipeId} has ${conversionErrors.length} unit conversion errors. Cost calculation may be inaccurate.`);
+    }
+
+    // ✅ CACHE THE RESULT
+    if (useCache) {
+      costCache.setRecipeCost(recipeId, result);
     }
 
     return result;

@@ -49,10 +49,11 @@ const EditRecipeForm = ({
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Simplified unit options for recipes - only kg and liter for consistency
+  // Unit options for recipe yield
   const unitOptions = [
     'kg',   // kilograms for weight measurements
-    'l'     // liters for volume measurements
+    'l',    // liters for volume measurements
+    'phần'  // portions/servings
   ];
 
   /**
@@ -72,7 +73,8 @@ const EditRecipeForm = ({
       form.setFieldsValue({
         dishName: recipe.dishName,
         description: recipe.description,
-        ingredients: formattedIngredients
+        ingredients: formattedIngredients,
+        yield: recipe.yield || { quantity: 1, unit: 'phần' }
       });
     }
   }, [recipe, form]);
@@ -164,6 +166,72 @@ const EditRecipeForm = ({
               maxLength={500}
               rows={3}
               showCount
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={8}>
+          {/* Recipe Yield Quantity */}
+          <Form.Item
+            label={t('TXT_RECIPE_YIELD_QUANTITY')}
+            name={['yield', 'quantity']}
+            rules={[
+              { required: true, message: t('MSG_YIELD_QUANTITY_REQUIRED') },
+              { type: 'number', min: 1, message: t('MSG_YIELD_QUANTITY_MIN') }
+            ]}
+            tooltip={t('TXT_RECIPE_YIELD_QUANTITY_TOOLTIP')}
+          >
+            <InputNumber
+              placeholder={t('TXT_ENTER_YIELD_QUANTITY')}
+              min={1}
+              precision={0}
+              style={{ width: '100%' }}
+              addonAfter={<span>{t('TXT_UNITS')}</span>}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          {/* Recipe Yield Unit */}
+          <Form.Item
+            label={t('TXT_RECIPE_YIELD_UNIT')}
+            name={['yield', 'unit']}
+            rules={[
+              { required: true, message: t('MSG_YIELD_UNIT_REQUIRED') }
+            ]}
+            tooltip={t('TXT_RECIPE_YIELD_UNIT_TOOLTIP')}
+          >
+            <Select
+              placeholder={t('TXT_SELECT_YIELD_UNIT')}
+              showSearch
+            >
+              {unitOptions.map(unit => (
+                <Option key={unit} value={unit}>
+                  {unit}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          {/* Recipe Expiry Hours */}
+          <Form.Item
+            label={t('TXT_EXPIRY_HOURS')}
+            name="expiryHours"
+            rules={[
+              { required: true, message: t('MSG_EXPIRY_HOURS_REQUIRED') },
+              { type: 'number', min: 1, max: 168, message: t('MSG_EXPIRY_HOURS_RANGE') }
+            ]}
+            tooltip={t('TXT_EXPIRY_HOURS_TOOLTIP')}
+          >
+            <InputNumber
+              placeholder={t('TXT_ENTER_EXPIRY_HOURS')}
+              min={1}
+              max={168}
+              precision={0}
+              style={{ width: '100%' }}
+              addonAfter={<span>{t('TXT_HOURS')}</span>}
             />
           </Form.Item>
         </Col>

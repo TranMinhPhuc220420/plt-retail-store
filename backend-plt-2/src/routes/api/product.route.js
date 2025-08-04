@@ -17,5 +17,9 @@ router.post('/my-products-stores', verifyFormCreateProduct, productController.cr
 router.put('/my-products-stores/:id', verifyFormUpdateProduct, productController.updateMyInStore);
 router.delete('/my-products-stores/:id', productController.deleteMyInStore);
 
+// Route để lấy sản phẩm thường (không composite) cho việc tạo composite
+router.get('/regular-products/store/:storeCode', productController.getRegularProductsForComposite);
+router.get('/regular-products', productController.getRegularProductsForComposite);
+
 // export default router;
 module.exports = router;

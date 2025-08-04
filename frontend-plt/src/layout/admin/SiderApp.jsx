@@ -91,6 +91,12 @@ const SiderApp = ({ isLoading, collapsed }) => {
           icon: <BarChartOutlined />,
           label: t('TXT_SUPPLIERS'),
         },
+        // {
+        //   key: 'admin_cost_analysis',
+        //   pathname: `/store/${storeCode}/admin/phan-tich-chi-phi`,
+        //   icon: <DashboardFilled />,
+        //   label: t('TXT_COST_ANALYSIS'),
+        // },
         {
           key: 'admin_product_management',
           icon: <ProductOutlined />,

@@ -16,6 +16,8 @@ const inventoryRouter = require('./inventory.route');
 const ingredientInventoryRouter = require('./ingredientInventory.route');
 const supplierRouter = require('./supplier.route');
 const productRecipeRouter = require('./product_recipe.route');
+const compositeProductRouter = require('./compositeProducts');
+const costAnalysisRouter = require('./costAnalysis'); // ✅ THÊM COST ANALYSIS ROUTER
 
 const router = Router();
 
@@ -33,6 +35,8 @@ router.use('/inventory', verifyJWT, isAdmin, inventoryRouter); // Product invent
 router.use('/ingredient-inventory', verifyJWT, isAdmin, ingredientInventoryRouter); // Ingredient inventory management routes
 router.use('/suppliers', verifyJWT, isAdmin, supplierRouter); // Supplier management routes
 router.use('/', verifyJWT, isAdmin, productRecipeRouter); // Product-Recipe relationship management routes
+router.use('/composite-products', verifyJWT, isAdmin, compositeProductRouter); // Composite product management routes (JWT verification included in route)
+router.use('/cost-analysis', verifyJWT, isAdmin, costAnalysisRouter); // ✅ Cost analysis and management routes
 
 // export default router;
 module.exports = router;
