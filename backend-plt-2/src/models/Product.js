@@ -57,6 +57,8 @@ const productSchema = new mongoose.Schema(
       // Danh sách sản phẩm con trong composite
       childProducts: [{
         productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        quantityPerServing: { type: Number, required: true, min: 0 }, // Số lượng cần cho mỗi phần phục vụ
+        unit: { type: String, required: true }, // Đơn vị đo lường của sản phẩm con
         costPrice: { type: mongoose.Schema.Types.Decimal128, required: true, min: 0 }, // Giá vốn của sản phẩm con
         sellingPrice: { type: mongoose.Schema.Types.Decimal128, required: true, min: 0 }, // Giá bán của sản phẩm con
         retailPrice: { type: mongoose.Schema.Types.Decimal128, required: true, min: 0 } // Giá bán lẻ của sản phẩm con

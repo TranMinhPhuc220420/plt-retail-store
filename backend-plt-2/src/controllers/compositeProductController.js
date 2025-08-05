@@ -13,92 +13,66 @@ const compositeProductController = {
    */
   createComposite: async (req, res) => {
     try {
-      const { 
-        productCode, 
-        name, 
-        description, 
-        capacity, 
-        childProducts, 
+      const {
+        productCode,
+        name,
+        description,
+        capacity,
         storeId,
-        recipeId // Thêm recipeId để chọn công thức
+        recipeId // Recipe là bắt buộc cho composite products
       } = req.body;
 
-      // Validate child products exist (if provided)
+      // Validate recipe is required
+      if (!recipeId) {
+        return res.status(400).json({ error: 'recipe_required_for_composite_products' });
+      }
+
       let totalCostPerServing = 0;
       let recipeCostInfo = null;
       let expiryHours = 24; // Default value
 
-      if (recipeId) {
-        // Tính toán chi phí từ công thức
-        try {
-          const recipe = await Recipe.findById(recipeId).populate('ingredients.ingredientId');
-          if (!recipe) {
-            return res.status(404).json({ error: 'recipe_not_found' });
-          }
-
-          // Verify recipe belongs to same owner and store
-          if (recipe.ownerId.toString() !== req.user._id.toString() || 
-              recipe.storeId.toString() !== storeId) {
-            return res.status(403).json({ error: 'recipe_access_denied' });
-          }
-
-          // Get expiry hours from recipe
-          expiryHours = recipe.expiryHours || 24;
-
-          const costCalculation = await calculateRecipeIngredientCost(recipeId);
-          recipeCostInfo = {
-            recipeId: recipeId,
-            recipeCost: costCalculation.costPerUnit,
-            recipeYield: {
-              quantity: recipe.yield?.quantity || 1,
-              unit: recipe.yield?.unit || 'phần'
-            },
-            totalRecipeCost: costCalculation.totalCost
-          };
-          
-          // Chi phí mỗi phần phục vụ từ công thức
-          totalCostPerServing = parseFloat(costCalculation.costPerUnit.toString());
-        } catch (error) {
-          console.error('Error calculating recipe cost:', error);
-          return res.status(400).json({ error: 'failed_to_calculate_recipe_cost' });
-        }
-      }
-
-      // Add child products revenue if provided
-      let totalChildProductsRevenue = { sellingPrice: 0, retailPrice: 0 };
-      if (childProducts && childProducts.length > 0) {
-        const childProductIds = childProducts.map(cp => cp.productId);
-        const existingProducts = await Product.find({ 
-          _id: { $in: childProductIds }, 
-          ownerId: req.user._id,
-          storeId: storeId
-        });
-
-        if (existingProducts.length !== childProductIds.length) {
-          return res.status(400).json({ error: 'some_child_products_not_found' });
+      // Tính toán chi phí từ công thức
+      try {
+        const recipe = await Recipe.findById(recipeId).populate('ingredients.ingredientId');
+        if (!recipe) {
+          return res.status(404).json({ error: 'recipe_not_found' });
         }
 
-        // Calculate total revenue from child products
-        for (const childProduct of childProducts) {
-          if (childProduct.sellingPrice) {
-            totalChildProductsRevenue.sellingPrice += parseFloat(childProduct.sellingPrice);
-          }
-          if (childProduct.retailPrice) {
-            totalChildProductsRevenue.retailPrice += parseFloat(childProduct.retailPrice);
-          }
+        // Verify recipe belongs to same owner and store
+        if (recipe.ownerId.toString() !== req.user._id.toString() ||
+          recipe.storeId.toString() !== storeId) {
+          return res.status(403).json({ error: 'recipe_access_denied' });
         }
+
+        // Get expiry hours from recipe
+        expiryHours = recipe.expiryHours || 24;
+
+        const costCalculation = await calculateRecipeIngredientCost(recipeId);
+        recipeCostInfo = {
+          recipeId: recipeId,
+          recipeCost: costCalculation.costPerUnit,
+          recipeYield: {
+            quantity: recipe.yield?.quantity || 1,
+            unit: recipe.yield?.unit || 'phần'
+          },
+          totalRecipeCost: costCalculation.totalCost
+        };
+
+        // Chi phí mỗi phần phục vụ từ công thức
+        totalCostPerServing = parseFloat(costCalculation.costPerUnit.toString());
+      } catch (error) {
+        console.error('Error calculating recipe cost:', error);
+        return res.status(400).json({ error: 'failed_to_calculate_recipe_cost' });
       }
 
-      // Validate that we have recipe cost (recipe is required for composite products)
-      if (!recipeId || totalCostPerServing <= 0) {
-        return res.status(400).json({ error: 'recipe_required_for_composite_products' });
+      // Validate that we have recipe cost
+      if (totalCostPerServing <= 0) {
+        return res.status(400).json({ error: 'invalid_recipe_cost_calculation' });
       }
 
-      // Calculate final pricing: combine recipe cost with child products revenue
-      const finalSellingPrice = req.body.price || 
-        (totalCostPerServing * 1.3 + totalChildProductsRevenue.sellingPrice);
-      const finalRetailPrice = req.body.retailPrice || 
-        (totalCostPerServing * 1.5 + totalChildProductsRevenue.retailPrice);
+      // Calculate final pricing based on recipe cost only
+      const finalSellingPrice = req.body.price || (totalCostPerServing * 1.3);
+      const finalRetailPrice = req.body.retailPrice || (totalCostPerServing * 1.5);
 
       const compositeProduct = new Product({
         productCode,
@@ -106,7 +80,7 @@ const compositeProductController = {
         description,
         price: finalSellingPrice,
         retailPrice: finalRetailPrice,
-        costPrice: totalCostPerServing, // Keep recipe cost as the base cost
+        costPrice: totalCostPerServing, // Recipe cost as the base cost
         minStock: req.body.minStock || 1,
         unit: capacity.unit || 'tô',
         status: 'active',
@@ -118,31 +92,25 @@ const compositeProductController = {
             quantity: capacity.quantity,
             unit: capacity.unit
           },
-          ...recipeCostInfo, // Spread recipe information if available
-          childProducts: childProducts || [],
+          ...recipeCostInfo, // Spread recipe information
+          childProducts: [], // Empty array - không sử dụng childProducts nữa
           currentStock: 0,
           expiryHours: expiryHours || 24
         }
       });
 
       const savedProduct = await compositeProduct.save();
-      
-      // Populate references
-      if (childProducts && childProducts.length > 0) {
-        await savedProduct.populate('compositeInfo.childProducts.productId', 'name unit costPrice');
-      }
-      if (recipeId) {
-        await savedProduct.populate('compositeInfo.recipeId', 'dishName description yield');
-      }
-      
+
+      // Populate recipe reference
+      await savedProduct.populate('compositeInfo.recipeId', 'dishName description yield ingredients');
+
       // ✅ CACHE THE COMPOSITE COST
       const compositeId = savedProduct._id.toString();
       costCache.setCompositeCost(compositeId, {
         totalCostPerServing,
         capacity: capacity.quantity,
         totalCost: totalCostPerServing * capacity.quantity,
-        childProducts: childProducts?.length || 0,
-        recipeId: recipeId || null,
+        recipeId: recipeId,
         recipeCost: recipeCostInfo?.totalRecipeCost || null,
         markup: {
           price: savedProduct.price,
@@ -157,10 +125,10 @@ const compositeProductController = {
         name: savedProduct.name,
         totalCost: totalCostPerServing * capacity.quantity,
         capacity: capacity.quantity,
-        hasRecipe: !!recipeId,
+        hasRecipe: true,
         storeId: storeId
       }, storeId);
-      
+
       res.status(201).json(savedProduct);
     } catch (error) {
       console.error('Error creating composite product:', error);
@@ -174,39 +142,146 @@ const compositeProductController = {
   prepareComposite: async (req, res) => {
     try {
       const { id } = req.params;
-      const { quantityToPrepare } = req.body; // Số batch muốn chuẩn bị
+      const { quantityToPrepare = 1 } = req.body; // Số batch muốn chuẩn bị
 
-      const product = await Product.findOne({ 
-        _id: id, 
-        ownerId: req.user._id, 
-        isComposite: true 
-      }).populate('compositeInfo.childProducts.productId');
+      // Validate input
+      if (!quantityToPrepare || quantityToPrepare < 1 || quantityToPrepare > 10) {
+        return res.status(400).json({
+          error: 'invalid_quantity_to_prepare',
+          message: 'Quantity to prepare must be between 1 and 10'
+        });
+      }
+
+      const product = await Product.findOne({
+        _id: id,
+        ownerId: req.user._id,
+        isComposite: true,
+        deleted: false
+      })
+      .populate({
+        path: 'compositeInfo.recipeId',
+        select: 'dishName ingredients yield',
+        populate: {
+          path: 'ingredients.ingredientId',
+          select: 'name unit stockQuantity'
+        }
+      });
 
       if (!product) {
         return res.status(404).json({ error: 'composite_product_not_found' });
       }
 
-      // Kiểm tra xem có đủ nguyên liệu để chuẩn bị không
-      const requiredIngredients = {};
-      for (const childProduct of product.compositeInfo.childProducts) {
-        const childProd = childProduct.productId;
-        const totalNeeded = childProduct.quantityPerServing * 
-                          product.compositeInfo.capacity.quantity * 
-                          (quantityToPrepare || 1);
-        
-        requiredIngredients[childProd._id] = {
-          name: childProd.name,
-          needed: totalNeeded,
-          unit: childProduct.unit,
-          available: 0 // Sẽ cập nhật từ inventory
-        };
+      // Validate composite product has valid structure
+      if (!product.compositeInfo?.capacity?.quantity || product.compositeInfo.capacity.quantity <= 0) {
+        return res.status(400).json({
+          error: 'invalid_composite_structure',
+          message: 'Composite product has invalid capacity configuration'
+        });
       }
 
-      // TODO: Kiểm tra inventory thực tế ở đây
-      
-      // Cập nhật stock và thời gian chuẩn bị
-      const totalServings = product.compositeInfo.capacity.quantity * (quantityToPrepare || 1);
-      product.compositeInfo.currentStock += totalServings;
+      // Validate recipe exists
+      if (!product.compositeInfo?.recipeId) {
+        return res.status(400).json({
+          error: 'recipe_not_found',
+          message: 'Composite product must have a recipe to be prepared'
+        });
+      }
+
+      const recipe = product.compositeInfo.recipeId;
+
+      // Calculate how many recipe batches we need to make
+      const recipeYield = recipe.yield?.quantity || 1;
+      const totalServingsNeeded = product.compositeInfo.capacity.quantity * quantityToPrepare;
+      const recipeBatchesNeeded = Math.ceil(totalServingsNeeded / recipeYield);
+
+      console.log('Preparation calculation:', {
+        quantityToPrepare,
+        capacityPerBatch: product.compositeInfo.capacity.quantity,
+        totalServingsNeeded,
+        recipeYield,
+        recipeBatchesNeeded
+      });
+
+      // Calculate required ingredients and check availability
+      const requiredIngredients = {};
+      const unavailableIngredients = [];
+
+      if (!recipe.ingredients || recipe.ingredients.length === 0) {
+        return res.status(400).json({
+          error: 'recipe_has_no_ingredients',
+          message: 'Recipe must have ingredients to prepare composite product'
+        });
+      }
+
+      // Check each ingredient in the recipe
+      for (const recipeIngredient of recipe.ingredients) {
+        const ingredient = recipeIngredient.ingredientId;
+
+        if (!ingredient) {
+          return res.status(400).json({
+            error: 'ingredient_not_found',
+            message: 'One or more ingredients in the recipe are no longer available'
+          });
+        }
+
+        // Calculate total needed for all recipe batches
+        const totalNeededPerRecipeBatch = recipeIngredient.amountUsed;
+        const totalNeeded = totalNeededPerRecipeBatch * recipeBatchesNeeded;
+
+        requiredIngredients[ingredient._id] = {
+          name: ingredient.name,
+          needed: totalNeeded,
+          unit: ingredient.unit,
+          available: ingredient.stockQuantity || 0,
+          neededPerRecipeBatch: totalNeededPerRecipeBatch,
+          recipeBatchesNeeded: recipeBatchesNeeded
+        };
+
+        // Check if we have enough stock
+        if ((ingredient.stockQuantity || 0) < totalNeeded) {
+          unavailableIngredients.push({
+            name: ingredient.name,
+            needed: totalNeeded,
+            available: ingredient.stockQuantity || 0,
+            unit: ingredient.unit,
+            shortfall: totalNeeded - (ingredient.stockQuantity || 0)
+          });
+        }
+      }
+
+      // If ingredients are not available, return error with details
+      if (unavailableIngredients.length > 0) {
+        return res.status(400).json({
+          error: 'insufficient_ingredients',
+          message: 'Not enough ingredients to prepare the requested quantity',
+          details: unavailableIngredients,
+          preparationInfo: {
+            quantityToPrepare,
+            totalServingsNeeded,
+            recipeBatchesNeeded,
+            recipeYield
+          }
+        });
+      }
+
+      // Import Ingredient model to update stock
+      const Ingredient = require('../models/Ingredient');
+
+      // Deduct ingredients from stock
+      for (const recipeIngredient of recipe.ingredients) {
+        const ingredient = recipeIngredient.ingredientId;
+        const totalNeeded = recipeIngredient.amountUsed * recipeBatchesNeeded;
+
+        // Update ingredient stock
+        await Ingredient.findByIdAndUpdate(ingredient._id, {
+          $inc: { stockQuantity: -totalNeeded }
+        });
+
+        console.log(`Updated ingredient ${ingredient.name}: deducted ${totalNeeded} ${ingredient.unit}`);
+      }
+
+      // Update composite product stock and timestamp
+      product.compositeInfo.currentStock += totalServingsNeeded;
       product.compositeInfo.lastPreparedAt = new Date();
 
       await product.save();
@@ -214,8 +289,17 @@ const compositeProductController = {
       res.status(200).json({
         message: 'composite_product_prepared_successfully',
         product: product,
-        totalServingsPrepared: totalServings,
-        requiredIngredients: requiredIngredients
+        totalServingsPrepared: totalServingsNeeded,
+        recipeBatchesMade: recipeBatchesNeeded,
+        requiredIngredients: requiredIngredients,
+        preparationDetails: {
+          quantityToPrepare,
+          servingsPerBatch: product.compositeInfo.capacity.quantity,
+          totalServings: totalServingsNeeded,
+          newStock: product.compositeInfo.currentStock,
+          recipeYield,
+          recipeBatchesNeeded
+        }
       });
     } catch (error) {
       console.error('Error preparing composite product:', error);
@@ -231,10 +315,10 @@ const compositeProductController = {
       const { id } = req.params;
       const { quantityToServe } = req.body;
 
-      const product = await Product.findOne({ 
-        _id: id, 
-        ownerId: req.user._id, 
-        isComposite: true 
+      const product = await Product.findOne({
+        _id: id,
+        ownerId: req.user._id,
+        isComposite: true
       });
 
       if (!product) {
@@ -245,7 +329,7 @@ const compositeProductController = {
       if (product.compositeInfo.lastPreparedAt) {
         const hoursElapsed = (new Date() - product.compositeInfo.lastPreparedAt) / (1000 * 60 * 60);
         if (hoursElapsed > product.compositeInfo.expiryHours) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             error: 'composite_product_expired',
             hoursElapsed: hoursElapsed,
             expiryHours: product.compositeInfo.expiryHours
@@ -255,7 +339,7 @@ const compositeProductController = {
 
       // Kiểm tra stock
       if (product.compositeInfo.currentStock < quantityToServe) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'insufficient_stock',
           available: product.compositeInfo.currentStock,
           requested: quantityToServe
@@ -283,9 +367,9 @@ const compositeProductController = {
   getMyComposites: async (req, res) => {
     try {
       const { storeCode } = req.params;
-      
+
       let filter = { ownerId: req.user._id, isComposite: true, deleted: false };
-      
+
       if (storeCode) {
         const store = await Store.findOne({ storeCode, ownerId: req.user._id });
         if (!store) {
@@ -295,7 +379,14 @@ const compositeProductController = {
       }
 
       const compositeProducts = await Product.find(filter)
-        .populate('compositeInfo.childProducts.productId', 'name unit costPrice')
+        .populate({
+          path: 'compositeInfo.recipeId',
+          select: 'dishName description yield ingredients',
+          populate: {
+            path: 'ingredients.ingredientId',
+            select: 'name unit'
+          }
+        })
         .sort('-updatedAt');
 
       // Thêm thông tin về trạng thái hết hạn
@@ -309,12 +400,12 @@ const compositeProductController = {
             status = 'expiring_soon';
           }
         }
-        
+
         return {
           ...product.toJSON(),
           statusInfo: {
             status,
-            hoursElapsed: product.compositeInfo.lastPreparedAt ? 
+            hoursElapsed: product.compositeInfo.lastPreparedAt ?
               (new Date() - product.compositeInfo.lastPreparedAt) / (1000 * 60 * 60) : 0
           }
         };
@@ -334,9 +425,9 @@ const compositeProductController = {
     try {
       const { id } = req.params;
       const { storeCode } = req.query;
-      
+
       let filter = { _id: id, ownerId: req.user._id, isComposite: true, deleted: false };
-      
+
       if (storeCode) {
         const store = await Store.findOne({ storeCode, ownerId: req.user._id });
         if (!store) {
@@ -347,15 +438,11 @@ const compositeProductController = {
 
       const compositeProduct = await Product.findOne(filter)
         .populate({
-          path: 'compositeInfo.childProducts.productId',
-          select: 'name unit costPrice retailPrice description'
-        })
-        .populate({
           path: 'compositeInfo.recipeId',
           select: 'dishName description yield expiryHours ingredients',
           populate: {
             path: 'ingredients.ingredientId',
-            select: 'name unit standardCost'
+            select: 'name unit standardCost stockQuantity'
           }
         });
 
@@ -378,7 +465,7 @@ const compositeProductController = {
         ...compositeProduct.toJSON(),
         statusInfo: {
           status,
-          hoursElapsed: compositeProduct.compositeInfo.lastPreparedAt ? 
+          hoursElapsed: compositeProduct.compositeInfo.lastPreparedAt ?
             (new Date() - compositeProduct.compositeInfo.lastPreparedAt) / (1000 * 60 * 60) : 0
         }
       };
@@ -391,51 +478,58 @@ const compositeProductController = {
   },
 
   /**
-   * Cập nhật chỉ giá bán của sản phẩm con trong composite product
+   * Cập nhật giá bán của sản phẩm composite
    */
-  updateChildProductPrices: async (req, res) => {
+  updateCompositePrice: async (req, res) => {
     try {
       const { id } = req.params;
-      const { childProducts } = req.body;
+      const { price, retailPrice } = req.body;
 
-      if (!childProducts || !Array.isArray(childProducts)) {
-        return res.status(400).json({ error: 'child_products_array_required' });
+      if (!price && !retailPrice) {
+        return res.status(400).json({ error: 'price_or_retail_price_required' });
       }
 
-      const product = await Product.findOne({ 
-        _id: id, 
-        ownerId: req.user._id, 
-        isComposite: true 
+      const product = await Product.findOne({
+        _id: id,
+        ownerId: req.user._id,
+        isComposite: true
       });
 
       if (!product) {
         return res.status(404).json({ error: 'composite_product_not_found' });
       }
 
-      // Validate và cập nhật giá của child products
-      for (const childUpdate of childProducts) {
-        const existingChildIndex = product.compositeInfo.childProducts.findIndex(
-          cp => cp.productId.toString() === childUpdate.productId
-        );
-
-        if (existingChildIndex !== -1) {
-          // Chỉ cập nhật sellingPrice và retailPrice
-          if (childUpdate.sellingPrice !== undefined) {
-            product.compositeInfo.childProducts[existingChildIndex].sellingPrice = childUpdate.sellingPrice;
-          }
-          if (childUpdate.retailPrice !== undefined) {
-            product.compositeInfo.childProducts[existingChildIndex].retailPrice = childUpdate.retailPrice;
-          }
+      console.log('Updating composite product prices:', {
+        compositeProductId: id,
+        previousPrices: {
+          price: product.price,
+          retailPrice: product.retailPrice,
+          costPrice: product.costPrice
+        },
+        newPrices: {
+          price,
+          retailPrice
         }
+      });
+
+      // Update composite product prices
+      if (price !== undefined) {
+        product.price = price;
+      }
+      if (retailPrice !== undefined) {
+        product.retailPrice = retailPrice;
       }
 
       const updatedProduct = await product.save();
-      await updatedProduct.populate('compositeInfo.childProducts.productId', 'name unit costPrice');
+      await updatedProduct.populate({
+        path: 'compositeInfo.recipeId',
+        select: 'dishName description yield'
+      });
 
       res.status(200).json(updatedProduct);
     } catch (error) {
-      console.error('Error updating child product prices:', error);
-      res.status(500).json({ error: 'failed_to_update_child_product_prices' });
+      console.error('Error updating composite product price:', error);
+      res.status(500).json({ error: 'failed_to_update_composite_price' });
     }
   },
 
@@ -447,42 +541,37 @@ const compositeProductController = {
       const { id } = req.params;
       const updateData = req.body;
 
-      const product = await Product.findOne({ 
-        _id: id, 
-        ownerId: req.user._id, 
-        isComposite: true 
+      const product = await Product.findOne({
+        _id: id,
+        ownerId: req.user._id,
+        isComposite: true
       });
 
       if (!product) {
         return res.status(404).json({ error: 'composite_product_not_found' });
       }
 
-      // Nếu cập nhật child products, cần validate và tính lại cost
-      if (updateData.compositeInfo && updateData.compositeInfo.childProducts) {
-        const childProductIds = updateData.compositeInfo.childProducts.map(cp => cp.productId);
-        const existingProducts = await Product.find({ 
-          _id: { $in: childProductIds }, 
-          ownerId: req.user._id 
-        });
-
-        if (existingProducts.length !== childProductIds.length) {
-          return res.status(400).json({ error: 'some_child_products_not_found' });
+      // If updating recipe, recalculate cost
+      if (updateData.compositeInfo && updateData.compositeInfo.recipeId) {
+        try {
+          const costCalculation = await calculateRecipeIngredientCost(updateData.compositeInfo.recipeId);
+          updateData.costPrice = parseFloat(costCalculation.costPerUnit.toString());
+          
+          // Update recipe info in compositeInfo
+          updateData.compositeInfo.recipeCost = costCalculation.costPerUnit;
+          updateData.compositeInfo.totalRecipeCost = costCalculation.totalCost;
+        } catch (error) {
+          console.error('Error recalculating recipe cost:', error);
+          return res.status(400).json({ error: 'failed_to_calculate_recipe_cost' });
         }
-
-        // Tính lại cost
-        let totalCostPerServing = 0;
-        for (const childProduct of updateData.compositeInfo.childProducts) {
-          const product = existingProducts.find(p => p._id.toString() === childProduct.productId);
-          if (product) {
-            totalCostPerServing += parseFloat(product.costPrice) * childProduct.quantityPerServing;
-          }
-        }
-        updateData.costPrice = totalCostPerServing;
       }
 
       Object.assign(product, updateData);
       const updatedProduct = await product.save();
-      await updatedProduct.populate('compositeInfo.childProducts.productId', 'name unit costPrice');
+      await updatedProduct.populate({
+        path: 'compositeInfo.recipeId',
+        select: 'dishName description yield ingredients'
+      });
 
       res.status(200).json(updatedProduct);
     } catch (error) {
@@ -497,7 +586,7 @@ const compositeProductController = {
   calculatePriceFromRecipe: async (req, res) => {
     try {
       const { recipeId, capacity } = req.body;
-      
+
       console.log('calculatePriceFromRecipe - Received data:', { recipeId, capacity, bodyKeys: Object.keys(req.body) });
 
       if (!recipeId) {
@@ -527,13 +616,13 @@ const compositeProductController = {
 
       // Tính toán chi phí từ recipe
       const costCalculation = await calculateRecipeIngredientCost(recipeId);
-      
+
       // Chi phí mỗi phần phục vụ
       const costPerServing = parseFloat(costCalculation.costPerUnit.toString());
-      
+
       // Tổng chi phí cho toàn bộ capacity
       const totalCapacityCost = costPerServing * capacity.quantity;
-      
+
       // Đề xuất giá với các mức markup khác nhau
       const response = {
         costPerServing: costPerServing,
@@ -569,10 +658,10 @@ const compositeProductController = {
     try {
       const { id } = req.params;
 
-      const product = await Product.findOne({ 
-        _id: id, 
-        ownerId: req.user._id, 
-        isComposite: true 
+      const product = await Product.findOne({
+        _id: id,
+        ownerId: req.user._id,
+        isComposite: true
       });
 
       if (!product) {

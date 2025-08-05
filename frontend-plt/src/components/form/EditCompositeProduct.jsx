@@ -291,7 +291,7 @@ const EditCompositeProductForm = ({
     }
   ];
 
-  // Form submission - only update child product prices
+  // Form submission - update child product prices and composite product prices
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
@@ -303,15 +303,32 @@ const EditCompositeProductForm = ({
         retailPrice: child.retailPrice
       }));
 
-      // Call the new API to update only child product prices
+      console.log('Updating composite product:', {
+        compositeId: compositeProductData._id,
+        childProductsData,
+        expectedCompositeUpdate: {
+          totalSellingPrice: childProductsData.reduce((sum, cp) => sum + (cp.sellingPrice || 0), 0),
+          totalRetailPrice: childProductsData.reduce((sum, cp) => sum + (cp.retailPrice || 0), 0)
+        }
+      });
+
+      // Call the API to update child product prices (backend will also update composite prices)
       const result = await updateChildProductPrices(compositeProductData._id, childProductsData);
 
-      messageApi.success(t('MSG_SUCCESS_UPDATE_CHILD_PRODUCT_PRICES'));
+      console.log('Update result:', result);
+
+      messageApi.success(
+        t('MSG_SUCCESS_UPDATE_COMPOSITE_PRODUCT_PRICES') || 
+        'Đã cập nhật thành công giá sản phẩm composite và các sản phẩm con'
+      );
       updateCompositeProduct(compositeProductData._id, result);
       onOK();
     } catch (error) {
-      console.error('Error updating child product prices:', error);
-      messageApi.error(t('MSG_ERROR_UPDATE_CHILD_PRODUCT_PRICES'));
+      console.error('Error updating composite product prices:', error);
+      messageApi.error(
+        t('MSG_ERROR_UPDATE_COMPOSITE_PRODUCT_PRICES') || 
+        'Lỗi khi cập nhật giá sản phẩm composite'
+      );
     } finally {
       setLoading(false);
     }
@@ -506,6 +523,9 @@ const EditCompositeProductForm = ({
             <span className="text-gray-600">
               👥 {t('TXT_CHILD_PRODUCTS')} - {t('TXT_EDITABLE_PRICES')}
             </span>
+            <Tooltip title={t('TXT_CHILD_PRODUCT_PRICE_UPDATE_AFFECTS_COMPOSITE') || 'Cập nhật giá sản phẩm con sẽ tự động cập nhật giá sản phẩm composite'}>
+              <InfoCircleOutlined className="ml-2 text-blue-500" />
+            </Tooltip>
           </div>
         </Divider>
 
@@ -529,13 +549,16 @@ const EditCompositeProductForm = ({
               </div>
             }
           >
-            {/*<Alert
-              message={t('TXT_CHILD_PRODUCTS_PRICE_EDITABLE_NOTICE')}
-              description={t('TXT_CHILD_PRODUCTS_PRICE_EDIT_INSTRUCTION')}
-              type="success"
+            {/* <Alert
+              message={t('TXT_COMPOSITE_PRICE_UPDATE_NOTICE') || 'Thông báo cập nhật giá'}
+              description={
+                t('TXT_COMPOSITE_PRICE_UPDATE_DESCRIPTION') || 
+                'Khi bạn cập nhật giá bán và giá lẻ của các sản phẩm con, hệ thống sẽ tự động tính toán và cập nhật giá tương ứng cho sản phẩm composite dựa trên tổng giá của tất cả sản phẩm con.'
+              }
+              type="info"
               showIcon
               className="mb-4"
-            />*/}
+            /> */}
             <Table
               columns={childProductColumns.map(col => ({
                 ...col,
@@ -692,11 +715,7 @@ const EditCompositeProductForm = ({
             icon={<SaveOutlined />}
             disabled={childProducts.length === 0}
           >
-            {loading ? (
-              <span>{t('TXT_UPDATING_PRICES')}...</span>
-            ) : (
-              <span>{t('TXT_UPDATE_CHILD_PRICES')}</span>
-            )}
+            <span>{t('TXT_UPDATE')}</span>
           </Button>
         </div>
       </Form>

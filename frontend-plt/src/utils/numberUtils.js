@@ -12,11 +12,13 @@ export const parseDecimal = (value) => {
   
   // Handle MongoDB Decimal128 format
   if (typeof value === 'object' && value.$numberDecimal) {
-    return parseFloat(value.$numberDecimal);
+    const parsed = parseFloat(value.$numberDecimal);
+    return isNaN(parsed) ? 0 : parsed;
   }
   
   // Handle regular number or string
-  return parseFloat(value) || 0;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? 0 : parsed;
 };
 
 /**
@@ -40,12 +42,15 @@ export const parseCompositeProductData = (compositeProductData) => {
       capacity: compositeProductData.compositeInfo.capacity || { quantity: 1, unit: 'phần' },
       childProducts: compositeProductData.compositeInfo.childProducts?.map(child => ({
         ...child,
+        quantityPerServing: parseFloat(child.quantityPerServing) || 1,
+        unit: child.unit || 'piece',
         costPrice: parseDecimal(child.costPrice),
         sellingPrice: parseDecimal(child.sellingPrice),
         retailPrice: parseDecimal(child.retailPrice),
         productId: typeof child.productId === 'object' ? {
           ...child.productId,
-          costPrice: parseDecimal(child.productId.costPrice)
+          costPrice: parseDecimal(child.productId.costPrice),
+          retailPrice: parseDecimal(child.productId.retailPrice)
         } : child.productId
       })) || []
     } : {}

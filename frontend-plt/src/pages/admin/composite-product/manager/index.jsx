@@ -381,6 +381,7 @@ const CompositeProductManagerPage = () => {
         <PrepareCompositeModal
           open={isModalPrepareOpen}
           product={productToPrepare}
+          storeCode={storeCode}
           onOk={handlePrepareOk}
           onCancel={handlePrepareCancel}
         />
@@ -388,6 +389,7 @@ const CompositeProductManagerPage = () => {
         <ServeCompositeModal
           open={isModalServeOpen}
           product={productToServe}
+          storeCode={storeCode}
           onOk={handleServeOk}
           onCancel={handleServeCancel}
         />

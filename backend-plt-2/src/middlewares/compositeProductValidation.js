@@ -41,6 +41,16 @@ const validateCreateComposite = [
     .isMongoId()
     .withMessage('Invalid child product ID'),
   
+  body('childProducts.*.quantityPerServing')
+    .if(body('childProducts').exists())
+    .isFloat({ min: 0 })
+    .withMessage('Quantity per serving must be greater than or equal to 0'),
+
+  body('childProducts.*.unit')
+    .if(body('childProducts').exists())
+    .notEmpty()
+    .withMessage('Unit is required for child products'),
+  
   body('childProducts.*.costPrice')
     .if(body('childProducts').exists())
     .isFloat({ min: 0 })
@@ -111,6 +121,16 @@ const validateUpdateComposite = [
     .if(body('compositeInfo.childProducts').exists())
     .isMongoId()
     .withMessage('Invalid child product ID'),
+  
+  body('compositeInfo.childProducts.*.quantityPerServing')
+    .if(body('compositeInfo.childProducts').exists())
+    .isFloat({ min: 0 })
+    .withMessage('Quantity per serving must be greater than or equal to 0'),
+
+  body('compositeInfo.childProducts.*.unit')
+    .if(body('compositeInfo.childProducts').exists())
+    .notEmpty()
+    .withMessage('Unit is required for child products'),
   
   body('compositeInfo.childProducts.*.costPrice')
     .if(body('compositeInfo.childProducts').exists())

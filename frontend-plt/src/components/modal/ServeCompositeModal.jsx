@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Modal,
@@ -13,18 +13,19 @@ import {
   Divider,
   Progress,
   Alert,
-  Tag
+  Tag,
+  Spin
 } from "antd";
 import { ShoppingOutlined, ExclamationCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
 
 // Requests
-import { serveCompositeProduct } from "@/request/compositeProduct";
+import { serveCompositeProduct, getCompositeProductDetails } from "@/request/compositeProduct";
 import useCompositeProductStore from "@/store/compositeProduct";
 import { parseDecimal, formatPrice } from "@/utils/numberUtils";
 
 const { Title, Text } = Typography;
 
-const ServeCompositeModal = ({ open, product, onOk, onCancel }) => {
+const ServeCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
@@ -32,22 +33,54 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel }) => {
   const { setServingProduct, updateCompositeProduct } = useCompositeProductStore();
   
   const [loading, setLoading] = useState(false);
+  const [detailedProduct, setDetailedProduct] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  
+  // Move useWatch hook to top to follow Rules of Hooks
+  const watchQuantity = Form.useWatch('quantityToServe', form) || 1;
 
-  // Format hours elapsed
-  const formatHoursElapsed = (hours) => {
-    if (hours < 1) {
-      return `${Math.round(hours * 60)} ${t('TXT_MINUTES')}`;
+  // Fetch detailed product info when modal opens
+  useEffect(() => {
+    if (open && product?._id) {
+      fetchProductDetails();
     }
-    return `${Math.round(hours)} ${t('TXT_HOURS')}`;
-  };
+  }, [open, product?._id]);
 
-  // Get expiry status
+  const fetchProductDetails = async () => {
+    try {
+      setLoadingDetails(true);
+      const details = await getCompositeProductDetails(product._id, storeCode);
+      console.log('🔍 Fetched product details:', details);
+      console.log('🔍 Child products:', details?.compositeInfo?.childProducts);
+      setDetailedProduct(details);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      messageApi.error(t('MSG_ERROR_FETCH_PRODUCT_DETAILS'));
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+  
+  // Get expiry status from detailed product or fallback to prop
   const getExpiryStatus = () => {
-    if (!product?.statusInfo) return null;
+    const productToUse = detailedProduct || product;
+    if (productToUse?.statusInfo) {
+      return productToUse.statusInfo;
+    }
     
-    const { status, hoursElapsed } = product.statusInfo;
-    const expiryHours = product.compositeInfo.expiryHours;
+    // Fallback calculation if no statusInfo
+    if (!productToUse?.compositeInfo?.lastPreparedAt) return null;
+    
+    const hoursElapsed = (new Date() - new Date(productToUse.compositeInfo.lastPreparedAt)) / (1000 * 60 * 60);
+    const expiryHours = productToUse.compositeInfo.expiryHours || 24;
     const remainingHours = expiryHours - hoursElapsed;
+    
+    let status = 'fresh';
+    if (hoursElapsed >= expiryHours) {
+      status = 'expired';
+    } else if (hoursElapsed >= expiryHours * 0.8) {
+      status = 'expiring_soon';
+    }
     
     return {
       status,
@@ -57,6 +90,81 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel }) => {
     };
   };
 
+  // Calculate pricing from detailed product child products
+  const calculatePricing = () => {
+    console.log('🔍 calculatePricing called');
+    console.log('🔍 detailedProduct:', detailedProduct);
+    console.log('🔍 watchQuantity:', watchQuantity);
+    
+    if (!detailedProduct?.compositeInfo?.childProducts) {
+      console.log('🔍 Using fallback pricing');
+      // Fallback to original product pricing if detailed data not available
+      return {
+        totalRevenue: (product?.retailPrice || 0) * watchQuantity,
+        totalCost: (parseDecimal(product?.costPrice) || 0) * watchQuantity,
+        profit: ((product?.retailPrice || 0) - (parseDecimal(product?.costPrice) || 0)) * watchQuantity,
+        revenuePerServing: product?.retailPrice || 0,
+        costPerServing: parseDecimal(product?.costPrice) || 0
+      };
+    }
+
+    let totalChildCost = 0;
+    let totalChildRevenue = 0;
+
+    console.log('🔍 Child products:', detailedProduct.compositeInfo.childProducts);
+
+    detailedProduct.compositeInfo.childProducts.forEach(child => {
+      const quantityPerServing = child.quantityPerServing || 0;
+      const childCost = (child.productId.costPrice || 0) * quantityPerServing;
+      const childRevenue = (child.productId.retailPrice || 0) * quantityPerServing;
+      
+      console.log('🔍 Child:', {
+        name: child.productId.name,
+        quantityPerServing,
+        costPrice: child.productId.costPrice,
+        retailPrice: child.productId.retailPrice,
+        childCost,
+        childRevenue
+      });
+      
+      totalChildCost += childCost;
+      totalChildRevenue += childRevenue;
+    });
+
+    const totalCost = totalChildCost * watchQuantity;
+    const totalRevenue = totalChildRevenue * watchQuantity;
+    const profit = totalRevenue - totalCost;
+
+    console.log('🔍 Final calculation:', {
+      totalChildCost,
+      totalChildRevenue,
+      totalCost,
+      totalRevenue,
+      profit
+    });
+
+    return { 
+      totalRevenue, 
+      totalCost, 
+      profit,
+      revenuePerServing: totalChildRevenue,
+      costPerServing: totalChildCost
+    };
+  };
+  
+  // Calculate values
+  const expiryStatus = product ? getExpiryStatus() : null;
+  const { totalRevenue, totalCost, profit, revenuePerServing, costPerServing } = calculatePricing();
+  const remainingAfterServe = product ? (product.compositeInfo.currentStock - watchQuantity) : 0;
+
+  // Format hours elapsed
+  const formatHoursElapsed = (hours) => {
+    if (hours < 1) {
+      return `${Math.round(hours * 60)} ${t('TXT_MINUTES')}`;
+    }
+    return `${Math.round(hours)} ${t('TXT_HOURS')}`;
+  };
+
   // Form submission
   const handleSubmit = async (values) => {
     try {
@@ -64,7 +172,6 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel }) => {
       setServingProduct(product._id, true);
 
       // Validate expiry
-      const expiryStatus = getExpiryStatus();
       if (expiryStatus && expiryStatus.status === 'expired') {
         messageApi.error(t('MSG_ERROR_PRODUCT_EXPIRED'));
         return;
@@ -104,17 +211,11 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel }) => {
 
   const handleCancel = () => {
     form.resetFields();
+    setDetailedProduct(null);
     onCancel();
   };
 
   if (!product) return null;
-
-  const expiryStatus = getExpiryStatus();
-  const watchQuantity = Form.useWatch('quantityToServe', form) || 1;
-  const totalRevenue = (product.retailPrice || 0) * watchQuantity;
-  const totalCost = parseDecimal(product.costPrice) * watchQuantity;
-  const profit = totalRevenue - totalCost;
-  const remainingAfterServe = product.compositeInfo.currentStock - watchQuantity;
 
   // Check if product is expired or expiring soon
   const showExpiryWarning = expiryStatus && 
@@ -146,11 +247,23 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel }) => {
           </Col>
           <Col span={8}>
             <Text className="text-gray-500">{t('TXT_RETAIL_PRICE')}: </Text>
-            <Text strong>{formatPrice(parseDecimal(product.retailPrice))}</Text>
+            <Text strong>
+              {loadingDetails ? (
+                <Spin size="small" />
+              ) : (
+                formatPrice(revenuePerServing || 0)
+              )}
+            </Text>
           </Col>
           <Col span={8}>
             <Text className="text-gray-500">{t('TXT_COST_PRICE')}: </Text>
-            <Text strong>{formatPrice(parseDecimal(product.costPrice))}</Text>
+            <Text strong>
+              {loadingDetails ? (
+                <Spin size="small" />
+              ) : (
+                formatPrice(costPerServing || 0)
+              )}
+            </Text>
           </Col>
         </Row>
       </Card>
@@ -226,48 +339,55 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel }) => {
 
         <Divider>{t('TXT_TRANSACTION_SUMMARY')}</Divider>
 
-        <Row gutter={16} className="mb-4">
-          <Col span={6}>
-            <Card size="small" className="text-center">
-              <Title level={5} className="text-blue-600 mb-1">
-                {watchQuantity}
-              </Title>
-              <Text className="text-gray-500 text-xs">
-                {t('TXT_QUANTITY')}
-              </Text>
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card size="small" className="text-center">
-              <Title level={5} className="text-green-600 mb-1">
-                {formatPrice(totalRevenue)}
-              </Title>
-              <Text className="text-gray-500 text-xs">
-                {t('TXT_REVENUE')}
-              </Text>
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card size="small" className="text-center">
-              <Title level={5} className="text-red-600 mb-1">
-                {formatPrice(totalCost)}
-              </Title>
-              <Text className="text-gray-500 text-xs">
-                {t('TXT_COST')}
-              </Text>
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card size="small" className="text-center">
-              <Title level={5} className={profit >= 0 ? "text-green-600" : "text-red-600"}>
-                {formatPrice(profit)}
-              </Title>
-              <Text className="text-gray-500 text-xs">
-                {t('TXT_PROFIT')}
-              </Text>
-            </Card>
-          </Col>
-        </Row>
+        {loadingDetails ? (
+          <div className="text-center py-4">
+            <Spin />
+            <Text className="ml-2">{t('TXT_LOADING_PRODUCT_DETAILS')}</Text>
+          </div>
+        ) : (
+          <Row gutter={16} className="mb-4">
+            <Col span={6}>
+              <Card size="small" className="text-center">
+                <Title level={5} className="text-blue-600 mb-1">
+                  {watchQuantity}
+                </Title>
+                <Text className="text-gray-500 text-xs">
+                  {t('TXT_QUANTITY')}
+                </Text>
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card size="small" className="text-center">
+                <Title level={5} className="text-green-600 mb-1">
+                  {formatPrice(totalRevenue)}
+                </Title>
+                <Text className="text-gray-500 text-xs">
+                  {t('TXT_REVENUE')}
+                </Text>
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card size="small" className="text-center">
+                <Title level={5} className="text-red-600 mb-1">
+                  {formatPrice(totalCost)}
+                </Title>
+                <Text className="text-gray-500 text-xs">
+                  {t('TXT_COST')}
+                </Text>
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card size="small" className="text-center">
+                <Title level={5} className={profit >= 0 ? "text-green-600" : "text-red-600"}>
+                  {formatPrice(profit)}
+                </Title>
+                <Text className="text-gray-500 text-xs">
+                  {t('TXT_PROFIT')}
+                </Text>
+              </Card>
+            </Col>
+          </Row>
+        )}
 
         <Card size="small" className="mb-4">
           <Row justify="space-between">

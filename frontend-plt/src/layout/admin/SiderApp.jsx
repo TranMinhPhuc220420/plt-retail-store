@@ -104,6 +104,12 @@ const SiderApp = ({ isLoading, collapsed }) => {
           label: t('TXT_PRODUCT_MANAGEMENT'),
         },
         {
+          key: 'admin_composite_product_management',
+          icon: <ProductOutlined />,
+          pathname: `/store/${storeCode}/admin/san-pham-tong-hop`,
+          label: t('TXT_COMPOSITE_PRODUCTS'),
+        },
+        {
           key: 'admin_ingredient_management',
           icon: <ProductOutlined />,
           pathname: `/store/${storeCode}/admin/nguyen-lieu`,

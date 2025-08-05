@@ -201,7 +201,7 @@ const ProductManagerPage = () => {
   };
 
   const handleGoToCompositeProducts = () => {
-    navigate(`/admin/composite-products/${storeCode}`);
+    navigate(`/store/${storeCode}/admin/san-pham-tong-hop`);
   };
 
   const handleFileChange = (e) => {
@@ -367,7 +367,7 @@ const ProductManagerPage = () => {
               {t('TXT_ADD_NEW')}
             </Button>
 
-            <Button 
+            {/* <Button 
               type="default" 
               icon={<ExperimentOutlined />} 
               className="ml-2" 
@@ -375,7 +375,7 @@ const ProductManagerPage = () => {
               disabled={isAddingByExcelLoading || isDeletingLoading}
             >
               {t('TXT_COMPOSITE_PRODUCTS')}
-            </Button>
+            </Button> */}
 
             {/* <Dropdown.Button
               className="ml-2"

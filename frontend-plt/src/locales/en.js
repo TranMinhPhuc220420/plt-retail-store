@@ -119,6 +119,13 @@ const ENGLISH_TRANSLATIONS = {
     "TXT_RETAIL_PRICE": "Retail Price",
     "TXT_MARGIN": "Margin",
     "TXT_PROFITABILITY": "Profitability",
+    "TXT_TOTAL_REVENUE": "Total Revenue",
+    "TXT_LOADING_PREPARE_INFO": "Loading preparation info...",
+    "TXT_LOADING_SERVE_INFO": "Loading serving info...",
+    "TXT_LOADING_PRODUCT_DETAILS": "Loading product details...",
+    "MSG_ERROR_FETCH_PREPARE_INFO": "Failed to fetch preparation information",
+    "MSG_ERROR_FETCH_SERVE_INFO": "Failed to fetch serving information",
+    "MSG_ERROR_FETCH_PRODUCT_DETAILS": "Failed to fetch product details",
     
     // Child Product Translations
     "TXT_CHILD_PRODUCT_WARNING": "Child Product of Composite Product",

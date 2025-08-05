@@ -1236,6 +1236,12 @@ const VIETNAMESE_TRANSLATIONS = {
     "MSG_NEED_TO_PREPARE_FIRST": "Cần chuẩn bị sản phẩm trước khi phục vụ",
     "MSG_QUANTITY_EXCEED_STOCK": "Số lượng vượt quá tồn kho hiện có",
     
+    // Additional error messages for prepare composite
+    "MSG_INVALID_QUANTITY_TO_PREPARE": "Số lượng chuẩn bị không hợp lệ (từ 1 đến 10)",
+    "MSG_INVALID_COMPOSITE_STRUCTURE": "Cấu trúc sản phẩm tổng hợp không hợp lệ",
+    "MSG_NO_VALID_REQUIREMENTS": "Không có yêu cầu hợp lệ để chuẩn bị",
+    "MSG_INVALID_REQUIREMENTS_FOUND": "Tìm thấy yêu cầu không hợp lệ trong công thức",
+    
     // Recipe Selection for Composite Products
     "TXT_RECIPE_SELECTION": "Chọn công thức",
     "TXT_SELECT_RECIPE": "Chọn công thức",
@@ -1443,7 +1449,6 @@ const VIETNAMESE_TRANSLATIONS = {
     "TXT_RETAIL_MARGIN": "Tỷ suất LN lẻ", 
     "TXT_PRICE_RATIO": "Tỷ lệ giá",
     "TXT_CREATING": "Đang tạo",
-    "TXT_TOTAL_REVENUE": "Tổng doanh thu",
     "TXT_SELLING_PRICE_PER_SERVING": "Giá bán mỗi phần",
 
     "TXT_FINANCIAL_SUMMARY": "Tóm tắt tài chính",
@@ -1466,6 +1471,12 @@ const VIETNAMESE_TRANSLATIONS = {
     "TXT_UPDATE": "Cập nhật",
 
     "TXT_STOCK_STATUS": "Trạng thái tồn kho",
+    "TXT_LOADING_PREPARE_INFO": "Đang tải thông tin chuẩn bị...",
+    "TXT_LOADING_SERVE_INFO": "Đang tải thông tin phục vụ...",
+    "TXT_LOADING_PRODUCT_DETAILS": "Đang tải chi tiết sản phẩm...",
+    "MSG_ERROR_FETCH_PREPARE_INFO": "Lỗi khi lấy thông tin chuẩn bị",
+    "MSG_ERROR_FETCH_SERVE_INFO": "Lỗi khi lấy thông tin phục vụ",
+    "MSG_ERROR_FETCH_PRODUCT_DETAILS": "Lỗi khi lấy chi tiết sản phẩm",
     
     // Per-unit analysis
     "TXT_PER_UNIT_ANALYSIS": "Phân tích theo từng sản phẩm",
@@ -1515,7 +1526,9 @@ const VIETNAMESE_TRANSLATIONS = {
     "TXT_CHILD_PRODUCT_WARNING": "Sản phẩm con của Composite Product",
     "TXT_CHILD_PRODUCT_DESCRIPTION": "Sản phẩm này là thành phần của sản phẩm composite '{{compositeProductName}}'. Một số thông tin được quản lý từ sản phẩm composite.",
     "TXT_CHILD_PRODUCT_RESTRICTED_FIELDS": "Các trường bị hạn chế",
-    "MSG_CHILD_PRODUCT_UPDATE_RESTRICTED": "Không thể cập nhật các trường bị hạn chế của sản phẩm con"
+    "MSG_CHILD_PRODUCT_UPDATE_RESTRICTED": "Không thể cập nhật các trường bị hạn chế của sản phẩm con",
+    "MSG_SUCCESS_UPDATE_COMPOSITE_PRODUCT_PRICES": "Cập nhật giá sản phẩm thành công",
+    "MSG_ERROR_UPDATE_COMPOSITE_PRODUCT_PRICES": "Cập nhật giá sản phẩm thất bại",
   }
 };
 

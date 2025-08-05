@@ -124,9 +124,9 @@ function AuthProvider({ children }) {
       }
     }
 
-    console.log(pageToRedirect);
-    
+    // Only log pageToRedirect if it has a value
     if (pageToRedirect) {
+      console.log('Redirecting to:', pageToRedirect);
       navigate(pageToRedirect, { replace: true });
     }
 

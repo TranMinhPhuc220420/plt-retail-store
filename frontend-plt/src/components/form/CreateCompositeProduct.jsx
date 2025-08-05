@@ -77,6 +77,8 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
     const newChildProduct = {
       id: Date.now(), // temporary ID
       productId: null,
+      quantityPerServing: 1, // Default quantity per serving
+      unit: 'piece', // Default unit
       costPrice: recipeCostPerChild, // Cost from recipe divided among child products
       sellingPrice: Math.round(recipeCostPerChild * 1.3), // 30% markup suggestion
       retailPrice: Math.round(recipeCostPerChild * 1.5), // 50% markup suggestion
@@ -334,7 +336,7 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
       title: t('TXT_PRODUCT'),
       dataIndex: 'productId',
       key: 'productId',
-      width: 200,
+      width: 180,
       render: (value, record) => (
         <Select
           style={{ width: '100%' }}
@@ -355,6 +357,46 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
       )
     },
     {
+      title: t('TXT_QUANTITY_PER_SERVING'),
+      dataIndex: 'quantityPerServing',
+      key: 'quantityPerServing',
+      width: 120,
+      render: (value, record) => (
+        <InputNumber
+          style={{ width: '100%' }}
+          min={0}
+          step={0.1}
+          value={value}
+          onChange={(val) => updateChildProduct(record.id, 'quantityPerServing', val || 0)}
+          placeholder="0"
+          precision={2}
+        />
+      )
+    },
+    {
+      title: t('TXT_UNIT'),
+      dataIndex: 'unit',
+      key: 'unit',
+      width: 100,
+      render: (value, record) => (
+        <Select
+          style={{ width: '100%' }}
+          placeholder={t('TXT_SELECT_UNIT')}
+          value={value}
+          onChange={(val) => updateChildProduct(record.id, 'unit', val)}
+        >
+          <Option value="kg">kg</Option>
+          <Option value="g">g</Option>
+          <Option value="l">l</Option>
+          <Option value="ml">ml</Option>
+          <Option value="piece">piece</Option>
+          <Option value="cup">cup</Option>
+          <Option value="tbsp">tbsp</Option>
+          <Option value="tsp">tsp</Option>
+        </Select>
+      )
+    },
+    {
       title: t('TXT_COST_PRICE'),
       dataIndex: 'costPrice',
       key: 'costPrice',
@@ -367,7 +409,7 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
       title: t('TXT_SELLING_PRICE'),
       dataIndex: 'sellingPrice',
       key: 'sellingPrice',
-      width: 140,
+      width: 130,
       render: (value, record) => (
         <InputNumber
           style={{ width: '100%' }}
@@ -385,7 +427,7 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
       title: t('TXT_RETAIL_PRICE'),
       dataIndex: 'retailPrice',
       key: 'retailPrice',
-      width: 140,
+      width: 130,
       render: (value, record) => (
         <InputNumber
           style={{ width: '100%' }}
@@ -429,6 +471,8 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
       if (childProducts.length > 0) {
         const invalidProducts = childProducts.filter(
           child => !child.productId ||
+            child.quantityPerServing === undefined || child.quantityPerServing <= 0 ||
+            !child.unit || child.unit.trim() === '' ||
             child.costPrice === undefined || child.costPrice < 0 ||
             child.sellingPrice === undefined || child.sellingPrice < 0 ||
             child.retailPrice === undefined || child.retailPrice < 0
@@ -436,6 +480,7 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
 
         if (invalidProducts.length > 0) {
           messageApi.error(t('MSG_ERROR_INVALID_CHILD_PRODUCTS'));
+          console.error('Invalid child products:', invalidProducts);
           return;
         }
       }
@@ -489,6 +534,8 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
         ...(childProducts.length > 0 && {
           childProducts: childProducts.map(child => ({
             productId: child.productId,
+            quantityPerServing: child.quantityPerServing || 1,
+            unit: child.unit || 'piece',
             costPrice: child.costPrice,
             sellingPrice: child.sellingPrice,
             retailPrice: child.retailPrice

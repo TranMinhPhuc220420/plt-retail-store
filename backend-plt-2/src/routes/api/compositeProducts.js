@@ -23,8 +23,8 @@ router.post('/', validateCreateComposite, compositeProductController.createCompo
 // PUT /api/composite-products/:id - Cập nhật sản phẩm composite
 router.put('/:id', validateUpdateComposite, compositeProductController.updateComposite);
 
-// PUT /api/composite-products/:id/child-prices - Cập nhật giá bán của sản phẩm con
-router.put('/:id/child-prices', compositeProductController.updateChildProductPrices);
+// PUT /api/composite-products/:id/price - Cập nhật giá bán của sản phẩm composite
+router.put('/:id/price', compositeProductController.updateCompositePrice);
 
 // DELETE /api/composite-products/:id - Xóa sản phẩm composite
 router.delete('/:id', compositeProductController.deleteComposite);

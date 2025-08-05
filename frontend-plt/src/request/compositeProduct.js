@@ -124,7 +124,14 @@ export const prepareCompositeProduct = async (id, quantityToPrepare = 1) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.message || error.message || 'Failed to prepare composite product');
+    // Preserve the original error structure so the modal can handle specific error types
+    if (error.response) {
+      // Server responded with error status
+      throw error;
+    } else {
+      // Network or other error
+      throw new Error(error.message || 'Failed to prepare composite product');
+    }
   }
 };
 

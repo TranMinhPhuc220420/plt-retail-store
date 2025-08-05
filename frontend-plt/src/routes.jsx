@@ -94,7 +94,7 @@ const router = createBrowserRouter([
         element: <ProductManagerPage />,
       },
       {
-        path: "composite-products",
+        path: "san-pham-tong-hop",
         element: <CompositeProductManagerPage />,
       },
       {
@@ -145,22 +145,6 @@ const router = createBrowserRouter([
             element: <ManagerEmployeePage />,
           },
         ],
-      },
-    ],
-  },
-
-  // Admin routes with storeCode
-  {
-    path: "/admin/composite-products/:storeCode",
-    element: (
-      <ProtectedRoute
-        element={<LayoutAdmin />}
-      />
-    ),
-    children: [
-      {
-        index: true,
-        element: <CompositeProductManagerPage />,
       },
     ],
   },
