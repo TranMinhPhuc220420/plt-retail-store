@@ -391,6 +391,55 @@ const compositeProductController = {
   },
 
   /**
+   * Cập nhật chỉ giá bán của sản phẩm con trong composite product
+   */
+  updateChildProductPrices: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { childProducts } = req.body;
+
+      if (!childProducts || !Array.isArray(childProducts)) {
+        return res.status(400).json({ error: 'child_products_array_required' });
+      }
+
+      const product = await Product.findOne({ 
+        _id: id, 
+        ownerId: req.user._id, 
+        isComposite: true 
+      });
+
+      if (!product) {
+        return res.status(404).json({ error: 'composite_product_not_found' });
+      }
+
+      // Validate và cập nhật giá của child products
+      for (const childUpdate of childProducts) {
+        const existingChildIndex = product.compositeInfo.childProducts.findIndex(
+          cp => cp.productId.toString() === childUpdate.productId
+        );
+
+        if (existingChildIndex !== -1) {
+          // Chỉ cập nhật sellingPrice và retailPrice
+          if (childUpdate.sellingPrice !== undefined) {
+            product.compositeInfo.childProducts[existingChildIndex].sellingPrice = childUpdate.sellingPrice;
+          }
+          if (childUpdate.retailPrice !== undefined) {
+            product.compositeInfo.childProducts[existingChildIndex].retailPrice = childUpdate.retailPrice;
+          }
+        }
+      }
+
+      const updatedProduct = await product.save();
+      await updatedProduct.populate('compositeInfo.childProducts.productId', 'name unit costPrice');
+
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      console.error('Error updating child product prices:', error);
+      res.status(500).json({ error: 'failed_to_update_child_product_prices' });
+    }
+  },
+
+  /**
    * Cập nhật sản phẩm composite
    */
   updateComposite: async (req, res) => {

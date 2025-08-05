@@ -4,8 +4,8 @@ import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 // Antd design
-import { SaveOutlined, CloseOutlined } from "@ant-design/icons";
-import { Button, Input, Form, Upload, message, InputNumber, Select, AutoComplete } from "antd";
+import { SaveOutlined, CloseOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { Button, Input, Form, Upload, message, InputNumber, Select, AutoComplete, Alert } from "antd";
 
 // Hooks
 import useAuth from "@/hooks/useAuth";
@@ -14,7 +14,7 @@ import useAuth from "@/hooks/useAuth";
 import { IMAGE_PRODUCT_EXAMPLE, UNIT_LIST_SUGGESTION, PRODUCT_STATUS_LIST } from "@/constant";
 
 // Request
-import { updateMyProduct, uploadAvatarProduct } from "@/request/product";
+import { updateMyProduct, uploadAvatarProduct, checkChildProductStatus } from "@/request/product";
 
 // Zustand store
 import useStoreProduct from "@/store/product";
@@ -38,6 +38,11 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(productData?.imageUrl || IMAGE_PRODUCT_EXAMPLE);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [childProductStatus, setChildProductStatus] = useState({
+    isChildProduct: false,
+    compositeProduct: null,
+    loading: true
+  });
 
   const [form] = Form.useForm();
 
@@ -59,6 +64,23 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
         description: productData.description,
       });
       setImageUrl(productData.imageUrl || IMAGE_PRODUCT_EXAMPLE);
+
+      // Check child product status
+      checkChildProductStatus(productData._id)
+        .then((status) => {
+          setChildProductStatus({
+            ...status,
+            loading: false
+          });
+        })
+        .catch((error) => {
+          console.error('Error checking child product status:', error);
+          setChildProductStatus({
+            isChildProduct: false,
+            compositeProduct: null,
+            loading: false
+          });
+        });
     }
   }, [productData, form]);
 
@@ -80,11 +102,22 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
 
       onOK();
     } catch (error) {
-      let messageError = t(error);
-      if (!messageError || messageError === error) {
-        messageError = t('TXT_PRODUCT_UPDATE_FAILED');
+      console.error('Update product error:', error);
+      
+      // Handle child product restriction error specially
+      if (error?.error === 'child_product_restricted_fields') {
+        message.error(
+          t('MSG_CHILD_PRODUCT_UPDATE_RESTRICTED') + 
+          `: ${error.restrictedFields.join(', ')}. ` +
+          t('TXT_CHILD_PRODUCT_DESCRIPTION', { compositeProductName: error.compositeProductName })
+        );
+      } else {
+        let messageError = t(error);
+        if (!messageError || messageError === error) {
+          messageError = t('TXT_PRODUCT_UPDATE_FAILED');
+        }
+        message.error(messageError);
       }
-      message.error(messageError);
       onFail();
     }
 
@@ -150,6 +183,33 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
           </Upload>
         </div>
 
+        {/* Child Product Warning */}
+        {childProductStatus.isChildProduct && (
+          <Alert
+            message={
+              <div className="flex items-center">
+                <InfoCircleOutlined className="mr-2" />
+                <span className="font-medium">{t('TXT_CHILD_PRODUCT_WARNING')}</span>
+              </div>
+            }
+            description={
+              <div>
+                <p>{t('TXT_CHILD_PRODUCT_DESCRIPTION', {
+                  compositeProductName: childProductStatus.compositeProduct?.name
+                })}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {t('TXT_CHILD_PRODUCT_RESTRICTED_FIELDS')}: 
+                  <span className="font-medium"> {t('TXT_PRICE')}, {t('TXT_RETAIL_PRICE')}, {t('TXT_COST_PRICE')}, {t('TXT_UNIT')}</span>
+                </p>
+              </div>
+            }
+            type="warning"
+            showIcon={false}
+            className="mb-4 border-l-4 border-l-orange-400"
+            closable={false}
+          />
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-white">
           <Form.Item
             name="name"
@@ -183,6 +243,7 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
               filterOption={(inputValue, option) =>
                 option.value.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1
               }
+              disabled={childProductStatus.isChildProduct}
             />
           </Form.Item>
 
@@ -213,6 +274,7 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
               style={{ width: '100%' }}
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' VNĐ'}
               parser={(value) => value.replace(/\s?VNĐ|(,*)/g, '')}
+              disabled={childProductStatus.isChildProduct}
             />
           </Form.Item>
 
@@ -227,6 +289,7 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
               style={{ width: '100%' }}
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' VNĐ'}
               parser={(value) => value.replace(/\s?VNĐ|(,*)/g, '')}
+              disabled={childProductStatus.isChildProduct}
             />
           </Form.Item>
 
@@ -241,6 +304,7 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
               style={{ width: '100%' }}
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' VNĐ'}
               parser={(value) => value.replace(/\s?VNĐ|(,*)/g, '')}
+              disabled={childProductStatus.isChildProduct}
             />
           </Form.Item>
         

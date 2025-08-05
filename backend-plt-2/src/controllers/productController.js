@@ -10,6 +10,9 @@ const {
   checkProductionFeasibility,
   createProductionTransaction
 } = require('../utils/inventoryIntegration');
+const {
+  validateChildProductUpdate
+} = require('../utils/productUtils');
 
 const productController = {
   getAllMy: async (req, res) => {
@@ -82,6 +85,17 @@ const productController = {
         return res.status(404).json({ error: 'product_not_found' });
       }
 
+      // Validate child product restrictions
+      const validation = await validateChildProductUpdate(id, req.user._id, req.body);
+      if (!validation.canUpdate) {
+        return res.status(400).json({ 
+          error: 'child_product_restricted_fields',
+          message: `Cannot update fields [${validation.restrictedFields.join(', ')}] for child product of composite "${validation.compositeProductName}". These fields are managed by the composite product.`,
+          restrictedFields: validation.restrictedFields,
+          compositeProductName: validation.compositeProductName
+        });
+      }
+
       Object.assign(product, req.body);
       const updatedProduct = await product.save();
 
@@ -114,13 +128,13 @@ const productController = {
       if (!storeCode) {
         return res.status(400).json({ error: 'store_code_required' });
       }
-      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
 
       let products = await Product.find({
-        storeId: store._id, owner: req.user.id, deleted: false,
+        storeId: store._id, ownerId: req.user._id, deleted: false,
         $or: [
           { isComposite: { $exists: false } }, // Sản phẩm cũ chưa có field isComposite
           { isComposite: false } // Sản phẩm thường
@@ -155,14 +169,25 @@ const productController = {
       const { id } = req.params;
       const { storeCode } = req.body;
 
-      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
 
-      const product = await Product.findOne({ _id: id, owner: req.user.id, storeId: store._id, deleted: false });
+      const product = await Product.findOne({ _id: id, ownerId: req.user._id, storeId: store._id, deleted: false });
       if (!product) {
         return res.status(404).json({ error: 'product_not_found' });
+      }
+
+      // Validate child product restrictions
+      const validation = await validateChildProductUpdate(id, req.user._id, req.body);
+      if (!validation.canUpdate) {
+        return res.status(400).json({ 
+          error: 'child_product_restricted_fields',
+          message: `Cannot update fields [${validation.restrictedFields.join(', ')}] for child product of composite "${validation.compositeProductName}". These fields are managed by the composite product.`,
+          restrictedFields: validation.restrictedFields,
+          compositeProductName: validation.compositeProductName
+        });
       }
 
       Object.assign(product, req.body);
@@ -183,7 +208,7 @@ const productController = {
         return res.status(400).json({ error: 'store_code_required' });
       }
 
-      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
@@ -517,6 +542,28 @@ const productController = {
     } catch (error) {
       console.error('Error fetching regular products:', error);
       res.status(500).json({ error: 'failed_to_fetch_regular_products' });
+    }
+  },
+
+  // Kiểm tra xem sản phẩm có phải child product không
+  checkChildProductStatus: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { checkIfChildProduct } = require('../utils/productUtils');
+
+      const result = await checkIfChildProduct(id, req.user._id);
+      
+      res.status(200).json({
+        isChildProduct: result.isChildProduct,
+        compositeProduct: result.compositeProduct ? {
+          _id: result.compositeProduct._id,
+          name: result.compositeProduct.name,
+          productCode: result.compositeProduct.productCode
+        } : null
+      });
+    } catch (error) {
+      console.error('Error checking child product status:', error);
+      res.status(500).json({ error: 'failed_to_check_child_product_status' });
     }
   },
 };

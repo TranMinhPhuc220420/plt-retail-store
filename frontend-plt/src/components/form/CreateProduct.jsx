@@ -4,8 +4,8 @@ import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 // Antd design
-import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
-import { Button, Input, Form, Upload, message, InputNumber, Select, AutoComplete } from "antd";
+import { PlusOutlined, CloseOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { Button, Input, Form, Upload, message, InputNumber, Select, AutoComplete, Alert } from "antd";
 
 // Hooks
 import useAuth from "@/hooks/useAuth";

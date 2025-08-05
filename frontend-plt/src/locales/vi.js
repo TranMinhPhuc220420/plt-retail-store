@@ -1274,6 +1274,24 @@ const VIETNAMESE_TRANSLATIONS = {
     "TXT_NO_DATA_AVAILABLE": "Không có dữ liệu",
     "TXT_PLEASE_REFRESH_PAGE": "Vui lòng tải lại trang",
 
+    // Edit Composite Product - New Pricing Edit Mode Translations
+    "TXT_PRICING_READ_ONLY_NOTICE": "Thông tin giá cơ bản chỉ được hiển thị",
+    "TXT_PRICING_READ_ONLY_DESCRIPTION": "Giá bán và giá bán lẻ cơ bản được tính từ sản phẩm con. Bạn chỉ có thể chỉnh sửa giá của từng sản phẩm con.",
+    "TXT_SELLING_PRICE_READ_ONLY": "Giá bán (chỉ xem)",
+    "TXT_RETAIL_PRICE_READ_ONLY": "Giá bán lẻ (chỉ xem)",
+    "TXT_CURRENT_STOCK_READ_ONLY": "Tồn kho hiện tại (chỉ xem)",
+    "TXT_CAPACITY_READ_ONLY": "Số lượng sản xuất (chỉ xem)",
+    "TXT_UNIT_READ_ONLY": "Đơn vị (chỉ xem)",
+    "TXT_EXPIRY_HOURS_READ_ONLY": "Thời gian hết hạn (chỉ xem)",
+    "TXT_EDITABLE_PRICES": "Giá có thể chỉnh sửa",
+    "TXT_PRICES_EDITABLE": "Có thể sửa giá",
+    "TXT_CHILD_PRODUCTS_PRICE_EDITABLE_NOTICE": "Bạn có thể chỉnh sửa giá bán và giá bán lẻ của các sản phẩm con",
+    "TXT_CHILD_PRODUCTS_PRICE_EDIT_INSTRUCTION": "Nhấp vào ô giá để chỉnh sửa. Tổng doanh thu sẽ được tính toán tự động.",
+    "TXT_UPDATE_CHILD_PRICES": "Cập nhật giá sản phẩm con",
+    "TXT_UPDATING_PRICES": "Đang cập nhật giá",
+    "MSG_SUCCESS_UPDATE_CHILD_PRODUCT_PRICES": "Cập nhật giá sản phẩm con thành công",
+    "MSG_ERROR_UPDATE_CHILD_PRODUCT_PRICES": "Lỗi khi cập nhật giá sản phẩm con",
+
     // Titles
     "TITLE_ADD_COMPOSITE_PRODUCT": "Thêm sản phẩm tổng hợp",
     "TITLE_EDIT_COMPOSITE_PRODUCT": "Sửa sản phẩm tổng hợp",
@@ -1491,7 +1509,13 @@ const VIETNAMESE_TRANSLATIONS = {
     "MSG_CAPACITY_MUST_BE_POSITIVE": "Sức chứa phải lớn hơn 0",
     "MSG_EXPIRY_HOURS_MUST_BE_POSITIVE": "Thời gian hết hạn phải lớn hơn 0",
     "TXT_ENTER_SELLING_PRICE": "Nhập giá bán",
-    "TXT_ENTER_CAPACITY": "Nhập sức chứa"
+    "TXT_ENTER_CAPACITY": "Nhập sức chứa",
+    
+    // Child Product Translations
+    "TXT_CHILD_PRODUCT_WARNING": "Sản phẩm con của Composite Product",
+    "TXT_CHILD_PRODUCT_DESCRIPTION": "Sản phẩm này là thành phần của sản phẩm composite '{{compositeProductName}}'. Một số thông tin được quản lý từ sản phẩm composite.",
+    "TXT_CHILD_PRODUCT_RESTRICTED_FIELDS": "Các trường bị hạn chế",
+    "MSG_CHILD_PRODUCT_UPDATE_RESTRICTED": "Không thể cập nhật các trường bị hạn chế của sản phẩm con"
   }
 };
 

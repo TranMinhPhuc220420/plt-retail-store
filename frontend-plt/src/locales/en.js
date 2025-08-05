@@ -119,6 +119,12 @@ const ENGLISH_TRANSLATIONS = {
     "TXT_RETAIL_PRICE": "Retail Price",
     "TXT_MARGIN": "Margin",
     "TXT_PROFITABILITY": "Profitability",
+    
+    // Child Product Translations
+    "TXT_CHILD_PRODUCT_WARNING": "Child Product of Composite Product",
+    "TXT_CHILD_PRODUCT_DESCRIPTION": "This product is a component of composite product '{{compositeProductName}}'. Some information is managed by the composite product.",
+    "TXT_CHILD_PRODUCT_RESTRICTED_FIELDS": "Restricted fields",
+    "MSG_CHILD_PRODUCT_UPDATE_RESTRICTED": "Cannot update restricted fields of child product"
   }
 };
 

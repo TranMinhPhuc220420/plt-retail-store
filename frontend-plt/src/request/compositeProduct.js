@@ -165,3 +165,20 @@ export const calculatePriceFromRecipe = async (recipeId, capacity, params = {}) 
     throw new Error(error.response?.data?.message || error.message || 'Failed to calculate price from recipe');
   }
 };
+
+/**
+ * Update child product prices only (selling price and retail price)
+ * @param {string} id - Composite product ID
+ * @param {Array} childProducts - Array of child products with updated prices
+ * @returns {Promise<Object>} Updated composite product
+ */
+export const updateChildProductPrices = async (id, childProducts) => {
+  try {
+    const response = await putApi(`/composite-products/${id}/child-prices`, {
+      childProducts
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message || 'Failed to update child product prices');
+  }
+};

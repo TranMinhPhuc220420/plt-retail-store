@@ -50,6 +50,11 @@ export const createMyProduct = async (productData) => {
     const response = await postApi('/products/my-products-stores', productData);
     return response.data;
   } catch (error) {
+    // Handle child product restriction error specially
+    if (error.response?.status === 400 && error.response?.data?.error === 'child_product_restricted_fields') {
+      throw error.response.data;
+    }
+    
     let msgError = error.response?.data?.error;
     throw msgError || 'MSG_PRODUCT_CREATION_FAILED';
   }
@@ -84,6 +89,11 @@ export const updateMyProduct = async (id, productData) => {
     const response = await putApi(`/products/my-products-stores/${id}`, productData);
     return response.data;
   } catch (error) {
+    // Handle child product restriction error specially
+    if (error.response?.status === 400 && error.response?.data?.error === 'child_product_restricted_fields') {
+      throw error.response.data;
+    }
+    
     let msgError = error.response?.data?.error;
     throw msgError || 'TXT_PRODUCT_UPDATE_FAILED';
   }
@@ -148,3 +158,14 @@ export const uploadAvatarProduct = async (file) => {
 export const downloadFileTemplateProduct = async () => {
   window.open(PRODUCT_TYPE_TEMP_FILE, '_blank');
 }
+
+// Check if product is a child product of composite product
+export const checkChildProductStatus = async (productId) => {
+  try {
+    const response = await getApi(`/products/check-child-status/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to check child product status for ID ${productId}:`, error);
+    throw error;
+  }
+};

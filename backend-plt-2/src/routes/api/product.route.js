@@ -21,5 +21,8 @@ router.delete('/my-products-stores/:id', productController.deleteMyInStore);
 router.get('/regular-products/store/:storeCode', productController.getRegularProductsForComposite);
 router.get('/regular-products', productController.getRegularProductsForComposite);
 
+// Route để kiểm tra child product status
+router.get('/check-child-status/:id', productController.checkChildProductStatus);
+
 // export default router;
 module.exports = router;

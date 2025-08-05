@@ -20,7 +20,7 @@ import {
 import { PlusOutlined, DeleteOutlined, InfoCircleOutlined, CalculatorOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
 
 // Requests
-import { updateCompositeProduct, calculatePriceFromRecipe, getCompositeProductDetails } from "@/request/compositeProduct";
+import { updateChildProductPrices, calculatePriceFromRecipe, getCompositeProductDetails } from "@/request/compositeProduct";
 import useCompositeProductStore from "@/store/compositeProduct";
 import useRecipeStore from "@/store/recipe";
 import { parseDecimal, formatPrice, parseCompositeProductData } from "@/utils/numberUtils";
@@ -43,7 +43,7 @@ const EditCompositeProductForm = ({
   const [messageApi, contextHolder] = message.useMessage();
   const { user } = useAuth();
 
-  const { regularProducts, fetchRegularProducts, updateCompositeProductInStore } = useCompositeProductStore();
+  const { regularProducts, fetchRegularProducts, updateCompositeProduct } = useCompositeProductStore();
   const { recipes, fetchRecipes } = useRecipeStore();
 
   // State
@@ -158,6 +158,23 @@ const EditCompositeProductForm = ({
   // handleRecipeChange, calculateRecipePrice functions removed
   // These are not needed in edit mode as recipe and child products are read-only
 
+  // Add function to update child product prices
+  const updateChildProductPrice = (childProductId, field, value) => {
+    const updatedChildProducts = childProducts.map(child => {
+      if (child.productId === childProductId) {
+        return {
+          ...child,
+          [field]: value
+        };
+      }
+      return child;
+    });
+    
+    setChildProducts(updatedChildProducts);
+    calculateTotalRevenue(updatedChildProducts);
+    setForceUpdate(prev => prev + 1); // Trigger Financial Summary re-render
+  };
+
   // Calculate total revenue from child products (for display only)
   const calculateTotalRevenue = (childProductsList = childProducts) => {
     let totalSellingPrice = 0;
@@ -211,7 +228,7 @@ const EditCompositeProductForm = ({
     };
   };
 
-  // Child products table columns (display only, no editing)
+  // Child products table columns (editable prices)
   const childProductColumns = [
     {
       title: t('TXT_PRODUCT'),
@@ -243,8 +260,16 @@ const EditCompositeProductForm = ({
       dataIndex: 'sellingPrice',
       key: 'sellingPrice',
       width: 140,
-      render: (value) => (
-        <Text className="font-medium text-blue-600">{formatPrice(value || 0)}</Text>
+      render: (value, record) => (
+        <InputNumber
+          value={value || 0}
+          min={0}
+          step={1000}
+          className="w-full"
+          formatter={val => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={val => val.replace(/\$\s?|(,*)/g, '')}
+          onChange={(newValue) => updateChildProductPrice(record.productId, 'sellingPrice', newValue || 0)}
+        />
       )
     },
     {
@@ -252,46 +277,41 @@ const EditCompositeProductForm = ({
       dataIndex: 'retailPrice',
       key: 'retailPrice',
       width: 140,
-      render: (value) => (
-        <Text className="font-medium text-green-600">{formatPrice(value || 0)}</Text>
+      render: (value, record) => (
+        <InputNumber
+          value={value || 0}
+          min={0}
+          step={1000}
+          className="w-full"
+          formatter={val => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={val => val.replace(/\$\s?|(,*)/g, '')}
+          onChange={(newValue) => updateChildProductPrice(record.productId, 'retailPrice', newValue || 0)}
+        />
       )
     }
   ];
 
-  // Form submission
+  // Form submission - only update child product prices
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
 
-      // Validate capacity information
-      if (!values.capacity || !values.capacity.quantity || !values.capacity.unit) {
-        messageApi.error(t('MSG_CAPACITY_REQUIRED'));
-        return;
-      }
+      // Prepare child products data with only productId, sellingPrice, and retailPrice
+      const childProductsData = childProducts.map(child => ({
+        productId: child.productId,
+        sellingPrice: child.sellingPrice,
+        retailPrice: child.retailPrice
+      }));
 
-      // Prepare data for update (only editable fields)
-      const updateData = {
-        name: values.name,
-        description: values.description,
-        price: values.price,
-        retailPrice: values.retailPrice,
-        // Update only editable composite info fields
-        compositeInfo: {
-          ...parsedCompositeData.compositeInfo, // Keep existing non-editable fields
-          capacity: values.capacity,
-          currentStock: values.currentStock,
-          expiryHours: values.expiryHours
-        }
-      };
+      // Call the new API to update only child product prices
+      const result = await updateChildProductPrices(compositeProductData._id, childProductsData);
 
-      const result = await updateCompositeProduct(compositeProductData._id, updateData);
-
-      messageApi.success(t('MSG_SUCCESS_UPDATE_COMPOSITE_PRODUCT'));
-      updateCompositeProductInStore(result);
+      messageApi.success(t('MSG_SUCCESS_UPDATE_CHILD_PRODUCT_PRICES'));
+      updateCompositeProduct(compositeProductData._id, result);
       onOK();
     } catch (error) {
-      console.error('Error updating composite product:', error);
-      messageApi.error(t('MSG_ERROR_UPDATE_COMPOSITE_PRODUCT'));
+      console.error('Error updating child product prices:', error);
+      messageApi.error(t('MSG_ERROR_UPDATE_CHILD_PRODUCT_PRICES'));
     } finally {
       setLoading(false);
     }
@@ -335,7 +355,6 @@ const EditCompositeProductForm = ({
       <Form
         form={form}
         layout="vertical"
-        onFinish={handleSubmit}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -374,118 +393,6 @@ const EditCompositeProductForm = ({
           />
         </Form.Item>
 
-        {/* Pricing and Stock Information */}
-        <Row gutter={16}>
-          <Col span={8}>
-            <Form.Item
-              name="price"
-              label={t('TXT_SELLING_PRICE')}
-              rules={[
-                { required: true, message: t('MSG_PRICE_REQUIRED') },
-                { type: 'number', min: 0, message: t('MSG_PRICE_MUST_BE_POSITIVE') }
-              ]}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                step={1000}
-                placeholder={t('TXT_ENTER_SELLING_PRICE')}
-                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
-              name="retailPrice"
-              label={t('TXT_RETAIL_PRICE')}
-              rules={[
-                { required: true, message: t('MSG_RETAIL_PRICE_REQUIRED') },
-                { type: 'number', min: 0, message: t('MSG_PRICE_MUST_BE_POSITIVE') }
-              ]}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                step={1000}
-                placeholder={t('TXT_ENTER_RETAIL_PRICE')}
-                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
-              name="currentStock"
-              label={t('TXT_CURRENT_STOCK')}
-              rules={[
-                { type: 'number', min: 0, message: t('MSG_STOCK_MUST_BE_POSITIVE') }
-              ]}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                placeholder={t('TXT_CURRENT_STOCK_AMOUNT')}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {/* Capacity and Expiry Information */}
-        <Row gutter={16}>
-          <Col span={8}>
-            <Form.Item
-              name={['capacity', 'quantity']}
-              label={t('TXT_CAPACITY_QUANTITY')}
-              rules={[
-                { required: true, message: t('MSG_CAPACITY_REQUIRED') },
-                { type: 'number', min: 1, message: t('MSG_CAPACITY_MUST_BE_POSITIVE') }
-              ]}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                min={1}
-                placeholder={t('TXT_ENTER_CAPACITY')}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
-              name={['capacity', 'unit']}
-              label={t('TXT_CAPACITY_UNIT')}
-              rules={[
-                { required: true, message: t('MSG_UNIT_REQUIRED') }
-              ]}
-            >
-              <Select placeholder={t('TXT_SELECT_UNIT')}>
-                <Option value="phần">{t('TXT_PORTIONS')}</Option>
-                <Option value="tô">{t('TXT_BOWLS')}</Option>
-                <Option value="ly">{t('TXT_CUPS')}</Option>
-                <Option value="đĩa">{t('TXT_PLATES')}</Option>
-                <Option value="suất">{t('TXT_SERVINGS')}</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
-              name="expiryHours"
-              label={t('TXT_EXPIRY_HOURS')}
-              rules={[
-                { required: true, message: t('MSG_EXPIRY_HOURS_REQUIRED') },
-                { type: 'number', min: 1, message: t('MSG_EXPIRY_HOURS_MUST_BE_POSITIVE') }
-              ]}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                min={1}
-                max={168} // 1 week max
-                placeholder={t('TXT_ENTER_EXPIRY_HOURS')}
-                addonAfter={t('TXT_HOURS')}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
         <Divider>{t('TXT_RECIPE_INFORMATION')}</Divider>
 
         {/* Display recipe information (read-only) */}
@@ -510,20 +417,20 @@ const EditCompositeProductForm = ({
                   }
                 >
                   <Row gutter={[16, 8]}>
-                    <Col span={12}>
+                    <Col span={7}>
                       <div className="flex flex-col">
                         <Text type="secondary" className="text-xs">{t('TXT_RECIPE_NAME')}</Text>
                         <Text strong className="text-sm">{selectedRecipe.dishName}</Text>
                       </div>
                     </Col>
-                    <Col span={12}>
+                    <Col span={5}>
                       <div className="flex flex-col">
                         <Text type="secondary" className="text-xs">{t('TXT_INGREDIENTS')}</Text>
                         <Text className="text-sm">{selectedRecipe.ingredients?.length || 0} {t('TXT_INGREDIENTS_COUNT')}</Text>
                       </div>
                     </Col>
                     {selectedRecipe.yield && (
-                      <Col span={8}>
+                      <Col span={5}>
                         <div className="flex flex-col">
                           <Text type="secondary" className="text-xs">{t('TXT_RECIPE_YIELD')}</Text>
                           <Text className="text-sm font-medium text-green-600">
@@ -533,7 +440,7 @@ const EditCompositeProductForm = ({
                       </Col>
                     )}
                     {selectedRecipe.expiryHours && (
-                      <Col span={8}>
+                      <Col span={7}>
                         <div className="flex flex-col">
                           <Text type="secondary" className="text-xs">{t('TXT_EXPIRY_HOURS')}</Text>
                           <Text className="text-sm font-medium text-purple-600">
@@ -597,7 +504,7 @@ const EditCompositeProductForm = ({
         <Divider>
           <div className="flex items-center">
             <span className="text-gray-600">
-              👥 {t('TXT_CHILD_PRODUCTS')} - {t('TXT_INFORMATION_ONLY')}
+              👥 {t('TXT_CHILD_PRODUCTS')} - {t('TXT_EDITABLE_PRICES')}
             </span>
           </div>
         </Divider>
@@ -615,20 +522,20 @@ const EditCompositeProductForm = ({
                     <Text strong className="ml-1 text-blue-600">{formatPrice(totalCost.sellingPrice)}</Text> |
                     <Text strong className="ml-1 text-green-600">{formatPrice(totalCost.retailPrice)}</Text>
                   </Text>
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    {t('TXT_READ_ONLY')}
+                  <span className="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-full">
+                    💰 {t('TXT_PRICES_EDITABLE')}
                   </span>
                 </div>
               </div>
             }
           >
-            <Alert
-              message={t('TXT_CHILD_PRODUCTS_READ_ONLY_NOTICE')}
-              description={t('TXT_CHILD_PRODUCTS_EDIT_RESTRICTION')}
-              type="info"
+            {/*<Alert
+              message={t('TXT_CHILD_PRODUCTS_PRICE_EDITABLE_NOTICE')}
+              description={t('TXT_CHILD_PRODUCTS_PRICE_EDIT_INSTRUCTION')}
+              type="success"
               showIcon
               className="mb-4"
-            />
+            />*/}
             <Table
               columns={childProductColumns.map(col => ({
                 ...col,
@@ -778,16 +685,17 @@ const EditCompositeProductForm = ({
           </Button>
           <Button
             type="primary"
-            htmlType="submit"
+            onClick={handleSubmit}
             loading={loading}
             size="large"
             className="px-8 h-12 font-medium bg-gradient-to-r from-blue-500 to-blue-600 border-0 shadow-md hover:shadow-lg"
             icon={<SaveOutlined />}
+            disabled={childProducts.length === 0}
           >
             {loading ? (
-              <span>{t('TXT_UPDATING')}...</span>
+              <span>{t('TXT_UPDATING_PRICES')}...</span>
             ) : (
-              <span>{t('TXT_UPDATE')}</span>
+              <span>{t('TXT_UPDATE_CHILD_PRICES')}</span>
             )}
           </Button>
         </div>
