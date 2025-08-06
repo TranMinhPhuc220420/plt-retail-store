@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
     retailPrice: { type: mongoose.Schema.Types.Decimal128, required: true },
     costPrice: { type: mongoose.Schema.Types.Decimal128, required: true },
     minStock: { type: Number, required: true },
-    unit: { type: String, required: true },
+    unit: { type: String, required: true, enum: ['kg', 'l'] },
     status: { type: String, required: true },
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },

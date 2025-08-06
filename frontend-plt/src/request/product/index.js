@@ -1,4 +1,5 @@
 import { deleteApi, get, getApi, post, postApi, putApi } from "@/request";
+import { PRODUCT_TYPE_TEMP_FILE } from "@/constant";
 
 // Fetch all products
 export const getAllProducts = async () => {

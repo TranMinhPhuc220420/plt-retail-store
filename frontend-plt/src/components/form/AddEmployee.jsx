@@ -8,6 +8,9 @@ import { useTranslation } from "react-i18next";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import { Button, Input } from "antd";
 
+// Store
+import { useEmployeeStore } from "@/store/employee";
+
 // Firebase
 
 import { EMPLOYEE_LEVEL, BRANCH_LIST, POSITION_LIST } from "@/constant";
@@ -15,6 +18,9 @@ import { EMPLOYEE_LEVEL, BRANCH_LIST, POSITION_LIST } from "@/constant";
 const AddEmployee = ({ onOK, onFail, onCancel }) => {
   // i18n
   const { t } = useTranslation();
+  
+  // Store
+  const { addEmployee } = useEmployeeStore();
 
   // State
   const [isLoading, setIsLoading] = useState(false);

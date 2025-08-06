@@ -47,7 +47,7 @@ PLT Retail Store is a comprehensive retail management system designed to streaml
 3. Create a `.env` file with the following variables:
    ```
    NODE_ENV=development
-   PORT=3000
+   PORT=5000
    MONGODB_URI=mongodb://localhost:27017/plt-retail-store
    ```
 4. Start the development server:
@@ -66,7 +66,7 @@ PLT Retail Store is a comprehensive retail management system designed to streaml
 2. Build and run the backend:
    ```bash
    docker build -t plt-backend ./backend-plt-2
-   docker run -p 3000:3000 plt-backend
+   docker run -p 5000:5000 plt-backend
    ```
 
 ## Folder Structure

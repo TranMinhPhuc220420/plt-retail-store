@@ -1,7 +1,7 @@
 {
-  "name": "my-express-app",
+  "name": "plt-retail-store-backend",
   "version": "1.0.0",
-  "description": "Express.js application with MongoDB",
+  "description": "PLT Retail Store - Express.js backend with MongoDB",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

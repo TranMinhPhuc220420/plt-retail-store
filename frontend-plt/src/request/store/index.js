@@ -95,7 +95,7 @@ export const getMyStoreByCode = async (storeCode) => {
     const response = await getApi(`/stores/my-store/${storeCode}`);
     return response.data;
   } catch (error) {
-    console.error(`Failed to fetch my store details for ID ${id}:`, error);
+    console.error(`Failed to fetch my store details for code ${storeCode}:`, error);
     throw error;
   }
 };
@@ -117,7 +117,7 @@ export const deleteMyStore = async (storeCode) => {
     const response = await deleteApi(`/stores/my-store/${storeCode}`);
     return response.data;
   } catch (error) {
-    console.error(`Failed to delete my store with ID ${id}:`, error);
+    console.error(`Failed to delete my store with code ${storeCode}:`, error);
     throw error;
   }
 };
