@@ -26,6 +26,9 @@ router.put('/:id', validateUpdateComposite, compositeProductController.updateCom
 // PUT /api/composite-products/:id/price - Cập nhật giá bán của sản phẩm composite
 router.put('/:id/price', compositeProductController.updateCompositePrice);
 
+// PUT /api/composite-products/:id/child-prices - Cập nhật giá của child products
+router.put('/:id/child-prices', compositeProductController.updateChildProductPrices);
+
 // DELETE /api/composite-products/:id - Xóa sản phẩm composite
 router.delete('/:id', compositeProductController.deleteComposite);
 

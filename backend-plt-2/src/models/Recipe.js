@@ -29,7 +29,7 @@ const recipeSchema = new mongoose.Schema(
     // Recipe yield information
     yield: {
       quantity: { type: Number, default: 1 }, // How many units this recipe produces
-      unit: { type: String, default: 'phần' } // Unit of production - kg, l, or phần
+      unit: { type: String, default: 'pice' } // Unit of the yield (e.g., 'piece', 'serving')
     },
     
     // Expiry time for products made from this recipe

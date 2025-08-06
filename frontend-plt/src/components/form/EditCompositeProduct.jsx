@@ -31,12 +31,12 @@ const { Option } = Select;
 const { TextArea } = Input;
 const { Text } = Typography;
 
-const EditCompositeProductForm = ({ 
-  compositeProductData, 
-  storeId, 
-  storeCode, 
-  onCancel, 
-  onOK 
+const EditCompositeProductForm = ({
+  compositeProductData,
+  storeId,
+  storeCode,
+  onCancel,
+  onOK
 }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
@@ -64,7 +64,7 @@ const EditCompositeProductForm = ({
   useEffect(() => {
     const loadCompositeProductDetails = async () => {
       if (!compositeProductData?._id) return;
-      
+
       try {
         setLoadingDetails(true);
         const detailsResponse = await getCompositeProductDetails(compositeProductData._id, storeCode);
@@ -103,7 +103,7 @@ const EditCompositeProductForm = ({
         },
         childProducts: parsedCompositeData.compositeInfo?.childProducts
       });
-      
+
       // Set basic form values
       form.setFieldsValue({
         productCode: parsedCompositeData.productCode,
@@ -122,7 +122,7 @@ const EditCompositeProductForm = ({
       // Set recipe data if exists (read-only)
       if (parsedCompositeData.compositeInfo?.recipeId) {
         setSelectedRecipeId(parsedCompositeData.compositeInfo.recipeId._id || parsedCompositeData.compositeInfo.recipeId);
-        
+
         // Show recipe cost info if available
         if (parsedCompositeData.compositeInfo?.recipeCost && parsedCompositeData.compositeInfo.recipeCost > 0) {
           setRecipeCost({
@@ -139,13 +139,15 @@ const EditCompositeProductForm = ({
       if (parsedCompositeData.compositeInfo?.childProducts && parsedCompositeData.compositeInfo.childProducts.length > 0) {
         const formattedChildProducts = parsedCompositeData.compositeInfo.childProducts.map((child, index) => ({
           id: Date.now() + index, // temporary ID for table
+          name: child.name || 'Unknown Product',
+          unit: child.unit || 'N/A',
           productId: child.productId._id || child.productId,
           costPrice: child.costPrice,
           sellingPrice: child.sellingPrice,
           retailPrice: child.retailPrice,
           productData: child.productId
         }));
-        
+
         console.log('🧒 Setting child products:', formattedChildProducts);
         setChildProducts(formattedChildProducts);
         calculateTotalRevenue(formattedChildProducts);
@@ -169,7 +171,7 @@ const EditCompositeProductForm = ({
       }
       return child;
     });
-    
+
     setChildProducts(updatedChildProducts);
     calculateTotalRevenue(updatedChildProducts);
     setForceUpdate(prev => prev + 1); // Trigger Financial Summary re-render
@@ -235,16 +237,20 @@ const EditCompositeProductForm = ({
       dataIndex: 'productId',
       key: 'productId',
       width: 200,
-      render: (value, record) => (
-        <div className="flex items-center">
-          <span className="font-medium text-gray-700">
-            {record.productData?.name || 'Unknown Product'}
-          </span>
-          <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-            {record.productData?.unit || 'N/A'}
-          </span>
-        </div>
-      )
+      render: (value, record) => {
+        console.log(record);
+        
+        return (
+          <div className="flex items-center">
+            <span className="font-medium text-gray-700">
+              {record.name || 'Unknown Product'}
+            </span>
+            <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {record.unit || 'N/A'}
+            </span>
+          </div>
+        )
+      }
     },
     {
       title: t('TXT_COST_PRICE'),
@@ -318,7 +324,7 @@ const EditCompositeProductForm = ({
       console.log('Update result:', result);
 
       messageApi.success(
-        t('MSG_SUCCESS_UPDATE_COMPOSITE_PRODUCT_PRICES') || 
+        t('MSG_SUCCESS_UPDATE_COMPOSITE_PRODUCT_PRICES') ||
         'Đã cập nhật thành công giá sản phẩm composite và các sản phẩm con'
       );
       updateCompositeProduct(compositeProductData._id, result);
@@ -326,7 +332,7 @@ const EditCompositeProductForm = ({
     } catch (error) {
       console.error('Error updating composite product prices:', error);
       messageApi.error(
-        t('MSG_ERROR_UPDATE_COMPOSITE_PRODUCT_PRICES') || 
+        t('MSG_ERROR_UPDATE_COMPOSITE_PRODUCT_PRICES') ||
         'Lỗi khi cập nhật giá sản phẩm composite'
       );
     } finally {

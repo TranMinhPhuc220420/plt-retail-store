@@ -143,7 +143,7 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
             label={t('TXT_UNIT')}
             rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
           >
-            <AutoComplete
+            <Select
               placeholder={t('TXT_UNIT_PLACEHOLDER')}
               options={UNIT_LIST_SUGGESTION.map(unit => ({
                 value: unit.name,

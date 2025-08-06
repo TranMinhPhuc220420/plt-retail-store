@@ -15,7 +15,8 @@ import {
   Col,
   Typography,
   Tooltip,
-  Alert
+  Alert,
+  AutoComplete
 } from "antd";
 import { PlusOutlined, DeleteOutlined, InfoCircleOutlined, CalculatorOutlined } from "@ant-design/icons";
 
@@ -26,6 +27,7 @@ import useRecipeStore from "@/store/recipe";
 import { parseDecimal, formatPrice } from "@/utils/numberUtils";
 import RecipeSelector from "@/components/form/RecipeSelector";
 import useAuth from "@/hooks/useAuth";
+import { UNIT_LIST_SUGGESTION } from "@/constant";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -380,20 +382,16 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
       width: 100,
       render: (value, record) => (
         <Select
-          style={{ width: '100%' }}
-          placeholder={t('TXT_SELECT_UNIT')}
-          value={value}
-          onChange={(val) => updateChildProduct(record.id, 'unit', val)}
-        >
-          <Option value="kg">kg</Option>
-          <Option value="g">g</Option>
-          <Option value="l">l</Option>
-          <Option value="ml">ml</Option>
-          <Option value="piece">piece</Option>
-          <Option value="cup">cup</Option>
-          <Option value="tbsp">tbsp</Option>
-          <Option value="tsp">tsp</Option>
-        </Select>
+          style={{ width: 80 }}
+          placeholder={t('TXT_UNIT_PLACEHOLDER')}
+          options={UNIT_LIST_SUGGESTION.map(unit => ({
+            value: unit.name,
+            label: unit.name
+          }))}
+          filterOption={(inputValue, option) =>
+            option.value.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1
+          }
+        />
       )
     },
     {
@@ -533,6 +531,7 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
         // Include child products if any
         ...(childProducts.length > 0 && {
           childProducts: childProducts.map(child => ({
+            name: child.productData?.name || '',
             productId: child.productId,
             quantityPerServing: child.quantityPerServing || 1,
             unit: child.unit || 'piece',

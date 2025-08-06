@@ -124,7 +124,7 @@ const CompositeProductTable = ({
           <div className="text-xs text-gray-400">
             {compositeInfo.childProducts?.slice(0, 2).map((child, index) => (
               <span key={index}>
-                {child.productId?.name || 'N/A'}
+                {child.name || 'N/A'}
                 {index < Math.min(1, compositeInfo.childProducts.length - 1) && ', '}
               </span>
             ))}

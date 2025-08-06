@@ -174,20 +174,33 @@ const deductIngredientsForProduction = async (recipeId, quantity, options = {}) 
             );
 
             // Update or create stock balance record
+            // Find the earliest expiring batch using FIFO principle
+            const stockBalance = await IngredientStockBalance.findOne({
+              ingredientId: ingredient._id,
+              storeId: options.storeId || ingredient.storeId,
+              warehouseId: ingredient.warehouseId,
+              quantity: { $gte: requiredAmount },
+              deleted: false
+            }).sort({ expirationDate: 1, createdAt: 1 }).session(session);
+
+            if (!stockBalance) {
+              throw new Error(`Insufficient stock for ingredient ${ingredient.name}`);
+            }
+
+            // Update the specific stock balance record
             await IngredientStockBalance.findOneAndUpdate(
               {
-                ingredientId: ingredient._id,
-                warehouseId: ingredient.warehouseId
+                _id: stockBalance._id,
+                quantity: { $gte: requiredAmount } // Ensure sufficient stock
               },
               {
                 $inc: { quantity: -requiredAmount },
                 $set: { 
-                  unit: recipeIngredient.unit,
-                  lastUpdated: new Date()
+                  lastTransactionDate: new Date(),
+                  lastTransactionId: transaction._id
                 }
               },
               { 
-                upsert: true, 
                 new: true, 
                 session 
               }

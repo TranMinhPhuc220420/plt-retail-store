@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Ant Design
-import { 
-  Form, 
-  Input, 
-  InputNumber, 
-  Select, 
-  Button, 
-  Space, 
-  message, 
-  Card, 
-  Row, 
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Button,
+  Space,
+  message,
+  Card,
+  Row,
   Col,
   Divider,
-  Typography 
+  Typography
 } from 'antd';
 import { PlusOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons';
 
@@ -24,6 +24,8 @@ import { updateRecipe } from '@/request/recipe';
 const { Option } = Select;
 const { TextArea } = Input;
 const { Title } = Typography;
+
+import { UNIT_LIST_SUGGESTION } from "@/constant";
 
 /**
  * Form component for editing existing recipes
@@ -36,25 +38,18 @@ const { Title } = Typography;
  * @param {Function} props.onCancel - Callback function on cancel
  * @param {Function} props.onFail - Callback function on update failure
  */
-const EditRecipeForm = ({ 
+const EditRecipeForm = ({
   recipe,
-  storeCode, 
-  ownerId, 
-  ingredients = [], 
-  onSuccess, 
-  onCancel, 
-  onFail 
+  storeCode,
+  ownerId,
+  ingredients = [],
+  onSuccess,
+  onCancel,
+  onFail
 }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
-
-  // Unit options for recipe yield
-  const unitOptions = [
-    'kg',   // kilograms for weight measurements
-    'l',    // liters for volume measurements
-    'phần'  // portions/servings
-  ];
 
   /**
    * Initialize form with recipe data
@@ -63,13 +58,13 @@ const EditRecipeForm = ({
     if (recipe) {
       // Convert ingredients to proper format for form
       const formattedIngredients = recipe.ingredients?.map(ingredient => ({
-        ingredientId: typeof ingredient.ingredientId === 'object' 
-          ? ingredient.ingredientId._id 
+        ingredientId: typeof ingredient.ingredientId === 'object'
+          ? ingredient.ingredientId._id
           : ingredient.ingredientId,
         amountUsed: ingredient.amountUsed,
         unit: ingredient.unit
       })) || [{}];
-      
+
       form.setFieldsValue({
         dishName: recipe.dishName,
         description: recipe.description,
@@ -118,8 +113,8 @@ const EditRecipeForm = ({
     const selectedIngredients = currentValues
       .map((_, index) => form.getFieldValue(['ingredients', index, 'ingredientId']))
       .filter((id, index) => id && index !== currentIndex);
-    
-    return ingredients.filter(ingredient => 
+
+    return ingredients.filter(ingredient =>
       !selectedIngredients.includes(ingredient._id)
     );
   };
@@ -143,7 +138,7 @@ const EditRecipeForm = ({
               { max: 100, message: t('MSG_DISH_NAME_MAX_LENGTH') }
             ]}
           >
-            <Input 
+            <Input
               placeholder={t('TXT_ENTER_DISH_NAME')}
               maxLength={100}
             />
@@ -161,7 +156,7 @@ const EditRecipeForm = ({
               { max: 500, message: t('MSG_DESCRIPTION_MAX_LENGTH') }
             ]}
           >
-            <TextArea 
+            <TextArea
               placeholder={t('TXT_ENTER_RECIPE_DESCRIPTION')}
               maxLength={500}
               rows={3}
@@ -205,13 +200,11 @@ const EditRecipeForm = ({
             <Select
               placeholder={t('TXT_SELECT_YIELD_UNIT')}
               showSearch
-            >
-              {unitOptions.map(unit => (
-                <Option key={unit} value={unit}>
-                  {unit}
-                </Option>
-              ))}
-            </Select>
+              options={UNIT_LIST_SUGGESTION.map(unit => ({
+                value: unit.name,
+                label: unit.name
+              }))}
+            />
           </Form.Item>
         </Col>
         <Col span={8}>
@@ -241,7 +234,7 @@ const EditRecipeForm = ({
 
       {/* Ingredients Section */}
       <Title level={5}>{t('TXT_RECIPE_INGREDIENTS')}</Title>
-      
+
       <Form.List
         name="ingredients"
         rules={[
@@ -257,9 +250,9 @@ const EditRecipeForm = ({
         {(fields, { add, remove }, { errors }) => (
           <>
             {fields.map(({ key, name, ...restField }, index) => (
-              <Card 
-                key={key} 
-                size="small" 
+              <Card
+                key={key}
+                size="small"
                 className="mb-4"
                 title={`${t('TXT_INGREDIENT')} ${index + 1}`}
                 extra={
@@ -333,19 +326,17 @@ const EditRecipeForm = ({
                       <Select
                         placeholder={t('TXT_UNIT')}
                         showSearch
-                      >
-                        {unitOptions.map(unit => (
-                          <Option key={unit} value={unit}>
-                            {unit}
-                          </Option>
-                        ))}
-                      </Select>
+                        options={UNIT_LIST_SUGGESTION.map(unit => ({
+                          value: unit.name,
+                          label: unit.name
+                        }))}
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
               </Card>
             ))}
-            
+
             <Form.Item>
               <Button
                 type="dashed"

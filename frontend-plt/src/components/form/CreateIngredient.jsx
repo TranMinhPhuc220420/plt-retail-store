@@ -7,6 +7,7 @@ import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 
 // API
 import { createIngredient } from '@/request/ingredient';
+import { UNIT_LIST_SUGGESTION } from '@/constant';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -37,15 +38,9 @@ const CreateIngredientForm = ({
 
   // Category options
   const categoryOptions = [
-    'dairy', 'meat', 'vegetables', 'fruits', 'spices', 'grains', 
-    'seafood', 'poultry', 'herbs', 'oils', 'condiments', 'beverages', 
+    'dairy', 'meat', 'vegetables', 'fruits', 'spices', 'grains',
+    'seafood', 'poultry', 'herbs', 'oils', 'condiments', 'beverages',
     'nuts', 'legumes', 'frozen', 'canned', 'bakery', 'general'
-  ];
-
-  // Simplified unit options - only kg and liter for consistency
-  const unitOptions = [
-    'kg',   // kilograms for weight measurements
-    'l'     // liters for volume measurements
   ];
 
   // Storage temperature options
@@ -196,13 +191,11 @@ const CreateIngredientForm = ({
               placeholder={t('TXT_SELECT_UNIT')}
               showSearch
               allowClear
-            >
-              {unitOptions.map(unit => (
-                <Option key={unit} value={unit}>
-                  {unit}
-                </Option>
-              ))}
-            </Select>
+              options={UNIT_LIST_SUGGESTION.map(unit => ({
+                value: unit.name,
+                label: unit.name
+              }))}
+            />
           </Form.Item>
         </Col>
         <Col span={8}>

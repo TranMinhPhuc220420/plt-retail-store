@@ -1529,6 +1529,7 @@ const VIETNAMESE_TRANSLATIONS = {
     "MSG_CHILD_PRODUCT_UPDATE_RESTRICTED": "Không thể cập nhật các trường bị hạn chế của sản phẩm con",
     "MSG_SUCCESS_UPDATE_COMPOSITE_PRODUCT_PRICES": "Cập nhật giá sản phẩm thành công",
     "MSG_ERROR_UPDATE_COMPOSITE_PRODUCT_PRICES": "Cập nhật giá sản phẩm thất bại",
+    "TXT_PREPARATION_SUMMARY": "Tóm tắt chuẩn bị",
   }
 };
 

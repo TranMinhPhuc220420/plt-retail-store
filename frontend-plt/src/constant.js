@@ -37,18 +37,9 @@ export const AVATAR_DEFAULT = "https://cdn3d.iconscout.com/3d/premium/thumb/prog
 export const IMAGE_PRODUCT_EXAMPLE = `${BASE_URL}/product-concept.avif`;
 export const PRODUCT_TYPE_TEMP_FILE = `${SERVER_URL}/download-template/product-type-template.xlsx`;
 export const UNIT_LIST_SUGGESTION = [
-  { id: "1", name: "Cái" },
-  { id: "2", name: "Hộp" },
-  { id: "3", name: "Kg" },
-  { id: "4", name: "Gram" },
-  { id: "5", name: "Lít" },
-  { id: "6", name: "Ml" },
-  { id: "7", name: "Thùng" },
-  { id: "8", name: "Gói" },
-  { id: "9", name: "Chai" },
-  { id: "10", name: "Lon" },
-  { id: "11", name: "Túi" },
-  { id: "12", name: "Bộ" },
+  { id: "kilogram", name: "kg" },
+  { id: "mililit", name: "ml" },
+  { id: "pice", name: "pice" },
 ];
 export const PRODUCT_STATUS_LIST = [
   { key: "selling", value: "Đang bán" },

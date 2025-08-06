@@ -2,24 +2,26 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Ant Design
-import { 
-  Form, 
-  Input, 
-  InputNumber, 
-  Select, 
-  Button, 
-  Space, 
-  message, 
-  Card, 
-  Row, 
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Button,
+  Space,
+  message,
+  Card,
+  Row,
   Col,
   Divider,
-  Typography 
+  Typography
 } from 'antd';
 import { PlusOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons';
 
 // API
 import { createRecipe } from '@/request/recipe';
+
+import { UNIT_LIST_SUGGESTION } from "@/constant";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -35,24 +37,17 @@ const { Title } = Typography;
  * @param {Function} props.onCancel - Callback function on cancel
  * @param {Function} props.onFail - Callback function on creation failure
  */
-const CreateRecipeForm = ({ 
-  storeCode, 
-  ownerId, 
-  ingredients = [], 
-  onSuccess, 
-  onCancel, 
-  onFail 
+const CreateRecipeForm = ({
+  storeCode,
+  ownerId,
+  ingredients = [],
+  onSuccess,
+  onCancel,
+  onFail
 }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
-
-  // Unit options for recipe yield
-  const unitOptions = [
-    'kg',   // kilograms for weight measurements
-    'l',    // liters for volume measurements
-    'phần'  // portions/servings
-  ];
 
   /**
    * Handle form submission
@@ -96,8 +91,8 @@ const CreateRecipeForm = ({
     const selectedIngredients = currentValues
       .map((_, index) => form.getFieldValue(['ingredients', index, 'ingredientId']))
       .filter((id, index) => id && index !== currentIndex);
-    
-    return ingredients.filter(ingredient => 
+
+    return ingredients.filter(ingredient =>
       !selectedIngredients.includes(ingredient._id)
     );
   };
@@ -128,7 +123,7 @@ const CreateRecipeForm = ({
               { max: 100, message: t('MSG_DISH_NAME_MAX_LENGTH') }
             ]}
           >
-            <Input 
+            <Input
               placeholder={t('TXT_ENTER_DISH_NAME')}
               maxLength={100}
             />
@@ -146,7 +141,7 @@ const CreateRecipeForm = ({
               { max: 500, message: t('MSG_DESCRIPTION_MAX_LENGTH') }
             ]}
           >
-            <TextArea 
+            <TextArea
               placeholder={t('TXT_ENTER_RECIPE_DESCRIPTION')}
               maxLength={500}
               rows={3}
@@ -190,13 +185,11 @@ const CreateRecipeForm = ({
             <Select
               placeholder={t('TXT_SELECT_YIELD_UNIT')}
               showSearch
-            >
-              {unitOptions.map(unit => (
-                <Option key={unit} value={unit}>
-                  {unit}
-                </Option>
-              ))}
-            </Select>
+              options={UNIT_LIST_SUGGESTION.map(unit => ({
+                value: unit.name,
+                label: unit.name
+              }))}
+            />
           </Form.Item>
         </Col>
         <Col span={8}>
@@ -226,7 +219,7 @@ const CreateRecipeForm = ({
 
       {/* Ingredients Section */}
       <Title level={5}>{t('TXT_RECIPE_INGREDIENTS')}</Title>
-      
+
       <Form.List
         name="ingredients"
         rules={[
@@ -242,9 +235,9 @@ const CreateRecipeForm = ({
         {(fields, { add, remove }, { errors }) => (
           <>
             {fields.map(({ key, name, ...restField }, index) => (
-              <Card 
-                key={key} 
-                size="small" 
+              <Card
+                key={key}
+                size="small"
                 className="mb-4"
                 title={`${t('TXT_INGREDIENT')} ${index + 1}`}
                 extra={
@@ -274,9 +267,9 @@ const CreateRecipeForm = ({
                       <Select
                         placeholder={t('TXT_SELECT_INGREDIENT')}
                         showSearch
-                        // filterOption={(input, option) =>
-                        //   option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                        // }
+                      // filterOption={(input, option) =>
+                      //   option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                      // }
                       >
                         {getAvailableIngredients(index, form.getFieldValue('ingredients') || []).map(ingredient => (
                           <Option key={ingredient._id} value={ingredient._id}>
@@ -318,19 +311,17 @@ const CreateRecipeForm = ({
                       <Select
                         placeholder={t('TXT_UNIT')}
                         showSearch
-                      >
-                        {unitOptions.map(unit => (
-                          <Option key={unit} value={unit}>
-                            {unit}
-                          </Option>
-                        ))}
-                      </Select>
+                        options={UNIT_LIST_SUGGESTION.map(unit => ({
+                          value: unit.name,
+                          label: unit.name
+                        }))}
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
               </Card>
             ))}
-            
+
             <Form.Item>
               <Button
                 type="dashed"

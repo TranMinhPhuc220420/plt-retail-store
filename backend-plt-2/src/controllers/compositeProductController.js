@@ -19,7 +19,8 @@ const compositeProductController = {
         description,
         capacity,
         storeId,
-        recipeId // Recipe là bắt buộc cho composite products
+        recipeId, // Recipe là bắt buộc cho composite products
+        childProducts = [] // Accept childProducts from frontend
       } = req.body;
 
       // Validate recipe is required
@@ -70,6 +71,46 @@ const compositeProductController = {
         return res.status(400).json({ error: 'invalid_recipe_cost_calculation' });
       }
 
+      // Validate child products if provided
+      if (childProducts && childProducts.length > 0) {
+        // Validate that all child products exist and belong to the same store/owner
+        const childProductIds = childProducts.map(cp => cp.productId);
+        const existingProducts = await Product.find({
+          _id: { $in: childProductIds },
+          ownerId: req.user._id,
+          storeId: storeId,
+          isComposite: false, // Child products cannot be composite products
+          deleted: false
+        });
+
+        if (existingProducts.length !== childProductIds.length) {
+          return res.status(400).json({ 
+            error: 'invalid_child_products',
+            message: 'Some child products do not exist or do not belong to your store'
+          });
+        }
+
+        // Validate child product data structure
+        for (const childProduct of childProducts) {
+          if (!childProduct.productId || 
+              !childProduct.name ||
+              childProduct.quantityPerServing === undefined || 
+              childProduct.quantityPerServing < 0 ||
+              !childProduct.unit ||
+              childProduct.costPrice === undefined ||
+              childProduct.costPrice < 0 ||
+              childProduct.sellingPrice === undefined ||
+              childProduct.sellingPrice < 0 ||
+              childProduct.retailPrice === undefined ||
+              childProduct.retailPrice < 0) {
+            return res.status(400).json({ 
+              error: 'invalid_child_product_data',
+              message: 'Child product data is incomplete or invalid'
+            });
+          }
+        }
+      }
+
       // Calculate final pricing based on recipe cost only
       const finalSellingPrice = req.body.price || (totalCostPerServing * 1.3);
       const finalRetailPrice = req.body.retailPrice || (totalCostPerServing * 1.5);
@@ -82,7 +123,7 @@ const compositeProductController = {
         retailPrice: finalRetailPrice,
         costPrice: totalCostPerServing, // Recipe cost as the base cost
         minStock: req.body.minStock || 1,
-        unit: capacity.unit || 'tô',
+        unit: 'pice', // Default unit for composite products (required by schema)
         status: 'active',
         ownerId: req.user._id,
         storeId: storeId,
@@ -90,19 +131,30 @@ const compositeProductController = {
         compositeInfo: {
           capacity: {
             quantity: capacity.quantity,
-            unit: capacity.unit
+            unit: capacity.unit || 'tô' // Use specific unit for capacity
           },
           ...recipeCostInfo, // Spread recipe information
-          childProducts: [], // Empty array - không sử dụng childProducts nữa
+          childProducts: childProducts || [], // Use childProducts from request body
           currentStock: 0,
           expiryHours: expiryHours || 24
         }
       });
 
+      console.log('childProducts:', childProducts);
+
       const savedProduct = await compositeProduct.save();
 
-      // Populate recipe reference
-      await savedProduct.populate('compositeInfo.recipeId', 'dishName description yield ingredients');
+      // Populate recipe reference and child products
+      await savedProduct.populate([
+        {
+          path: 'compositeInfo.recipeId', 
+          select: 'dishName description yield ingredients'
+        },
+        {
+          path: 'compositeInfo.childProducts.productId',
+          select: 'productCode unit price retailPrice'
+        }
+      ]);
 
       // ✅ CACHE THE COMPOSITE COST
       const compositeId = savedProduct._id.toString();
@@ -530,6 +582,96 @@ const compositeProductController = {
     } catch (error) {
       console.error('Error updating composite product price:', error);
       res.status(500).json({ error: 'failed_to_update_composite_price' });
+    }
+  },
+
+  /**
+   * Cập nhật giá của child products trong composite product
+   */
+  updateChildProductPrices: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { childProducts } = req.body;
+
+      if (!childProducts || !Array.isArray(childProducts)) {
+        return res.status(400).json({ error: 'child_products_array_required' });
+      }
+
+      const product = await Product.findOne({
+        _id: id,
+        ownerId: req.user._id,
+        isComposite: true
+      }).populate('compositeInfo.childProducts.productId');
+
+      if (!product) {
+        return res.status(404).json({ error: 'composite_product_not_found' });
+      }
+
+      console.log('Updating child product prices:', {
+        compositeProductId: id,
+        childProductsToUpdate: childProducts.length
+      });
+
+      // Update child product prices
+      if (product.compositeInfo && product.compositeInfo.childProducts) {
+        childProducts.forEach(updateData => {
+          const childProduct = product.compositeInfo.childProducts.find(
+            child => child.productId._id.toString() === updateData.productId
+          );
+          
+          if (childProduct) {
+            if (updateData.sellingPrice !== undefined) {
+              childProduct.sellingPrice = updateData.sellingPrice;
+            }
+            if (updateData.retailPrice !== undefined) {
+              childProduct.retailPrice = updateData.retailPrice;
+            }
+            console.log(`Updated child product ${updateData.productId}:`, {
+              sellingPrice: childProduct.sellingPrice,
+              retailPrice: childProduct.retailPrice
+            });
+          }
+        });
+
+        // Calculate and update composite product prices based on child products
+        const totalSellingPrice = product.compositeInfo.childProducts.reduce(
+          (sum, child) => sum + parseFloat(child.sellingPrice.toString() || 0), 0
+        );
+        const totalRetailPrice = product.compositeInfo.childProducts.reduce(
+          (sum, child) => sum + parseFloat(child.retailPrice.toString() || 0), 0
+        );
+
+        product.price = totalSellingPrice;
+        product.retailPrice = totalRetailPrice;
+
+        console.log('Updated composite prices:', {
+          totalSellingPrice,
+          totalRetailPrice
+        });
+      }
+
+      // Ensure unit field is valid for composite products before saving
+      if (!['kg', 'l', 'pice'].includes(product.unit)) {
+        console.log(`Fixing invalid unit "${product.unit}" to "pice" for composite product`);
+        product.unit = 'pice'; // Default valid unit for composite products
+      }
+
+      const updatedProduct = await product.save();
+      await updatedProduct.populate([
+        {
+          path: 'compositeInfo.recipeId',
+          select: 'dishName description yield'
+        },
+        {
+          path: 'compositeInfo.childProducts.productId',
+          select: 'name productCode unit'
+        }
+      ]);
+
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      console.error('Error updating child product prices:', error);
+      res.status(500).json({ error: 'failed_to_update_child_product_prices' });
     }
   },
 

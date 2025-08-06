@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
     retailPrice: { type: mongoose.Schema.Types.Decimal128, required: true },
     costPrice: { type: mongoose.Schema.Types.Decimal128, required: true },
     minStock: { type: Number, required: true },
-    unit: { type: String, required: true, enum: ['kg', 'l'] },
+    unit: { type: String, required: true, enum: ['kilogram', 'mililit', 'pice'] },
     status: { type: String, required: true },
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
@@ -56,6 +56,7 @@ const productSchema = new mongoose.Schema(
       }, // Sản lượng của công thức
       // Danh sách sản phẩm con trong composite
       childProducts: [{
+        name: { type: String, required: true },
         productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
         quantityPerServing: { type: Number, required: true, min: 0 }, // Số lượng cần cho mỗi phần phục vụ
         unit: { type: String, required: true }, // Đơn vị đo lường của sản phẩm con

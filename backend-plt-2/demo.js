@@ -152,7 +152,9 @@ async function createDemoData() {
       {
         ingredientId: ingredient._id,
         storeId: demoStore._id,
-        warehouseId: demoWarehouse._id
+        warehouseId: demoWarehouse._id,
+        batchNumber: null, // Demo data without specific batch
+        expirationDate: null // Demo data without expiration
       },
       {
         ingredientId: ingredient._id,
@@ -163,7 +165,9 @@ async function createDemoData() {
         ownerId: demoUser._id,
         costPerUnit: mongoose.Types.Decimal128.fromString(stock.costPerUnit.toString()),
         totalCost: mongoose.Types.Decimal128.fromString((stock.quantity * stock.costPerUnit).toString()),
-        lastTransactionDate: new Date()
+        lastTransactionDate: new Date(),
+        batchNumber: null,
+        expirationDate: null
       },
       { upsert: true }
     );

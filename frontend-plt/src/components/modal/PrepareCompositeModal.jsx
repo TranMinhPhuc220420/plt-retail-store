@@ -263,7 +263,7 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
       
       const requirement = {
         productId: child.productId._id,
-        productName: child.productId.name || 'Unknown Product',
+        productName: child.name || 'Unknown Product',
         quantityNeeded: totalNeeded,
         unit: unit,
         costPrice: childCostPrice,
@@ -383,7 +383,7 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
         ) : (
           <>
             <Row gutter={16} className="mb-4">
-              <Col span={6}>
+              <Col span={8}>
                 <Card size="small" className="text-center">
                   <Title level={4} className="text-blue-600 mb-1">
                     {totalServings}
@@ -393,33 +393,23 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
                   </Text>
                 </Card>
               </Col>
-              <Col span={6}>
-                <Card size="small" className="text-center">
-                  <Title level={4} className="text-green-600 mb-1">
-                    {formatPrice(isNaN(totalSellingRevenue) ? 0 : totalSellingRevenue)}
-                  </Title>
-                  <Text className="text-gray-500">
-                    {t('TXT_TOTAL_REVENUE')}
-                  </Text>
-                </Card>
-              </Col>
-              <Col span={6}>
+              <Col span={8}>
                 <Card size="small" className="text-center">
                   <Title level={4} className="text-red-600 mb-1">
                     {formatPrice(isNaN(totalCost) ? 0 : totalCost)}
                   </Title>
                   <Text className="text-gray-500">
-                    {t('TXT_TOTAL_COST')}
+                    {t('TXT_COST_PRICE')}
                   </Text>
                 </Card>
               </Col>
-              <Col span={6}>
+              <Col span={8}>
                 <Card size="small" className="text-center">
-                  <Title level={4} className="text-purple-600 mb-1">
-                    {formatPrice(isNaN(costPerServing) ? 0 : costPerServing)}
+                  <Title level={4} className="text-green-600 mb-1">
+                    {formatPrice(isNaN(totalSellingRevenue) ? 0 : totalSellingRevenue)}
                   </Title>
                   <Text className="text-gray-500">
-                    {t('TXT_COST_PER_SERVING')}
+                    {t('TXT_SELLING_PRICE')}
                   </Text>
                 </Card>
               </Col>

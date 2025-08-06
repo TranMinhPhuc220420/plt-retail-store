@@ -124,8 +124,15 @@ const ingredientStockBalanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Create compound unique index to ensure one balance record per ingredient-store-warehouse combination
-ingredientStockBalanceSchema.index({ ingredientId: 1, storeId: 1, warehouseId: 1 }, { unique: true });
+// Create compound unique index to ensure one balance record per ingredient-store-warehouse-batch-expiration combination
+// This allows multiple batches with different expiration dates for the same ingredient in the same warehouse
+ingredientStockBalanceSchema.index({ 
+  ingredientId: 1, 
+  storeId: 1, 
+  warehouseId: 1, 
+  batchNumber: 1, 
+  expirationDate: 1 
+}, { unique: true });
 ingredientStockBalanceSchema.index({ ownerId: 1, storeId: 1 });
 ingredientStockBalanceSchema.index({ quantity: 1 }); // For low stock queries
 ingredientStockBalanceSchema.index({ expirationDate: 1 }); // For expiration tracking

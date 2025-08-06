@@ -6,11 +6,11 @@
 const { getRecommendedUnits, areUnitsCompatible } = require('../utils/unitConverter');
 
 /**
- * Get allowed units for the system (simplified to kg and liter only)
+ * Get allowed units for the system (simplified to kg, liter, and piece)
  * @returns {Array} Array of allowed unit strings
  */
 function getAllowedUnits() {
-  return ['kg', 'l']; // Simplified to only kg and liter
+  return ['kg', 'l', 'pice']; // Simplified to only kg, liter, and piece
 }
 
 /**
