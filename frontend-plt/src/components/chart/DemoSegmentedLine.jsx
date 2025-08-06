@@ -1,6 +1,5 @@
 import { Line } from '@ant-design/plots';
 import React from 'react';
-import { createRoot } from 'react-dom';
 
 const DemoSegmentedLine = () => {
   const data = [

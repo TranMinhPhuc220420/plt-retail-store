@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 // I18n
 import { useTranslation } from "react-i18next";
@@ -14,7 +14,6 @@ import useAuth from "@/hooks/useAuth";
 import { createMyProduct, uploadAvatarProduct } from "@/request/product";
 
 // Zustand store
-import useStoreProduct from "@/store/product";
 import useStoreProductType from "@/store/productType";
 
 // Utilities
@@ -36,7 +35,6 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
 
   // State
   const [isLoading, setIsLoading] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(IMAGE_PRODUCT_EXAMPLE);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
@@ -55,7 +53,6 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
 
       form.resetFields();
       setImageUrl(IMAGE_PRODUCT_EXAMPLE);
-      setImageFile(null);
       message.success(t('MSG_PRODUCT_CREATED_SUCCESS'));
 
       onOK();
@@ -92,7 +89,6 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
       }
     } else {
       setImageUrl("background-page-login.png");
-      setImageFile(null);
     }
   };
 

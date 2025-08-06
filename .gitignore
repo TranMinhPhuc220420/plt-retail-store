@@ -44,6 +44,11 @@ Thumbs.db
 dist/
 build/
 
+# Temporary files and test outputs
+tmp/
+temp/
+*.tmp
+
 storage/
 
 # Ignore file .md but not README.md

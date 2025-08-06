@@ -2,7 +2,6 @@ import { Pie } from '@ant-design/plots';
 import { Button } from 'antd';
 import { isEqual } from 'lodash';
 import React, { memo, useState } from 'react';
-import { createRoot } from 'react-dom';
 
 const DemoPie = memo(
   ({ data, onReady }) => {
@@ -71,7 +70,7 @@ const DemoMemo = () => {
         Render lại
       </Button>
       <span>{count}</span>
-      <DemoPie data={data} onReady={({ chart }) => {}} />
+      <DemoPie data={data} onReady={() => {}} />
     </div>
   );
 };
