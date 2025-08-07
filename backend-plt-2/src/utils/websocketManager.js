@@ -165,11 +165,11 @@ class WebSocketManager {
     
     ws.subscribedStores.add(storeId);
     
-    this.sendToClient(ws, {
-      type: 'SUBSCRIPTION_CONFIRMED',
-      storeId,
-      message: `Subscribed to cost updates for store ${storeId}`
-    });
+    // this.sendToClient(ws, {
+    //   type: 'SUBSCRIPTION_CONFIRMED',
+    //   storeId,
+    //   message: `Subscribed to cost updates for store ${storeId}`
+    // });
   }
 
   /**
@@ -183,11 +183,11 @@ class WebSocketManager {
       ws.subscribedStores.delete(storeId);
     }
     
-    this.sendToClient(ws, {
-      type: 'UNSUBSCRIPTION_CONFIRMED',
-      storeId,
-      message: `Unsubscribed from cost updates for store ${storeId}`
-    });
+    // this.sendToClient(ws, {
+    //   type: 'UNSUBSCRIPTION_CONFIRMED',
+    //   storeId,
+    //   message: `Unsubscribed from cost updates for store ${storeId}`
+    // });
   }
 
   /**

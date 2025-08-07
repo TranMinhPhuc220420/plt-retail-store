@@ -8,7 +8,7 @@ const SIGN_OUT = "SIGN_OUT";
 const IS_CHECKING = "IS_CHECKING";
 const IS_ERROR = "IS_ERROR";
 
-import { ADMIN_ROLE, AVATAR_DEFAULT, USER_ROLE } from "@/constant";
+import { ADMIN_ROLE, AVATAR_DEFAULT, USER_ROLE, STAFF_ROLE, MANAGER_ROLE } from "@/constant";
 import { getMe, logout, openPopupLoginWithGoogle } from "@/request/auth";
 
 const initialState = {
@@ -104,11 +104,20 @@ function AuthProvider({ children }) {
 
       // Additional user data
       user['isAdmin'] = (role === ADMIN_ROLE);
+      user['isManager'] = (role === MANAGER_ROLE);
+      user['isStaff'] = (role === STAFF_ROLE);
+      user['isUser'] = (role === USER_ROLE);
 
       if (isLoginPage) {
         // Redirect to dashboard if not on login page
         if (role === ADMIN_ROLE) {
           pageToRedirect = redirectTo || "/overview";
+        }
+        if (role === MANAGER_ROLE) {
+          pageToRedirect = redirectTo || "/overview"; // Managers also go to overview
+        }
+        if (role === STAFF_ROLE) {
+          pageToRedirect = redirectTo || "/store/default"; // Default staff dashboard
         }
         if (role === USER_ROLE) {
           pageToRedirect = (!isRedirectToAdmin && redirectTo) ? redirectTo : "/";
@@ -116,6 +125,9 @@ function AuthProvider({ children }) {
       } else {
         if (role === USER_ROLE && isAdminPage) {
           pageToRedirect = "/";
+        }
+        if (role === STAFF_ROLE && isAdminPage) {
+          pageToRedirect = "/store/default"; // Redirect staff away from admin pages
         }
       }
     } else {
@@ -153,6 +165,9 @@ function AuthProvider({ children }) {
       user = await getMe();
       if (user) {
         user.isAdmin = (user.role === ADMIN_ROLE);
+        user.isManager = (user.role === MANAGER_ROLE);
+        user.isStaff = (user.role === STAFF_ROLE);
+        user.isUser = (user.role === USER_ROLE);
       }
     } catch (error) {
       dispatch({

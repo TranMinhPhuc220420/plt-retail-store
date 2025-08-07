@@ -171,6 +171,13 @@ export const putApi = (url, data, headers={}) => {
   return apiClient.put(`api${url}`, data, { headers });
 }
 
+export const patchApi = (url, data, headers={}) => {
+  if (headers['Content-Type'] === 'multipart/form-data') {
+    return apiFormDataClient.patch(`api${url}`, data, { headers });
+  }
+  return apiClient.patch(`api${url}`, data, { headers });
+}
+
 export const deleteApi = (url, params = {}) => {
   return apiClient.delete(`api${url}`, { params });
 }

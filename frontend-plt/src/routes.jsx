@@ -31,6 +31,7 @@ import SupplierDetailPage from "@/pages/admin/suppliers/[id]";
 import CostAnalysisPage from "@/pages/admin/cost-analysis";
 
 import ManagerEmployeePage from "@/pages/admin/manager";
+import EmployeeManagement from "@/pages/admin/EmployeeManagement";
 import DashboardEmployeePage from "@/pages/employee/DashboardPage";
 import SellManagerPage from "@/pages/employee/sell/manager";
 import ClientManagerPage from "@/pages/employee/client/manager";
@@ -141,8 +142,8 @@ const router = createBrowserRouter([
         path: "nhan-vien",
         children: [
           {
-            path: "quan-ly",
-            element: <ManagerEmployeePage />,
+            index: true,
+            element: <EmployeeManagement />,
           },
         ],
       },

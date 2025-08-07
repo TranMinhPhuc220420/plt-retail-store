@@ -86,17 +86,23 @@ const SiderApp = ({ isLoading, collapsed }) => {
           label: t('TXT_PRODUCT_TYPES_MANAGEMENT'),
         },
         {
+          key: 'admin_employee',
+          icon: <TeamOutlined />,
+          pathname: `/store/${storeCode}/admin/nhan-vien`,
+          label: t('TXT_EMPLOYEE'),
+        },
+        {
           key: 'admin_supplier_management',
           pathname: `/store/${storeCode}/admin/nha-cung-cap`,
           icon: <BarChartOutlined />,
           label: t('TXT_SUPPLIERS'),
         },
-        {
-          key: 'admin_cost_analysis',
-          pathname: `/store/${storeCode}/admin/phan-tich-chi-phi`,
-          icon: <DashboardFilled />,
-          label: t('TXT_COST_ANALYSIS'),
-        },
+        // {
+        //   key: 'admin_cost_analysis',
+        //   pathname: `/store/${storeCode}/admin/phan-tich-chi-phi`,
+        //   icon: <DashboardFilled />,
+        //   label: t('TXT_COST_ANALYSIS'),
+        // },
         {
           key: 'admin_product_management',
           icon: <ProductOutlined />,
@@ -150,62 +156,63 @@ const SiderApp = ({ isLoading, collapsed }) => {
           ],
         },
 
-        {
-          key: 'admin_employee',
-          icon: <TeamOutlined />,
-          label: t('TXT_EMPLOYEE'),
-          children: [
-            {
-              key: 'admin_employee_manager',
-              pathname: `/store/${storeCode}/admin/nhan-vien`,
-              label: t('TXT_MANAGER'),
-            },
-            {
-              key: 'admin_employee_skill_categorization',
-              pathname: `/store/${storeCode}/admin/nhan-vien/phan-loai-ky-nang`,
-              label: t('TXT_SKILL_CATEGORIZATION'),
-            },
-            {
-              key: 'admin_employee_track_work_hours',
-              pathname: `/store/${storeCode}/admin/nhan-vien/theo-doi-gio-lam`,
-              label: t('TXT_TRACK_WORK_HOURS'),
-            },
-          ],
-        },
-        {
-          key: 'admin_shift_optimization',
-          icon: <DashboardFilled />,
-          label: t('TXT_SHIFT_OPTIMIZATION'),
-          children: [
-            {
-              key: 'admin_shift_scheduling',
-              pathname: `/store/${storeCode}/admin/toi-uu-hoa-ca/sap-xep-ca`,
-              label: t('TXT_SHIFT_SCHEDULING'),
-            },
-            {
-              key: 'admin_shift_setup',
-              pathname: `/store/${storeCode}/admin/toi-uu-hoa-ca/thiet-lap-ca`,
-              label: t('TXT_SHIFT_SETUP'),
-            },
-          ],
-        },
-        {
-          key: 'admin_revenue_forecast',
-          icon: <AuditOutlined />,
-          label: t('TXT_REVENUE_FORECAST'),
-          children: [
-            {
-              key: 'admin_revenue_forecast_main',
-              pathname: `/store/${storeCode}/admin/du-doan-doanh-thu`,
-              label: t('TXT_REVENUE_FORECAST'),
-            },
-            {
-              key: 'admin_historical_analysis',
-              pathname: `/store/${storeCode}/admin/phan-tich-lich-su`,
-              label: t('TXT_HISTORICAL_ANALYSIS'),
-            },
-          ],
-        },
+        // {
+        //   key: 'admin_employee',
+        //   icon: <TeamOutlined />,
+        //   label: t('TXT_EMPLOYEE'),
+        //   children: [
+        //     {
+        //       key: 'admin_employee_manager',
+        //       pathname: `/store/${storeCode}/admin/nhan-vien`,
+        //       label: t('TXT_MANAGER'),
+        //     },
+        //     {
+        //       key: 'admin_employee_skill_categorization',
+        //       pathname: `/store/${storeCode}/admin/nhan-vien/phan-loai-ky-nang`,
+        //       label: t('TXT_SKILL_CATEGORIZATION'),
+        //     },
+        //     {
+        //       key: 'admin_employee_track_work_hours',
+        //       pathname: `/store/${storeCode}/admin/nhan-vien/theo-doi-gio-lam`,
+        //       label: t('TXT_TRACK_WORK_HOURS'),
+        //     },
+        //   ],
+        // },
+
+        // {
+        //   key: 'admin_shift_optimization',
+        //   icon: <DashboardFilled />,
+        //   label: t('TXT_SHIFT_OPTIMIZATION'),
+        //   children: [
+        //     {
+        //       key: 'admin_shift_scheduling',
+        //       pathname: `/store/${storeCode}/admin/toi-uu-hoa-ca/sap-xep-ca`,
+        //       label: t('TXT_SHIFT_SCHEDULING'),
+        //     },
+        //     {
+        //       key: 'admin_shift_setup',
+        //       pathname: `/store/${storeCode}/admin/toi-uu-hoa-ca/thiet-lap-ca`,
+        //       label: t('TXT_SHIFT_SETUP'),
+        //     },
+        //   ],
+        // },
+        // {
+        //   key: 'admin_revenue_forecast',
+        //   icon: <AuditOutlined />,
+        //   label: t('TXT_REVENUE_FORECAST'),
+        //   children: [
+        //     {
+        //       key: 'admin_revenue_forecast_main',
+        //       pathname: `/store/${storeCode}/admin/du-doan-doanh-thu`,
+        //       label: t('TXT_REVENUE_FORECAST'),
+        //     },
+        //     {
+        //       key: 'admin_historical_analysis',
+        //       pathname: `/store/${storeCode}/admin/phan-tich-lich-su`,
+        //       label: t('TXT_HISTORICAL_ANALYSIS'),
+        //     },
+        //   ],
+        // },
 
         {
           key: 'go_to_sale_member_screen',

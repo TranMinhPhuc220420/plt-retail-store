@@ -233,6 +233,22 @@ const authController = {
     return responses.success(res, { timestamp: new Date().toISOString() }, 'logout_successful');
   },
 
+  getAccessToken: (req, res) => {
+    const token = req.cookies.token;
+    if (!token) {
+      return responses.unauthorized(res, 'no_token_provided', null, 'No access token provided');
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return responses.unauthorized(res, 'invalid_token', err.message);
+      }
+
+      // Return the access token
+      return responses.success(res, { accessToken: token}, 'access_token_retrieved');
+    });
+  },
+
   me: async (req, res) => {
     if (!req.user) {
       return responses.unauthorized(res);

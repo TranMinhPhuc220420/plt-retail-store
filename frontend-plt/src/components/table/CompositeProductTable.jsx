@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { 
-  Table, 
-  Button, 
-  Popconfirm, 
-  Tag, 
-  Space, 
+import {
+  Table,
+  Button,
+  Popconfirm,
+  Tag,
+  Space,
   Tooltip,
   Badge,
   Progress,
   Typography
 } from "antd";
-import { 
-  EditOutlined, 
-  DeleteOutlined, 
+import {
+  EditOutlined,
+  DeleteOutlined,
   FireOutlined,
   ShoppingOutlined,
   ExperimentOutlined,
@@ -27,17 +27,17 @@ import { parseDecimal, formatPrice } from "@/utils/numberUtils";
 
 const { Text } = Typography;
 
-const CompositeProductTable = ({ 
-  storeCode, 
-  onEdit, 
-  onDelete, 
+const CompositeProductTable = ({
+  storeCode,
+  onEdit,
+  onDelete,
   onPrepare,
   onServe,
   onSelectionChange,
-  loading 
+  loading
 }) => {
   const { t } = useTranslation();
-  
+
   const {
     compositeProducts,
     isProductDeleting,
@@ -142,16 +142,16 @@ const CompositeProductTable = ({
       width: 150,
       render: (compositeInfo, record) => {
         const percentage = getStockPercentage(
-          compositeInfo.currentStock, 
+          compositeInfo.currentStock,
           compositeInfo.capacity.quantity
         );
-        
+
         return (
           <div>
             <div className="flex items-center space-x-2">
-              <Progress 
-                percent={percentage} 
-                size="small" 
+              <Progress
+                percent={percentage}
+                size="small"
                 status={percentage === 0 ? 'exception' : 'active'}
                 className="flex-1"
               />
@@ -178,8 +178,8 @@ const CompositeProductTable = ({
 
         return (
           <div>
-            <Tag 
-              color={getStatusColor(status)} 
+            <Tag
+              color={getStatusColor(status)}
               icon={getStatusIcon(status)}
             >
               {t(`TXT_STATUS_${status.toUpperCase()}`)}
@@ -199,6 +199,19 @@ const CompositeProductTable = ({
       render: (price) => (
         <Text className="text-sm">{formatPrice(parseDecimal(price))}</Text>
       )
+    },
+    {
+      title: t('TXT_SELLING_PRICE'),
+      dataIndex: 'price',
+      key: 'price',
+      width: 120,
+      render: (price, record) => {
+        console.log(record);
+        
+        return (
+          <Text className="text-sm font-semibold">{formatPrice(parseDecimal(price))}</Text>
+        )
+      }
     },
     {
       title: t('TXT_RETAIL_PRICE'),
@@ -226,7 +239,7 @@ const CompositeProductTable = ({
               disabled={isProductDeleting(record._id)}
             />
           </Tooltip>
-          
+
           <Tooltip title={t('TXT_SERVE_COMPOSITE')}>
             <Button
               type="default"
@@ -235,13 +248,13 @@ const CompositeProductTable = ({
               onClick={() => onServe(record)}
               loading={isProductServing(record._id)}
               disabled={
-                isProductDeleting(record._id) || 
+                isProductDeleting(record._id) ||
                 record.compositeInfo.currentStock === 0 ||
                 (record.statusInfo && record.statusInfo.status === 'expired')
               }
             />
           </Tooltip>
-          
+
           <Tooltip title={t('TXT_EDIT')}>
             <Button
               type="default"
@@ -251,7 +264,7 @@ const CompositeProductTable = ({
               disabled={isProductDeleting(record._id)}
             />
           </Tooltip>
-          
+
           <Popconfirm
             title={t('TITLE_CONFIRM_DELETE')}
             description={t('CONFIRM_DELETE_COMPOSITE_PRODUCT')}

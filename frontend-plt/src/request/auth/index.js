@@ -30,6 +30,16 @@ export const loginWithUsername = async (data) => {
   }
 }
 
+export const getAccessToken = async () => {
+  try {
+    const response = await get('/auth/access-token');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get access token:', error);
+    throw error;
+  }
+}
+
 export const getMe = async () => {
   try {
     const response = await get('/auth/me');

@@ -7,7 +7,12 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest",
-    "migrate:simplify-units": "node migrate_simplify_units.js"
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:unit": "jest --testPathPattern=__tests__ --testPathIgnorePatterns=integration",
+    "migrate:simplify-units": "node migrate_simplify_units.js",
+    "migrate:employee-system": "node migrate_employee_system.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -33,6 +38,7 @@
   "devDependencies": {
     "@types/express-session": "^1.17.10",
     "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.2.0",
     "nodemon": "^3.0.1",
     "supertest": "^6.3.3"
   },

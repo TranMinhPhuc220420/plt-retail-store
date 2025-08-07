@@ -21,6 +21,8 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_HISTORICAL_ANALYSIS': 'Phân tích dữ liệu lịch sử',
     'TXT_GO_TO_SALE_MEMBER_SCREEN': 'Màn hình bán hàng',
     'TXT_GO_TO_ADMIN_SCREEN': 'Màn hình quản trị',
+    'TXT_MANAGER': 'Quản lý',
+    'TXT_STAFF': 'Nhân viên',
 
     'TXT_SELL': 'Bán hàng',
     'TXT_CLIENT': 'Khách hàng',
@@ -795,13 +797,13 @@ const VIETNAMESE_TRANSLATIONS = {
     // Supplier management
     "TXT_SUPPLIERS": "Nhà cung cấp",
     "TXT_SUPPLIER_MANAGEMENT": "Quản lý nhà cung cấp",
-    
+
     // Cost Analysis
     "TXT_COST_ANALYSIS": "Phân tích chi phí",
     "TXT_COST_ANALYSIS_DASHBOARD": "Bảng điều khiển phân tích chi phí",
     "TXT_CLEAR_CACHE": "Xóa bộ nhớ đệm",
     "TXT_RECALCULATE_ALL": "Tính toán lại tất cả",
-    
+
     "TXT_SUPPLIER_LIST_DESCRIPTION": "Quản lý các nhà cung cấp và thông tin của họ",
     "TXT_SUPPLIER_CODE": "Mã nhà cung cấp",
     "TXT_SUPPLIER_NAME": "Tên nhà cung cấp",
@@ -1235,13 +1237,13 @@ const VIETNAMESE_TRANSLATIONS = {
     "MSG_NO_STOCK_AVAILABLE": "Không có tồn kho",
     "MSG_NEED_TO_PREPARE_FIRST": "Cần chuẩn bị sản phẩm trước khi phục vụ",
     "MSG_QUANTITY_EXCEED_STOCK": "Số lượng vượt quá tồn kho hiện có",
-    
+
     // Additional error messages for prepare composite
     "MSG_INVALID_QUANTITY_TO_PREPARE": "Số lượng chuẩn bị không hợp lệ (từ 1 đến 10)",
     "MSG_INVALID_COMPOSITE_STRUCTURE": "Cấu trúc sản phẩm tổng hợp không hợp lệ",
     "MSG_NO_VALID_REQUIREMENTS": "Không có yêu cầu hợp lệ để chuẩn bị",
     "MSG_INVALID_REQUIREMENTS_FOUND": "Tìm thấy yêu cầu không hợp lệ trong công thức",
-    
+
     // Recipe Selection for Composite Products
     "TXT_RECIPE_SELECTION": "Chọn công thức",
     "TXT_SELECT_RECIPE": "Chọn công thức",
@@ -1446,7 +1448,7 @@ const VIETNAMESE_TRANSLATIONS = {
     "TXT_CLICK_ADD_BUTTON_TO_START": "Nhấn nút 'Thêm sản phẩm con' để bắt đầu",
     "TXT_REAL_TIME_CALCULATION": "Tính toán thời gian thực",
     "TXT_PROFIT_MARGIN": "Tỷ suất LN bán",
-    "TXT_RETAIL_MARGIN": "Tỷ suất LN lẻ", 
+    "TXT_RETAIL_MARGIN": "Tỷ suất LN lẻ",
     "TXT_PRICE_RATIO": "Tỷ lệ giá",
     "TXT_CREATING": "Đang tạo",
     "TXT_SELLING_PRICE_PER_SERVING": "Giá bán mỗi phần",
@@ -1477,7 +1479,7 @@ const VIETNAMESE_TRANSLATIONS = {
     "MSG_ERROR_FETCH_PREPARE_INFO": "Lỗi khi lấy thông tin chuẩn bị",
     "MSG_ERROR_FETCH_SERVE_INFO": "Lỗi khi lấy thông tin phục vụ",
     "MSG_ERROR_FETCH_PRODUCT_DETAILS": "Lỗi khi lấy chi tiết sản phẩm",
-    
+
     // Per-unit analysis
     "TXT_PER_UNIT_ANALYSIS": "Phân tích theo từng sản phẩm",
     "TXT_SELLING_PROFIT_PER_UNIT": "Lợi nhuận bán / sp",
@@ -1509,19 +1511,19 @@ const VIETNAMESE_TRANSLATIONS = {
     "MSG_RECIPE_PRICE_CALCULATION_FAILED": "Tính giá công thức thất bại",
     "MSG_CAPACITY_REQUIRED": "Vui lòng nhập thông tin sức chứa",
     "TXT_PORTIONS": "Phần",
-    "TXT_BOWLS": "Tô", 
+    "TXT_BOWLS": "Tô",
     "TXT_CUPS": "Ly",
     "TXT_PLATES": "Đĩa",
     "TXT_CURRENT_STOCK_AMOUNT": "Số lượng tồn kho hiện tại",
     "MSG_PRICE_REQUIRED": "Vui lòng nhập giá bán",
-    "MSG_RETAIL_PRICE_REQUIRED": "Vui lòng nhập giá bán lẻ", 
+    "MSG_RETAIL_PRICE_REQUIRED": "Vui lòng nhập giá bán lẻ",
     "MSG_PRICE_MUST_BE_POSITIVE": "Giá phải lớn hơn 0",
     "MSG_STOCK_MUST_BE_POSITIVE": "Tồn kho phải lớn hơn hoặc bằng 0",
     "MSG_CAPACITY_MUST_BE_POSITIVE": "Sức chứa phải lớn hơn 0",
     "MSG_EXPIRY_HOURS_MUST_BE_POSITIVE": "Thời gian hết hạn phải lớn hơn 0",
     "TXT_ENTER_SELLING_PRICE": "Nhập giá bán",
     "TXT_ENTER_CAPACITY": "Nhập sức chứa",
-    
+
     // Child Product Translations
     "TXT_CHILD_PRODUCT_WARNING": "Sản phẩm con của Composite Product",
     "TXT_CHILD_PRODUCT_DESCRIPTION": "Sản phẩm này là thành phần của sản phẩm composite '{{compositeProductName}}'. Một số thông tin được quản lý từ sản phẩm composite.",
@@ -1530,6 +1532,13 @@ const VIETNAMESE_TRANSLATIONS = {
     "MSG_SUCCESS_UPDATE_COMPOSITE_PRODUCT_PRICES": "Cập nhật giá sản phẩm thành công",
     "MSG_ERROR_UPDATE_COMPOSITE_PRODUCT_PRICES": "Cập nhật giá sản phẩm thất bại",
     "TXT_PREPARATION_SUMMARY": "Tóm tắt chuẩn bị",
+
+    "LABEL_USERNAME": "Tên người dùng",
+    "LABEL_PASSWORD": "Mật khẩu",
+    "LABEL_EMAIL": "Email",
+    "LABEL_DISPLAY_NAME": "Tên",
+    "LABEL_ROLE": "Vai trò",
+    "TXT_ADD_USER": "Thêm nhân viên",
   }
 };
 

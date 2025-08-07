@@ -2,6 +2,8 @@ const { Router } = require('express');
 
 const verifyJWT = require('../../middlewares/verifyJWT');
 const isAdmin = require('../../middlewares/isAdmin');
+const isStaff = require('../../middlewares/isStaff');
+const isAdminOrStaff = require('../../middlewares/isAdminOrStaff');
 
 const userRouter = require('./user.route');
 const storeRouter = require('./store.route');
@@ -18,25 +20,27 @@ const supplierRouter = require('./supplier.route');
 const productRecipeRouter = require('./product_recipe.route');
 const compositeProductRouter = require('./compositeProducts');
 const costAnalysisRouter = require('./costAnalysis'); // ✅ THÊM COST ANALYSIS ROUTER
+const employeeRouter = require('./employee.route'); // ✅ THÊM EMPLOYEE ROUTER
 
 const router = Router();
 
 // API routes
 router.use('/users', verifyJWT, isAdmin, userRouter);
-router.use('/stores', verifyJWT, isAdmin, storeRouter);
-router.use('/product-categories', verifyJWT, isAdmin, productCategoryRouter);
-router.use('/products', verifyJWT, isAdmin, productRouter);
+router.use('/stores', verifyJWT, isAdminOrStaff, storeRouter); // Staff can view stores
+router.use('/product-categories', verifyJWT, isAdminOrStaff, productCategoryRouter); // Staff can view categories
+router.use('/products', verifyJWT, isAdminOrStaff, productRouter); // Staff can view products
 
 router.use('/warehouses', verifyJWT, isAdmin, warehouseRouter);
-router.use('/ingredients', verifyJWT, isAdmin, ingredientRouter);
-router.use('/recipes', verifyJWT, isAdmin, recipeRouter);
+router.use('/ingredients', verifyJWT, isAdminOrStaff, ingredientRouter); // Staff can view ingredients
+router.use('/recipes', verifyJWT, isAdminOrStaff, recipeRouter); // Staff can view recipes
 router.use('/units', verifyJWT, unitRouter); // Unit utilities available to all authenticated users
-router.use('/inventory', verifyJWT, isAdmin, inventoryRouter); // Product inventory management routes
-router.use('/ingredient-inventory', verifyJWT, isAdmin, ingredientInventoryRouter); // Ingredient inventory management routes
-router.use('/suppliers', verifyJWT, isAdmin, supplierRouter); // Supplier management routes
-router.use('/', verifyJWT, isAdmin, productRecipeRouter); // Product-Recipe relationship management routes
-router.use('/composite-products', verifyJWT, isAdmin, compositeProductRouter); // Composite product management routes (JWT verification included in route)
-router.use('/cost-analysis', verifyJWT, isAdmin, costAnalysisRouter); // ✅ Cost analysis and management routes
+router.use('/inventory', verifyJWT, isAdminOrStaff, inventoryRouter); // Staff can manage inventory for sales
+router.use('/ingredient-inventory', verifyJWT, isAdmin, ingredientInventoryRouter); // Admin only
+router.use('/suppliers', verifyJWT, isAdmin, supplierRouter); // Admin only
+router.use('/', verifyJWT, isAdmin, productRecipeRouter); // Admin only
+router.use('/composite-products', verifyJWT, isAdminOrStaff, compositeProductRouter); // Staff can view composite products
+router.use('/cost-analysis', verifyJWT, isAdmin, costAnalysisRouter); // Admin only
+router.use('/employees', verifyJWT, isAdminOrStaff, employeeRouter); // ✅ Employee management routes
 
 // export default router;
 module.exports = router;

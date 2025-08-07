@@ -11,6 +11,7 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/logout', authController.logout);
 
+router.get('/access-token', authController.getAccessToken);
 router.get('/me', verifyJWT, authController.me);
 
 // export default router;

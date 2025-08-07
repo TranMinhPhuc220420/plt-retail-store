@@ -29,7 +29,17 @@ export const TIME_FORMAT = "HH:mm:ss";
 // Firebase Auth Context
 export const DOMAIN_EMAIL_DEFAULT = "@plt.retail.default";
 export const ADMIN_ROLE = "admin";
+export const MANAGER_ROLE = "manager";
+export const STAFF_ROLE = "staff";
 export const USER_ROLE = "user";
+
+// Role hierarchy for easier permission checking
+export const ROLE_HIERARCHY = {
+  [ADMIN_ROLE]: 4,
+  [MANAGER_ROLE]: 3,
+  [STAFF_ROLE]: 2,
+  [USER_ROLE]: 1
+};
 
 export const AVATAR_DEFAULT = "https://cdn3d.iconscout.com/3d/premium/thumb/programmer-3d-icon-download-in-png-blend-fbx-gltf-file-formats--development-coding-programming-developer-profession-avatar-pack-people-icons-11757512.png?f=webp";
 

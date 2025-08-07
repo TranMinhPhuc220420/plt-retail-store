@@ -90,65 +90,55 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => {
     };
   };
 
-  // Calculate pricing from detailed product child products
+  // Calculate pricing from detailed product child products (đồng bộ với PrepareCompositeModal)
   const calculatePricing = () => {
     console.log('🔍 calculatePricing called');
-    console.log('🔍 detailedProduct:', detailedProduct);
+    const productToUse = detailedProduct || product;
+    console.log('🔍 productToUse:', productToUse);
     console.log('🔍 watchQuantity:', watchQuantity);
-    
-    if (!detailedProduct?.compositeInfo?.childProducts) {
-      console.log('🔍 Using fallback pricing');
-      // Fallback to original product pricing if detailed data not available
+
+    if (!productToUse?.compositeInfo?.childProducts || productToUse.compositeInfo.childProducts.length === 0) {
+      // Fallback: dùng giá vốn và giá bán lẻ của sản phẩm
+      const recipeCostPerServing = productToUse?.compositeInfo?.recipeCost || parseDecimal(productToUse?.costPrice) || 0;
+      const sellingPricePerServing = productToUse?.price || productToUse?.retailPrice || 0;
+      const capacityQuantity = productToUse?.compositeInfo?.capacity?.quantity || 1;
+      const totalServings = capacityQuantity * watchQuantity;
       return {
-        totalRevenue: (product?.retailPrice || 0) * watchQuantity,
-        totalCost: (parseDecimal(product?.costPrice) || 0) * watchQuantity,
-        profit: ((product?.retailPrice || 0) - (parseDecimal(product?.costPrice) || 0)) * watchQuantity,
-        revenuePerServing: product?.retailPrice || 0,
-        costPerServing: parseDecimal(product?.costPrice) || 0
+        totalCost: recipeCostPerServing * watchQuantity,
+        totalRevenue: sellingPricePerServing * watchQuantity,
+        profit: (sellingPricePerServing - recipeCostPerServing) * watchQuantity,
+        revenuePerServing: sellingPricePerServing,
+        costPerServing: recipeCostPerServing
       };
     }
 
-    let totalChildCost = 0;
-    let totalChildRevenue = 0;
+    let costPerServing = 0;
+    let sellingRevenuePerServing = 0;
+    // let retailRevenuePerServing = 0; // Không dùng ở đây
 
-    console.log('🔍 Child products:', detailedProduct.compositeInfo.childProducts);
+    productToUse.compositeInfo.childProducts.forEach(child => {
+      const quantityPerServing = parseFloat(child.quantityPerServing) || 1;
+      // Lấy giá từ chính object child, không lấy từ productId
+      const childCostPrice = parseDecimal(child.costPrice) || 0;
+      const childSellingPrice = parseDecimal(child.sellingPrice) || 0;
+      // const childRetailPrice = parseDecimal(child.retailPrice) || 0;
 
-    detailedProduct.compositeInfo.childProducts.forEach(child => {
-      const quantityPerServing = child.quantityPerServing || 0;
-      const childCost = (child.productId.costPrice || 0) * quantityPerServing;
-      const childRevenue = (child.productId.retailPrice || 0) * quantityPerServing;
-      
-      console.log('🔍 Child:', {
-        name: child.productId.name,
-        quantityPerServing,
-        costPrice: child.productId.costPrice,
-        retailPrice: child.productId.retailPrice,
-        childCost,
-        childRevenue
-      });
-      
-      totalChildCost += childCost;
-      totalChildRevenue += childRevenue;
+      costPerServing += childCostPrice * quantityPerServing;
+      sellingRevenuePerServing += childSellingPrice * quantityPerServing;
     });
 
-    const totalCost = totalChildCost * watchQuantity;
-    const totalRevenue = totalChildRevenue * watchQuantity;
+    const capacityQuantity = productToUse?.compositeInfo?.capacity?.quantity || 1;
+    const totalServings = capacityQuantity * watchQuantity;
+    const totalCost = costPerServing * watchQuantity;
+    const totalRevenue = sellingRevenuePerServing * watchQuantity;
     const profit = totalRevenue - totalCost;
 
-    console.log('🔍 Final calculation:', {
-      totalChildCost,
-      totalChildRevenue,
-      totalCost,
+    return {
       totalRevenue,
-      profit
-    });
-
-    return { 
-      totalRevenue, 
-      totalCost, 
+      totalCost,
       profit,
-      revenuePerServing: totalChildRevenue,
-      costPerServing: totalChildCost
+      revenuePerServing: sellingRevenuePerServing,
+      costPerServing: costPerServing
     };
   };
   
@@ -340,49 +330,38 @@ const ServeCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => {
         <Divider>{t('TXT_TRANSACTION_SUMMARY')}</Divider>
 
         {loadingDetails ? (
-          <div className="text-center py-4">
-            <Spin />
-            <Text className="ml-2">{t('TXT_LOADING_PRODUCT_DETAILS')}</Text>
+          <div className="text-center py-8">
+            <Text type="secondary">{t('TXT_LOADING_PRODUCT_DETAILS', 'Đang tải thông tin sản phẩm...')}</Text>
           </div>
         ) : (
           <Row gutter={16} className="mb-4">
-            <Col span={6}>
+            <Col span={8}>
               <Card size="small" className="text-center">
-                <Title level={5} className="text-blue-600 mb-1">
+                <Title level={4} className="text-blue-600 mb-1">
                   {watchQuantity}
                 </Title>
-                <Text className="text-gray-500 text-xs">
+                <Text className="text-gray-500">
                   {t('TXT_QUANTITY')}
                 </Text>
               </Card>
             </Col>
-            <Col span={6}>
+            <Col span={8}>
               <Card size="small" className="text-center">
-                <Title level={5} className="text-green-600 mb-1">
+                <Title level={4} className="text-green-600 mb-1">
                   {formatPrice(totalRevenue)}
                 </Title>
-                <Text className="text-gray-500 text-xs">
+                <Text className="text-gray-500">
                   {t('TXT_REVENUE')}
                 </Text>
               </Card>
             </Col>
-            <Col span={6}>
+            <Col span={8}>
               <Card size="small" className="text-center">
-                <Title level={5} className="text-red-600 mb-1">
+                <Title level={4} className="text-red-600 mb-1">
                   {formatPrice(totalCost)}
                 </Title>
-                <Text className="text-gray-500 text-xs">
+                <Text className="text-gray-500">
                   {t('TXT_COST')}
-                </Text>
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card size="small" className="text-center">
-                <Title level={5} className={profit >= 0 ? "text-green-600" : "text-red-600"}>
-                  {formatPrice(profit)}
-                </Title>
-                <Text className="text-gray-500 text-xs">
-                  {t('TXT_PROFIT')}
                 </Text>
               </Card>
             </Col>

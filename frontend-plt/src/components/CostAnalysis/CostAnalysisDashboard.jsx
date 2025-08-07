@@ -30,7 +30,7 @@ import { getAuthToken } from '@/utils/auth';
 
 const { Title, Text } = Typography;
 
-const CostAnalysisDashboard = ({ storeId, storeCode }) => {
+const CostAnalysisDashboard = ({ accessToken, storeId, storeCode }) => {
   const { t } = useTranslation();
   const [recalculationModalVisible, setRecalculationModalVisible] = useState(false);
 
@@ -60,7 +60,7 @@ const CostAnalysisDashboard = ({ storeId, storeCode }) => {
     queueStatus: wsQueueStatus,
     connect,
     disconnect
-  } = useRealTimeCostUpdates(getAuthToken(), [storeId]);
+  } = useRealTimeCostUpdates(accessToken, [storeId]);
 
   // Handle real-time updates
   useEffect(() => {
@@ -100,8 +100,8 @@ const CostAnalysisDashboard = ({ storeId, storeCode }) => {
   // Clear messages after display
   useEffect(() => {
     if (success) {
-      message.success(success);
-      setTimeout(() => clearMessages(), 3000);
+      // message.success(success);
+      // setTimeout(() => clearMessages(), 3000);
     }
     if (error) {
       message.error(error);

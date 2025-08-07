@@ -97,8 +97,8 @@ export const getCostTrends = async (params = {}) => {
  */
 export const getProfitabilityReport = async (storeId) => {
   const endpoint = storeId 
-    ? `${API_BASE}/api/cost-analysis/profitability/${storeId}`
-    : `${API_BASE}/api/cost-analysis/profitability`;
+    ? `${API_BASE}/api/cost-analysis/profitability-report/${storeId}`
+    : `${API_BASE}/api/cost-analysis/profitability-report`;
     
   const response = await fetch(endpoint, {
     method: 'GET',

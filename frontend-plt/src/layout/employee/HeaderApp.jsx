@@ -62,12 +62,23 @@ const SiderApp = ({ isLoading }) => {
 
   // Constants
   const items = [];
-  if (user && user.isAdmin) {
-    items.push({
-      label: (<span>{t('TXT_GO_TO_ADMIN_SCREEN')}</span>),
-      key: '1',
-      onClick: () => navigate('/admin'),
-    });
+  if (user && (user.isAdmin || user.isStaff)) {
+    // Staff can access limited admin functions, admins can access all
+    if (user.isAdmin) {
+      items.push({
+        label: (<span>{t('TXT_GO_TO_ADMIN_SCREEN')}</span>),
+        key: '1',
+        onClick: () => navigate('/admin'),
+      });
+    }
+    // Staff gets a different menu item for their accessible admin functions
+    if (user.isStaff) {
+      items.push({
+        label: (<span>{t('TXT_VIEW_PRODUCTS')}</span>),
+        key: '2',
+        onClick: () => navigate('/store/default'),
+      });
+    }
   }
   items.push({
     label: (<span>{t('TXT_LOGOUT')}</span>),

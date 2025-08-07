@@ -1,14 +1,18 @@
 const ADMIN_ROLE = 'admin';
+const MANAGER_ROLE = 'manager';
+const STAFF_ROLE = 'staff';
 const USER_ROLE = 'user';
 
 const ROLE_DEFAULT = USER_ROLE;
-const ROLE_LIST = [ADMIN_ROLE, USER_ROLE];
+const ROLE_LIST = [ADMIN_ROLE, MANAGER_ROLE, STAFF_ROLE, USER_ROLE];
 
 const USER_PROVIDER_LOCAL = 'local';
 const USER_PROVIDER_GOOGLE = 'google';
 
 module.exports = {
   ADMIN_ROLE,
+  MANAGER_ROLE,
+  STAFF_ROLE,
   USER_ROLE,
   ROLE_DEFAULT,
   ROLE_LIST,
