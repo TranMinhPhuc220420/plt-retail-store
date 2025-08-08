@@ -14,11 +14,12 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - plt-network
-    # deploy:
-    #   resources:
-    #     limits:
-    #       memory: 512M
-    #       cpus: "0.5"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   backend:
     build:
@@ -29,6 +30,7 @@ services:
     ports:
       - "5000:5000"
     environment:
+      NODE_ENV: development
       PORT: ${PORT}
       MONGODB_URI: ${MONGODB_URI}
       BASE_URL: ${BASE_URL}
@@ -39,17 +41,19 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     volumes:
       - ./backend-plt-2:/app
       - /app/node_modules
     networks:
       - plt-network
-    # deploy:
-    #   resources:
-    #     limits:
-    #       memory: 512M
-    #       cpus: "0.5"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     build:
@@ -63,17 +67,13 @@ services:
       VITE_VERCEL_BASE_URL: ${VITE_VERCEL_BASE_URL}
       VITE_VERCEL_SERVER_URL: ${VITE_VERCEL_SERVER_URL}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     volumes:
       - ./frontend-plt:/app
       - /app/node_modules
     networks:
       - plt-network
-    # deploy:
-    #   resources:
-    #     limits:
-    #       memory: 256M
-    #       cpus: "0.25"
 
 volumes:
   mongodb_dev_data:

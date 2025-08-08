@@ -29,11 +29,14 @@ const formatErrorResponse = (res, statusCode, message, error = null, details = n
     details
   };
 
-  logError(message, error, {
-    statusCode,
-    details,
-    endpoint: res.req?.originalUrl || 'unknown'
-  });
+  // Only log actual errors, not null/undefined values
+  if (error) {
+    logError(message, error, {
+      statusCode,
+      details,
+      endpoint: res.req?.originalUrl || 'unknown'
+    });
+  }
 
   return res.status(statusCode).json(response);
 };

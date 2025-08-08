@@ -30,9 +30,9 @@ const logError = (context, error, metadata = {}) => {
     timestamp,
     context,
     error: {
-      name: error.name,
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      name: error?.name || 'Unknown Error',
+      message: error?.message || 'No error message provided',
+      stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
     },
     metadata
   };

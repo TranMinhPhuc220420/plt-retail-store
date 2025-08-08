@@ -1,4 +1,4 @@
-.PHONY: build up down logs dev dev-down dev-logs backup restore clean
+.PHONY: build up down logs dev dev-down dev-logs backup restore clean health
 
 # Production commands
 build:
@@ -15,6 +15,32 @@ logs:
 
 ps:
 	docker compose ps
+
+# Production-specific commands
+prod-deploy: build up
+	@echo "Production deployment started..."
+	@echo "Waiting for services to be healthy..."
+	@sleep 30
+	@make health
+
+prod-update:
+	docker compose pull
+	docker compose up -d --build
+	@make health
+
+health:
+	@echo "Checking service health..."
+	@curl -f http://localhost:8080/health || echo "Frontend health check failed"
+	@curl -f http://localhost:5000/api/health || echo "Backend health check failed"
+
+backup-prod:
+	@echo "Creating production backup..."
+	docker exec plt-mongodb mongodump --host localhost --port 27017 --username $(MONGO_ROOT_USERNAME) --password $(MONGO_ROOT_PASSWORD) --authenticationDatabase admin --db $(MONGO_DATABASE) --out /data/backup
+	docker cp plt-mongodb:/data/backup ./mongodb-backup-prod-$$(date +%Y%m%d_%H%M%S)
+	@echo "Backup completed: mongodb-backup-prod-$$(date +%Y%m%d_%H%M%S)"
+
+restart:
+	docker compose restart
 
 # Development commands (Vite)
 dev:

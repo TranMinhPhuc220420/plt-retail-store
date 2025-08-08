@@ -11,6 +11,12 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Create a non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
 # Expose Vite port
 EXPOSE 5173
 
