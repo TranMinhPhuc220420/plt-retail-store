@@ -1,7 +1,7 @@
 // MongoDB initialization script for development
 // This script will run when the MongoDB container starts for the first time
 
-db = db.getSiblingDB('plt_database');
+db = db.getSiblingDB('retail_store_plt');
 
 // Create initial collections if they don't exist
 db.createCollection('users');
