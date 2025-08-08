@@ -23,8 +23,9 @@ RUN apk add --no-cache dumb-init
 # Copy built app to nginx (Vite build ra thư mục 'dist')
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration
+# Copy nginx configurations
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-main.conf /etc/nginx/nginx.conf
 
 # Set proper permissions for nginx directories
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
