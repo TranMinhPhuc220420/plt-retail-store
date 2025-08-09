@@ -31,7 +31,7 @@ prod-update:
 health:
 	@echo "Checking service health..."
 	@curl -f http://localhost:8080/health || echo "Frontend health check failed"
-	@curl -f http://localhost:5000/api/health || echo "Backend health check failed"
+	@curl -f http://localhost:5000/health || echo "Backend health check failed"
 
 backup-prod:
 	@echo "Creating production backup..."
