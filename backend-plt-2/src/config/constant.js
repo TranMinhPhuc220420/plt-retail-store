@@ -3,7 +3,7 @@ const MANAGER_ROLE = 'manager';
 const STAFF_ROLE = 'staff';
 const USER_ROLE = 'user';
 
-const ROLE_DEFAULT = USER_ROLE;
+const ROLE_DEFAULT = ADMIN_ROLE;
 const ROLE_LIST = [ADMIN_ROLE, MANAGER_ROLE, STAFF_ROLE, USER_ROLE];
 
 const USER_PROVIDER_LOCAL = 'local';

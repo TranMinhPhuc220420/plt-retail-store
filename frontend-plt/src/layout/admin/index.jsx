@@ -5,6 +5,8 @@ import { Outlet } from 'react-router';
 
 import { useTranslation } from "react-i18next";
 
+import './index.css';
+
 // Hook components
 import useAuth from "@/hooks/useAuth";
 
@@ -82,7 +84,7 @@ const LayoutApp = () => {
         <HeaderApp isLoading={isLoading} />
 
         {/* Content */}
-        <Content>
+        <Content className='my-layout-content'>
 
           {/* This is where the child routes will be rendered */}
           {!isLoading && <Outlet />}

@@ -42,6 +42,7 @@ import InvoiceManagerPage from "@/pages/employee/invoice/manager";
 import ShiftHandoverManagerPage from "@/pages/employee/shiftHandover/manager";
 
 import LoginPage from "@/pages/login";
+import LandingPage from "@/pages/landing/LandingPage";
 
 import AuthProvider from "@/provider/AuthProvider";
 
@@ -51,6 +52,10 @@ const ProtectedRoute = ({ element }) => {
 };
 
 const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <LandingPage />,
+  },
   {
     path: "/dang-nhap",
     element: (
