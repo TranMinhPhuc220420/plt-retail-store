@@ -39,7 +39,8 @@ const imageController = {
         uploadedBy: image.uploadedBy,
         uploadedAt: image.uploadedAt,
       });
-    } catch {
+    } catch (error) {
+      console.error('Error uploading store avatar:', error);
       res.status(500).json({ error: 'failed_to_update_store_avatar' });
     }
   },

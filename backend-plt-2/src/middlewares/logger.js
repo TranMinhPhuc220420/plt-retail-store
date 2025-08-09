@@ -112,6 +112,22 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 401;
     errorResponse.error = 'invalid_token';
     errorResponse.message = 'Invalid authentication token';
+  } else if (err.code === 'EACCES') {
+    statusCode = 500;
+    errorResponse.error = 'file_permission_denied';
+    errorResponse.message = 'Permission denied: Unable to write file to storage';
+  } else if (err.code === 'ENOENT') {
+    statusCode = 500;
+    errorResponse.error = 'storage_directory_not_found';
+    errorResponse.message = 'Storage directory not found';
+  } else if (err.code === 'LIMIT_FILE_SIZE') {
+    statusCode = 413;
+    errorResponse.error = 'file_too_large';
+    errorResponse.message = 'File size exceeds the maximum allowed limit';
+  } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    statusCode = 400;
+    errorResponse.error = 'unexpected_file_field';
+    errorResponse.message = 'Unexpected file field in request';
   }
 
   // Add timestamp
