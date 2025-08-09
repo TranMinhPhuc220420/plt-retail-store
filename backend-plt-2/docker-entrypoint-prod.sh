@@ -8,9 +8,13 @@ setup_storage_directories() {
     echo "Setting up storage directories..."
     
     # Create storage directories if they don't exist
+    mkdir -p /app/storage/user/avatars
     mkdir -p /app/storage/stores/avatars
     mkdir -p /app/storage/products/avatars
     mkdir -p /app/storage/employees/avatars
+    
+    # Create public directories if they don't exist
+    mkdir -p /app/public/avatars
     
     # Check if we're running as root (needed to fix permissions)
     if [ "$(id -u)" = "0" ]; then
@@ -18,9 +22,11 @@ setup_storage_directories() {
         
         # Fix ownership of storage directories
         chown -R nodejs:nodejs /app/storage
+        chown -R nodejs:nodejs /app/public
         
         # Set proper permissions (rwxrwxr-x)
         chmod -R 775 /app/storage
+        chmod -R 775 /app/public
         
         echo "Storage permissions fixed successfully"
         
@@ -29,11 +35,11 @@ setup_storage_directories() {
         exec su-exec nodejs "$@"
     else
         echo "Already running as nodejs user"
-        # Check if we can write to storage
-        if [ -w /app/storage ]; then
-            echo "Storage is writable"
+        # Check if we can write to storage and public directories
+        if [ -w /app/storage ] && [ -w /app/public ]; then
+            echo "Storage and public directories are writable"
         else
-            echo "WARNING: Storage directory is not writable!"
+            echo "WARNING: Storage or public directories are not writable!"
         fi
         
         # Execute the command as current user

@@ -13,7 +13,7 @@ echo Removing unused Docker resources...
 docker system prune -f
 
 echo Removing development images...
-docker-compose -f %COMPOSE_FILE% down --rmi all
+docker compose -f %COMPOSE_FILE% down --rmi all
 
 echo.
 echo Cleanup completed!

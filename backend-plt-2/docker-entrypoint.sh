@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Create storage directories if they don't exist
+mkdir -p /app/storage/user/avatars
 mkdir -p /app/storage/stores/avatars
 mkdir -p /app/storage/products/avatars  
 mkdir -p /app/storage/employees/avatars

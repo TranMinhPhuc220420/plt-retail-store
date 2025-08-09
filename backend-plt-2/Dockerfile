@@ -14,7 +14,7 @@ COPY docker-entrypoint-prod.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Create necessary directories with proper permissions
-RUN mkdir -p /app/storage/stores/avatars /app/storage/products/avatars /app/storage/employees/avatars && \
+RUN mkdir -p /app/storage/user/avatars /app/storage/stores/avatars /app/storage/products/avatars /app/storage/employees/avatars && \
     chown -R nodejs:nodejs /app
 
 # Copy package files

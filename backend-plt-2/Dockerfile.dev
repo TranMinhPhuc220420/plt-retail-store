@@ -15,7 +15,7 @@ RUN npm install
 COPY . .
 
 # Create necessary storage directories
-RUN mkdir -p /app/storage/stores/avatars /app/storage/products/avatars /app/storage/employees/avatars
+RUN mkdir -p /app/storage/user/avatars /app/storage/stores/avatars /app/storage/products/avatars /app/storage/employees/avatars
 
 # Expose port
 EXPOSE 5000
