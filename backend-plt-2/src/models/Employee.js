@@ -143,27 +143,27 @@ employeeSchema.virtual('fullName').get(function() {
 employeeSchema.set('toJSON', { virtuals: true });
 
 // Pre-save middleware to generate employee code if not provided
-employeeSchema.pre('save', async function(next) {
-  if (!this.employeeCode) {
-    const store = await mongoose.model('Store').findById(this.storeId);
-    if (store) {
-      const count = await this.constructor.countDocuments({ storeId: this.storeId });
-      this.employeeCode = `${store.storeCode}-EMP-${(count + 1).toString().padStart(4, '0')}`;
-    }
-  }
-  next();
-});
+// employeeSchema.pre('save', async function(next) {
+//   if (!this.employeeCode) {
+//     const store = await mongoose.model('Store').findById(this.storeId);
+//     if (store) {
+//       const count = await this.constructor.countDocuments({ storeId: this.storeId });
+//       this.employeeCode = `${store.storeCode}-EMP-${(count + 1).toString().padStart(4, '0')}`;
+//     }
+//   }
+//   next();
+// });
 
 // Pre-save middleware to validate manager relationship
-employeeSchema.pre('save', async function(next) {
-  if (this.role === STAFF_ROLE && this.managerId) {
-    const manager = await this.constructor.findById(this.managerId);
-    if (!manager || manager.role !== MANAGER_ROLE || manager.storeId.toString() !== this.storeId.toString()) {
-      throw new Error('Invalid manager assignment');
-    }
-  }
-  next();
-});
+// employeeSchema.pre('save', async function(next) {
+//   if (this.role === STAFF_ROLE && this.managerId) {
+//     const manager = await this.constructor.findById(this.managerId);
+//     if (!manager || manager.role !== MANAGER_ROLE || manager.storeId.toString() !== this.storeId.toString()) {
+//       throw new Error('Invalid manager assignment');
+//     }
+//   }
+//   next();
+// });
 
 // Indexes for better query performance
 employeeSchema.index({ employeeCode: 1 });

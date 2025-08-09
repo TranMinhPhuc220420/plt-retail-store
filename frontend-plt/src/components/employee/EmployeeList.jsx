@@ -17,7 +17,8 @@ import {
   Tooltip,
   Badge,
   Dropdown,
-  Menu
+  Menu,
+  Avatar
 } from 'antd';
 import {
   PlusOutlined,
@@ -31,11 +32,11 @@ import {
   ReloadOutlined,
   MoreOutlined
 } from '@ant-design/icons';
-import { 
-  getEmployees, 
-  deleteEmployee, 
+import {
+  getEmployees,
+  deleteEmployee,
   updateEmployeeStatus,
-  getEmployeeStats 
+  getEmployeeStats
 } from '@/request/employee';
 import EmployeeForm from './EmployeeForm';
 import EmployeeDetail from './EmployeeDetail';
@@ -79,7 +80,7 @@ const EmployeeList = ({ storeId, storeName }) => {
         limit: pagination.pageSize,
         ...filters
       };
-      
+
       // Remove empty filters
       Object.keys(params).forEach(key => {
         if (params[key] === '' || params[key] === null || params[key] === undefined) {
@@ -88,7 +89,7 @@ const EmployeeList = ({ storeId, storeName }) => {
       });
 
       const data = await getEmployees(storeId, params);
-      
+
       setEmployees(data.docs || []);
       setPagination(prev => ({
         ...prev,
@@ -224,6 +225,14 @@ const EmployeeList = ({ storeId, storeName }) => {
 
   const columns = [
     {
+      key: 'avatar',
+      fixed: 'left',
+      width: 60,
+      render: (_, record) => (
+        <Avatar src={record.avatar} />
+      )
+    },
+    {
       title: 'Mã NV',
       dataIndex: 'employeeCode',
       key: 'employeeCode',
@@ -233,10 +242,9 @@ const EmployeeList = ({ storeId, storeName }) => {
     {
       title: 'Họ tên',
       key: 'fullName',
-      width: 200,
+      width: 180,
       render: (_, record) => (
         <Space>
-          <UserOutlined />
           <span>{record.fullName || `${record.firstName} ${record.lastName}`}</span>
         </Space>
       )
@@ -272,10 +280,10 @@ const EmployeeList = ({ storeId, storeName }) => {
       render: (department) => (
         <Tag color={getDepartmentColor(department)}>
           {department === 'sales' ? 'Bán hàng' :
-           department === 'kitchen' ? 'Bếp' :
-           department === 'cashier' ? 'Thu ngân' :
-           department === 'inventory' ? 'Kho' :
-           department === 'management' ? 'Quản lý' : department}
+            department === 'kitchen' ? 'Bếp' :
+              department === 'cashier' ? 'Thu ngân' :
+                department === 'inventory' ? 'Kho' :
+                  department === 'management' ? 'Quản lý' : department}
         </Tag>
       )
     },
@@ -453,7 +461,7 @@ const EmployeeList = ({ storeId, storeName }) => {
             ...pagination,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => 
+            showTotal: (total, range) =>
               `${range[0]}-${range[1]} của ${total} nhân viên`
           }}
           onChange={handleTableChange}

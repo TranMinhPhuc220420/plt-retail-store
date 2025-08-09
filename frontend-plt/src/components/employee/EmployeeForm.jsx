@@ -19,8 +19,8 @@ import {
 } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import moment from 'moment';
-import { 
-  createEmployee, 
+import {
+  createEmployee,
   updateEmployee,
   getManagers,
   uploadEmployeeAvatar
@@ -200,7 +200,44 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
         {/* Basic Information */}
         <Col span={24}>
           <Card title="Thông tin cơ bản" size="small" style={{ marginBottom: 16 }}>
-            <Row gutter={16}>
+            <Row gutter={20}>
+              <Col span={24}>
+                <Form.Item
+                  name="avatar"
+                >
+                  <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '16px' }}>
+                    <Upload
+                      listType="picture-circle"
+                      showUploadList={false}
+                      beforeUpload={() => false}
+                      accept="image/*"
+                      disabled={isUploadingImage}
+                      onChange={handleAvatarChange}
+                    >
+                      {imageUrl ? (
+                        <img
+                          style={{
+                            cursor: 'pointer',
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '50%',
+                            objectFit: 'cover'
+                          }}
+                          src={imageUrl}
+                          alt="Avatar"
+                        />
+                      ) : (
+                        <div style={{ cursor: 'pointer', padding: '20px' }}>
+                          <UploadOutlined />
+                          <div style={{ marginTop: 8 }}>
+                            {isUploadingImage ? 'Đang tải...' : 'Tải ảnh lên'}
+                          </div>
+                        </div>
+                      )}
+                    </Upload>
+                  </div>
+                </Form.Item>
+              </Col>
               <Col span={12}>
                 <Form.Item
                   name="firstName"
@@ -253,49 +290,11 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                   name="dateOfBirth"
                   label="Ngày sinh"
                 >
-                  <DatePicker 
-                    style={{ width: '100%' }} 
+                  <DatePicker
+                    style={{ width: '100%' }}
                     placeholder="Chọn ngày sinh"
                     format="DD/MM/YYYY"
                   />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="avatar"
-                  label="Ảnh đại diện"
-                >
-                  <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '16px' }}>
-                    <Upload
-                      listType="picture-circle"
-                      showUploadList={false}
-                      beforeUpload={() => false}
-                      accept="image/*"
-                      disabled={isUploadingImage}
-                      onChange={handleAvatarChange}
-                    >
-                      {imageUrl ? (
-                        <img
-                          style={{ 
-                            cursor: 'pointer', 
-                            width: '100%', 
-                            height: '100%',
-                            borderRadius: '50%',
-                            objectFit: 'cover'
-                          }}
-                          src={imageUrl}
-                          alt="Avatar"
-                        />
-                      ) : (
-                        <div style={{ cursor: 'pointer', padding: '20px' }}>
-                          <UploadOutlined />
-                          <div style={{ marginTop: 8 }}>
-                            {isUploadingImage ? 'Đang tải...' : 'Tải ảnh lên'}
-                          </div>
-                        </div>
-                      )}
-                    </Upload>
-                  </div>
                 </Form.Item>
               </Col>
             </Row>
@@ -352,7 +351,7 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                   label="Vai trò"
                   rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
                 >
-                  <Select 
+                  <Select
                     placeholder="Chọn vai trò"
                     onChange={handleRoleChange}
                   >
@@ -399,7 +398,7 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                       name="managerId"
                       label="Quản lý trực tiếp"
                     >
-                      <Select 
+                      <Select
                         placeholder="Chọn quản lý trực tiếp"
                         allowClear
                         disabled={getFieldValue('role') === 'manager'}
@@ -419,8 +418,8 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                   name="hireDate"
                   label="Ngày vào làm"
                 >
-                  <DatePicker 
-                    style={{ width: '100%' }} 
+                  <DatePicker
+                    style={{ width: '100%' }}
                     placeholder="Chọn ngày vào làm"
                     format="DD/MM/YYYY"
                   />
@@ -525,9 +524,9 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                   label="Trạng thái hoạt động"
                   valuePropName="checked"
                 >
-                  <Switch 
-                    checkedChildren="Hoạt động" 
-                    unCheckedChildren="Không hoạt động" 
+                  <Switch
+                    checkedChildren="Hoạt động"
+                    unCheckedChildren="Không hoạt động"
                   />
                 </Form.Item>
               </Col>
@@ -536,8 +535,8 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                   name="notes"
                   label="Ghi chú"
                 >
-                  <TextArea 
-                    rows={3} 
+                  <TextArea
+                    rows={3}
                     placeholder="Nhập ghi chú về nhân viên"
                   />
                 </Form.Item>

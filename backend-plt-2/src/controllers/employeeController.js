@@ -138,13 +138,14 @@ class EmployeeController {
 
       const employeeData = req.body;
       employeeData.ownerId = req.user._id; // Assuming user ID is available in req
+      employeeData.managerId = req.user._id; // Default to current user as manager
       
       // randomly generate employee code if not provided
       if (!employeeData.employeeCode) {
         const store = await Store.findById(employeeData.storeId);
         if (store) {
           const count = await Employee.countDocuments({ storeId: employeeData.storeId });
-          employeeData.employeeCode = `EMP-${(count + 1).toString().padStart(4, '0')}`;
+          employeeData.employeeCode = `${store.storeCode}-EMP-${(count + 1).toString().padStart(4, '0')}`;
         }
       }
 

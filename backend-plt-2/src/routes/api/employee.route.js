@@ -54,10 +54,10 @@ const validateEmployeeCreation = [
     .isIn(['sales', 'kitchen', 'cashier', 'inventory', 'management'])
     .withMessage('Invalid department'),
   
-  body('managerId')
-    .optional()
-    .isMongoId()
-    .withMessage('Valid manager ID is required'),
+  // body('managerId')
+  //   .optional()
+  //   .isMongoId()
+  //   .withMessage('Valid manager ID is required'),
   
   body('salary.amount')
     .optional()
