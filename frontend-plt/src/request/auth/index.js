@@ -1,5 +1,7 @@
 import { get, post } from "@/request";
 
+import { SERVER_URL } from "@/constant";
+
 export const logout = async () => {
   try {
     const response = await post('/auth/logout');
@@ -51,7 +53,7 @@ export const getMe = async () => {
 }
 
 export const openPopupLoginWithGoogle = async () => {
-  const loginUrl = `${import.meta.env.VITE_VERCEL_SERVER_URL}/auth/google`;
+  const loginUrl = `${SERVER_URL}/auth/google`;
 
   // Popup center display
   const width = 600;
