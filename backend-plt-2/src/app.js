@@ -41,7 +41,6 @@ app.use(sessionMiddleware);
 
 // Static files
 app.use(express.static(join(__dirname, '../public')));
-app.use('/p/stores', express.static(join(dirname(__filename), '../storage')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
