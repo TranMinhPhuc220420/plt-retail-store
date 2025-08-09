@@ -44,8 +44,11 @@ services:
       mongodb:
         condition: service_healthy
     volumes:
+      # Mount source code for easy updates (excluding node_modules)
       - ./backend-plt-2:/app
       - /app/node_modules
+      # Use a separate named volume for storage to avoid permission issues
+      - plt_storage:/app/storage
     networks:
       - plt-network
     healthcheck:
@@ -80,6 +83,8 @@ services:
 
 volumes:
   mongodb_data:
+    driver: local
+  plt_storage:
     driver: local
 
 networks:
