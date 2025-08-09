@@ -29,20 +29,20 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if docker and docker-compose are available
+# Check if docker and docker compose are available
 if ! command -v docker &> /dev/null; then
     print_error "Docker is not installed or not in PATH"
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    print_error "Docker Compose is not installed or not in PATH"
+if ! docker compose version &> /dev/null; then
+    print_error "Docker Compose (plugin) is not installed or not in PATH"
     exit 1
 fi
 
 # Stop existing containers
 print_status "Stopping existing containers..."
-docker-compose down || true
+docker compose down || true
 
 # Remove old backend image to force rebuild
 print_status "Removing old backend image..."
@@ -50,11 +50,11 @@ docker rmi plt-retail-store-backend:latest || true
 
 # Build new images with storage permission fixes
 print_status "Building updated backend image..."
-docker-compose build backend
+docker compose build backend
 
 # Start services
 print_status "Starting services..."
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be healthy
 print_status "Waiting for services to be healthy..."
@@ -62,7 +62,7 @@ sleep 10
 
 # Check service status
 print_status "Checking service status..."
-docker-compose ps
+docker compose ps
 
 # Test storage permissions
 print_status "Testing storage permissions..."
@@ -85,7 +85,7 @@ print_warning "Monitor the logs to ensure file uploads are working correctly."
 echo ""
 echo "================================================"
 echo "Useful commands for monitoring:"
-echo "  docker-compose logs -f backend    # View backend logs"
-echo "  docker-compose ps                 # Check service status"
+echo "  docker compose logs -f backend    # View backend logs"
+echo "  docker compose ps                 # Check service status"
 echo "  docker exec plt-backend ls -la /app/storage/  # Check storage permissions"
 echo "================================================"

@@ -8,7 +8,7 @@ echo "Fixing 404 errors for avatar images..."
 
 # Step 1: Stop existing services
 echo "🛑 Stopping existing services..."
-docker-compose down
+docker compose down
 
 # Step 2: Remove old backend image to force rebuild
 echo "🗑️ Removing old backend image..."
@@ -16,7 +16,7 @@ docker rmi plt-retail-store-backend:latest 2>/dev/null || true
 
 # Step 3: Build new backend image with fixes
 echo "🔨 Building new backend image..."
-docker-compose build backend
+docker compose build backend
 
 # Step 4: Check storage volume
 echo "📁 Checking storage volume..."
@@ -24,7 +24,7 @@ docker volume ls | grep plt_storage || echo "Creating new storage volume..."
 
 # Step 5: Start services
 echo "🚀 Starting services..."
-docker-compose up -d
+docker compose up -d
 
 # Step 6: Wait for services to be ready
 echo "⏳ Waiting for services to start..."
@@ -32,7 +32,7 @@ sleep 15
 
 # Step 7: Check service health
 echo "🔍 Checking service health..."
-docker-compose ps
+docker compose ps
 
 # Step 8: Check backend logs for any errors
 echo "📋 Backend logs (last 10 lines):"
