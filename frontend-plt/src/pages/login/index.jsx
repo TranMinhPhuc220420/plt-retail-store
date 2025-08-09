@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 
-import { Form, Input, Button, message } from "antd";
+import { Form, Input, Button, message, Progress, Typography, Alert } from "antd";
+import { LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+
+const { Text } = Typography;
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -34,6 +37,30 @@ const LoginPage = () => {
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [isLoadingUsernamePassword, setIsLoadingUsernamePassword] = useState(false);
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+
+  // Password strength functions
+  const getPasswordStrength = (pwd) => {
+    let score = 0;
+    if (!pwd) return score;
+
+    // Length check
+    if (pwd.length >= 6) score += 40;
+    if (pwd.length >= 8) score += 20;
+
+    // Character variety checks
+    if (/[a-zA-Z]/.test(pwd)) score += 20;
+    if (/[0-9]/.test(pwd)) score += 20;
+
+    return Math.min(score, 100);
+  };
+
+  const getPasswordStrengthText = (score) => {
+    if (score < 40) return { text: t('TXT_PASSWORD_WEAK'), color: '#ff4d4f' };
+    if (score < 80) return { text: t('TXT_PASSWORD_GOOD'), color: '#faad14' };
+    return { text: t('TXT_PASSWORD_STRONG'), color: '#52c41a' };
+  };
 
   const handlerLoginWithGoogle = async (event) => {
     event.preventDefault();
@@ -62,9 +89,13 @@ const LoginPage = () => {
 
   const handlerShowFormRegister = () => {
     setIsShowFormRegister(true);
+    setRegisterPassword(''); // Reset password state
+    setShowPasswordRequirements(false); // Reset password requirements visibility
   };
   const handlerHideFormRegister = () => {
     setIsShowFormRegister(false);
+    setRegisterPassword(''); // Reset password state
+    setShowPasswordRequirements(false); // Reset password requirements visibility
   };
   const handlerSubmitFormRegister = async (form) => {
     setIsLoadingRegister(true);
@@ -73,6 +104,8 @@ const LoginPage = () => {
       await registerUser(form);
       messageApi.success(t('MSG_REGISTER_SUCCESS'));
       setIsShowFormRegister(false);
+      setRegisterPassword(''); // Reset password state
+      setShowPasswordRequirements(false); // Reset password requirements visibility
     } catch (error) {
       messageApi.error(t('MSG_REGISTER_FAILED'));
     }
@@ -141,7 +174,7 @@ const LoginPage = () => {
             >
               
               <Form.Item name="username" rules={[
-                { required: true, message: 'Username is required' }
+                { required: true, message: t('MSG_USERNAME_IS_REQUIRED') }
               ]} 
                 className="w-full"
                 style={{ marginBottom: '10px' }}
@@ -149,7 +182,7 @@ const LoginPage = () => {
                 <Input type="text" placeholder={t('TXT_USERNAME')}/>
               </Form.Item>
 
-              <Form.Item name="password" rules={[{ required: true, message: 'Password is required' }]}
+              <Form.Item name="password" rules={[{ required: true, message: t('MSG_PASSWORD_IS_REQUIRED') }]}
                 className="w-full"
               >
                 <Input.Password placeholder={t('TXT_PASSWORD')} />
@@ -185,10 +218,32 @@ const LoginPage = () => {
                 {t('TXT_CREATE_ACCOUNT')}
               </h2>
 
+              {/* Password Requirements Alert - Only show when there's validation error */}
+              {showPasswordRequirements && (
+                <Alert
+                  message={t('TXT_PASSWORD_REQUIREMENTS')}
+                  description={
+                    <div style={{ marginTop: '8px' }}>
+                      <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px', fontSize: '12px' }}>
+                        <li>{t('TXT_PASSWORD_REQUIREMENT_LENGTH')}</li>
+                        <li>{t('TXT_PASSWORD_REQUIREMENT_PATTERN')}</li>
+                      </ul>
+                    </div>
+                  }
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: '20px', borderRadius: '8px' }}
+                />
+              )}
+
               <Form name="register" className="w-full flex flex-col items-center justify-center mt-5"
                 autoComplete="off"
                 initialValues={{ remember: true }}
                 onFinish={handlerSubmitFormRegister}
+                onFinishFailed={() => {
+                  // Show password requirements when form validation fails
+                  setShowPasswordRequirements(true);
+                }}
               >
                 {/* Username */}
                 <Form.Item name="username" rules={[
@@ -208,12 +263,48 @@ const LoginPage = () => {
                 </Form.Item>
 
                 {/* Password */}
-                <Form.Item name="password" rules={[{ required: true, message: t('MSG_PASSWORD_IS_REQUIRED') }]}
+                <Form.Item name="password" rules={[
+                  { required: true, message: t('MSG_PASSWORD_IS_REQUIRED') },
+                  { min: 6, message: t('MSG_PASSWORD_MIN_LENGTH') },
+                  {
+                    pattern: /^(?=.*[a-zA-Z])(?=.*\d)/,
+                    message: t('MSG_PASSWORD_PATTERN')
+                  }
+                ]}
                   className="w-full"
                   style={{ marginTop: '10px' }}
                 >
-                  <Input.Password placeholder={t('TXT_PASSWORD')} />
+                  <Input.Password 
+                    prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+                    placeholder={t('TXT_PASSWORD')}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    style={{ borderRadius: '8px' }}
+                  />
                 </Form.Item>
+
+                {/* Password Strength Indicator */}
+                {registerPassword && (
+                  <div style={{ width: '100%', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>{t('TXT_PASSWORD_STRENGTH')}</Text>
+                      <Text style={{ 
+                        color: getPasswordStrengthText(getPasswordStrength(registerPassword)).color, 
+                        fontWeight: 'bold', 
+                        fontSize: '12px' 
+                      }}>
+                        {getPasswordStrengthText(getPasswordStrength(registerPassword)).text}
+                      </Text>
+                    </div>
+                    <Progress 
+                      percent={getPasswordStrength(registerPassword)} 
+                      strokeColor={getPasswordStrengthText(getPasswordStrength(registerPassword)).color}
+                      showInfo={false}
+                      size="small"
+                      style={{ height: '6px' }}
+                    />
+                  </div>
+                )}
 
                 {/* Confirm password */}
                 <Form.Item name="confirmPassword" dependencies={['password']} 
@@ -230,7 +321,12 @@ const LoginPage = () => {
                   style={{ marginTop: '10px' }}
                   className="w-full"
                 >
-                  <Input.Password placeholder={t('TXT_CONFIRM_PASSWORD')} />
+                  <Input.Password 
+                    prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+                    placeholder={t('TXT_CONFIRM_PASSWORD')}
+                    iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    style={{ borderRadius: '8px' }}
+                  />
                 </Form.Item>
 
                 {/* Fullname */}

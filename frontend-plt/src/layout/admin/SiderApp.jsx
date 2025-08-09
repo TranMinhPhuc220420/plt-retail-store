@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import {
   AuditOutlined, TeamOutlined, HomeOutlined, DashboardFilled, BarChartOutlined,
   ProductOutlined, ContainerOutlined, ApartmentOutlined, ShopOutlined,
-  DatabaseOutlined, ExperimentOutlined
+  DatabaseOutlined, ExperimentOutlined, UserOutlined
 } from '@ant-design/icons';
 
 import { Layout, Menu } from 'antd';

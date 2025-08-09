@@ -12,8 +12,8 @@ import { useTranslation } from 'react-i18next';
 import useAuth from "@/hooks/useAuth";
 
 // Ant Design
-import { LoadingOutlined } from '@ant-design/icons';
-import { Layout, Dropdown, message } from 'antd';
+import { LoadingOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Dropdown, message, Avatar } from 'antd';
 const { Header } = Layout;
 
 const HeaderApp = ({ isLoading }) => {
@@ -53,20 +53,37 @@ const HeaderApp = ({ isLoading }) => {
   };
 
   // Constants
-  const items = [];
-  items.push({
-    label: (<span>{t('TXT_LOGOUT')}</span>),
-    key: '0',
-    onClick: handlerSignOut,
-  });
-  
+  const items = [
+    {
+      label: (
+        <span>
+          <UserOutlined style={{ marginRight: '8px' }} />
+          Quản lý Profile
+        </span>
+      ),
+      key: 'profile',
+      onClick: () => {
+        const currentPath = window.location.pathname;
+        navigate('/profile');
+      },
+    },
+    {
+      type: 'divider',
+    },
+    {
+      label: (<span>Đăng Xuất</span>),
+      key: '0',
+      onClick: handlerSignOut,
+    },
+  ];
+
   useEffect(() => {
   }, []);
 
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
-      { contextHolder }
-      
+      {contextHolder}
+
       <div className='flex items-center justify-between h-full'>
 
         <div className='flex items-center cursor-pointer' onClick={() => navigate('/overview')}>
@@ -80,7 +97,15 @@ const HeaderApp = ({ isLoading }) => {
               <Dropdown menu={{ items }} trigger={['click']}>
                 <div className='h-10 flex items-center justify-center cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 pt-1 px-2'>
                   <span className='mr-3'>{user.displayName}</span>
-                  <img src={user.avatar} style={{width: 25, height: 25}} alt="Avatar" className='h-full rounded-full' />
+                  <Avatar
+                    size={25}
+                    src={user.avatar}
+                    icon={<UserOutlined />}
+                    style={{
+                      border: '4px solid #f0f0f0',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+                    }}
+                  />
                 </div>
               </Dropdown>
             )

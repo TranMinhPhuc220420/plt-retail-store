@@ -28,9 +28,9 @@ const App = () => {
         {isError && <div className='text-red-500 text-center'>Error: {isError}</div>}
       </Content>
 
-      <Footer className='text-center'>
+      {/* <Footer className='text-center'>
         Ant Design ©{new Date().getFullYear()} Created by Ant UED
-      </Footer>
+      </Footer> */}
     </Layout>
   );
 };

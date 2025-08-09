@@ -11,7 +11,7 @@ const imageSchema = new mongoose.Schema(
     
     role: {
       type: String,
-      enum: ['storeAvatar', 'productImage', 'userProfile', 'employeeAvatar', 'other'],
+      enum: ['userAvatar', 'storeAvatar', 'productImage', 'userProfile', 'employeeAvatar', 'other'],
       default: 'other'
     },
 

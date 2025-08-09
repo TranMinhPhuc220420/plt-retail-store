@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const verifyJWT = require('../../middlewares/verifyJWT');
 
+const AvatarPictureRouter = require('./avatar.route');
 const StorePictureRouter = require('./store.route');
 const ProductPictureRouter = require('./product.route');
 const EmployeePictureRouter = require('./employees.route');
@@ -8,6 +9,7 @@ const EmployeePictureRouter = require('./employees.route');
 const router = Router();
 
 // API routes
+router.use('/avatars', verifyJWT, AvatarPictureRouter);
 router.use('/stores', verifyJWT, StorePictureRouter);
 router.use('/products', verifyJWT, ProductPictureRouter);
 router.use('/employees', verifyJWT, EmployeePictureRouter);

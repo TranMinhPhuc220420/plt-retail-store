@@ -25,7 +25,7 @@ const employeeRouter = require('./employee.route'); // ✅ THÊM EMPLOYEE ROUTER
 const router = Router();
 
 // API routes
-router.use('/users', verifyJWT, isAdmin, userRouter);
+router.use('/users', verifyJWT, userRouter);
 router.use('/stores', verifyJWT, isAdminOrStaff, storeRouter); // Staff can view stores
 router.use('/product-categories', verifyJWT, isAdminOrStaff, productCategoryRouter); // Staff can view categories
 router.use('/products', verifyJWT, isAdminOrStaff, productRouter); // Staff can view products

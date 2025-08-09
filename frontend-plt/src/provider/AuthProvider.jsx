@@ -153,7 +153,7 @@ function AuthProvider({ children }) {
       type: IS_CHECKING,
       payload: { isChecking: false },
     });
-  }
+  };
 
   const loadProfile = async () => {
     // Dispatch checking state

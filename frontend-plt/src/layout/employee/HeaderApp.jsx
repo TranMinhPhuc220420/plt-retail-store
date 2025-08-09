@@ -13,7 +13,7 @@ import useAuth from "@/hooks/useAuth";
 
 // Ant Design
 import { ShoppingCartOutlined, UserOutlined, FileDoneOutlined, LoadingOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons';
-import { Layout, Button, Dropdown, Space, Menu, message } from 'antd';
+import { Layout, Button, Dropdown, Space, Menu, message, Avatar } from 'antd';
 const { Header } = Layout;
 
 const SiderApp = ({ isLoading }) => {
@@ -117,6 +117,12 @@ const SiderApp = ({ isLoading }) => {
       icon: <BlockOutlined />,
       pathname: '/giao-ca',
       label: t('TXT_SHIFT_HANDOVER'),
+    },
+    {
+      key: 'profile_dashboard',
+      icon: <UserOutlined />,
+      pathname: '/profile',
+      label: 'Profile',
     }
   ];
 
@@ -151,8 +157,8 @@ const SiderApp = ({ isLoading }) => {
 
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
-      { contextHolder }
-      
+      {contextHolder}
+
       <div className='flex items-center justify-between h-full'>
 
         <Menu mode="horizontal" style={{ flex: 1, minWidth: 0 }}
@@ -167,7 +173,15 @@ const SiderApp = ({ isLoading }) => {
               <Dropdown menu={{ items }} trigger={['click']}>
                 <div className='h-10 flex items-center justify-center cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 pt-1 px-2'>
                   <span className='mr-3'>{user.displayName}</span>
-                  <img src={user.avatar} style={{width: 25, height: 25}} alt="Avatar" className='h-full rounded-full' />
+                  <Avatar
+                    size={25}
+                    src={user.avatar}
+                    icon={<UserOutlined />}
+                    style={{
+                      border: '4px solid #f0f0f0',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+                    }}
+                  />
                 </div>
               </Dropdown>
             )

@@ -30,6 +30,9 @@ import SupplierDetailPage from "@/pages/admin/suppliers/[id]";
 // Cost Analysis page
 import CostAnalysisPage from "@/pages/admin/cost-analysis";
 
+// Profile page
+import ProfilePage from "@/pages/profile/ProfilePage";
+
 import ManagerEmployeePage from "@/pages/admin/manager";
 import EmployeeManagement from "@/pages/admin/EmployeeManagement";
 import DashboardEmployeePage from "@/pages/employee/DashboardPage";
@@ -55,6 +58,21 @@ const router = createBrowserRouter([
         element={<LoginPage />}
       />
     ),
+  },
+  
+  {
+    path: "/profile",
+    element: (
+      <ProtectedRoute
+        element={<LayoutOverview />}
+      />
+    ),
+    children: [
+      {
+        index: true,
+        element: <ProfilePage />,
+      },
+    ],
   },
 
   // Store management routes
@@ -178,6 +196,10 @@ const router = createBrowserRouter([
       {
         path: "giao-ca",
         element: <ShiftHandoverManagerPage />,
+      },
+      {
+        path: "profile",
+        element: <ProfilePage />,
       },
     ],
   },

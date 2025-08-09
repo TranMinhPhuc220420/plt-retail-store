@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import useAuth from "@/hooks/useAuth";
 
 // Ant Design
-import { LoadingOutlined, BellOutlined, ArrowLeftOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Layout, Button, Dropdown, Badge, message } from 'antd';
+import { LoadingOutlined, BellOutlined, ArrowLeftOutlined, LeftOutlined, RightOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Button, Dropdown, Badge, message, Avatar } from 'antd';
 const { Header } = Layout;
 
 // Zustand store
@@ -26,7 +26,7 @@ const HeaderApp = ({ }) => {
 
   // Use i18n
   const { t } = useTranslation();
-  
+
   // Hook components
   const { user, isChecking, signOut } = useAuth();
 
@@ -35,7 +35,7 @@ const HeaderApp = ({ }) => {
   const { sidebarClosed } = useStoreApp((state) => state);
   const { toggleSidebar, closeSidebar } = useStoreApp();
   const { isFetchingStoreActiveError, messageStoreActiveError } = useStoreApp();
-  
+
   // State
   const [storeActive, setStoreActive] = React.useState(null);
 
@@ -56,11 +56,11 @@ const HeaderApp = ({ }) => {
   };
   const handleSelectStore = (store) => {
     setStoreActive(store);
-    
+
     let url = window.location.pathname;
     const match = url.match(/\/store\/[a-zA-Z0-9-]+\/(.*)/);
     const after = match ? match[1] : '';
-    
+
     let nextUrl = '';
     if (after) {
       nextUrl = `/store/${store.storeCode}/${after}`;
@@ -73,6 +73,21 @@ const HeaderApp = ({ }) => {
 
   // Constants
   const items = [
+    {
+      label: (
+        <span>
+          <UserOutlined style={{ marginRight: '8px' }} />
+          Quản lý Profile
+        </span>
+      ),
+      key: 'profile',
+      onClick: () => {
+        navigate('/profile');
+      },
+    },
+    {
+      type: 'divider',
+    },
     {
       label: (<span>Đăng Xuất</span>),
       key: '0',
@@ -124,7 +139,7 @@ const HeaderApp = ({ }) => {
           if (messageStoreActiveError) {
             messageApi.error(messageStoreActiveError);
           }
-          
+
           navigate('/overview');
         }
       }
@@ -133,14 +148,14 @@ const HeaderApp = ({ }) => {
 
   return (
     <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
-      { contextHolder }
+      {contextHolder}
       <div className='flex items-center justify-between h-full'>
 
         <div className='flex items-center justify-end gap-3'>
           {/* Collapse button */}
-          <Button 
+          <Button
             type='text'
-            shape="circle" 
+            shape="circle"
             icon={!sidebarClosed ? <LeftOutlined /> : <RightOutlined />}
             onClick={handleCollapse}
             className='border-none text-gray-500 hover:text-gray-700'
@@ -174,7 +189,7 @@ const HeaderApp = ({ }) => {
         </div>
 
         <div className='flex items-center justify-end gap-3'>
-          
+
           {/* List notification */}
           <Dropdown
             menu={{
@@ -203,7 +218,15 @@ const HeaderApp = ({ }) => {
               <Dropdown menu={{ items }} trigger={['click']}>
                 <div className='h-10 flex items-center justify-center cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 pt-1 px-2 ml-2'>
                   <span className='mr-3'>{user.displayName}</span>
-                  <img src={user.avatar} style={{width: 25, height: 25}} alt="Avatar" className='h-full rounded-full' />
+                  <Avatar
+                    size={25}
+                    src={user.avatar}
+                    icon={<UserOutlined />}
+                    style={{
+                      border: '4px solid #f0f0f0',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+                    }}
+                  />
                 </div>
               </Dropdown>
             )

@@ -14,6 +14,23 @@ const userSchema = new mongoose.Schema({
   provider: { type: String, default: USER_PROVIDER_LOCAL },
   role: { type: String, enum: ROLE_LIST, default: ROLE_DEFAULT },
 
+  // Profile additional fields
+  firstName: { type: String, trim: true },
+  lastName: { type: String, trim: true },
+  phoneNumber: { 
+    type: String, 
+    trim: true,
+    validate: {
+      validator: function(v) {
+        return !v || /^(\+84|84|0)[3|5|7|8|9][0-9]{8}$/.test(v);
+      },
+      message: 'Phone number must be a valid Vietnamese phone number'
+    }
+  },
+  address: { type: String, trim: true },
+  dateOfBirth: { type: Date },
+  bio: { type: String, maxlength: 500 },
+
   disabled: { type: Boolean, default: false },
   deleted: { type: Boolean, default: false },
 }, {
