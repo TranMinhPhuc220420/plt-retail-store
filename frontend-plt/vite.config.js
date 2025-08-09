@@ -14,6 +14,26 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          antd: ['antd'],
+          charts: ['@ant-design/charts', '@ant-design/plots'],
+          utils: ['axios', 'moment', 'clsx']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1600,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,

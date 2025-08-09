@@ -28,6 +28,26 @@ prod-update:
 	docker compose up -d --build
 	@make health
 
+# Optimized production build with cleanup
+prod-build-clean:
+	@echo "Starting optimized production build with cleanup..."
+	@echo "Checking system resources..."
+	@free -h || echo "Memory check not available"
+	@echo "Cleaning Docker resources..."
+	docker compose down --remove-orphans
+	docker system prune -f --volumes
+	docker image prune -f
+	@echo "Building with no-cache and memory optimization..."
+	docker compose build --no-cache
+	@echo "Production build completed!"
+
+# Full production deployment with cleanup
+prod-deploy-clean: prod-build-clean up
+	@echo "Production deployment with cleanup completed!"
+	@echo "Waiting for services to be healthy..."
+	@sleep 30
+	@make health
+
 health:
 	@echo "Checking service health..."
 	@curl -f http://localhost:8080/health || echo "Frontend health check failed"

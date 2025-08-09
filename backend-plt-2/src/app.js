@@ -42,6 +42,23 @@ app.use(sessionMiddleware);
 // Static files
 app.use(express.static(join(__dirname, '../public')));
 
+// Explicit route for file downloads from download-template folder
+app.get('/download-template/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = join(__dirname, '../public/download-template', filename);
+  
+  // Set proper headers for file download
+  res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+  res.setHeader('Content-Type', 'application/octet-stream');
+  
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error sending file:', err);
+      res.status(404).json({ error: 'File not found' });
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ 

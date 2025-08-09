@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { ADMIN_ROLE, MANAGER_ROLE, STAFF_ROLE } = require('../config/constant');
 
 const isAdminOrStaff = async (req, res, next) => {
+  
   if (!req.user) {
     return res.status(403).json({ error: 'admin_manager_or_staff_access_required' });
   }

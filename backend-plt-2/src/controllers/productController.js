@@ -17,7 +17,7 @@ const {
 const productController = {
   getAllMy: async (req, res) => {
     try {
-      const products = await Product.find({ owner: req.user.id })
+      const products = await Product.find({ ownerId: req.user.id })
         .populate('recipes', 'dishName description')
         .populate('defaultRecipeId', 'dishName description')
         .populate('productCategory', 'name');

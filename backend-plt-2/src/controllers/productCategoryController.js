@@ -4,7 +4,7 @@ const Store = require('../models/Store');
 const productCategoryController = {
   getAllMy: async (req, res) => {
     try {
-      const productCategories = await ProductCategory.find({ owner: req.user.id, deleted: false });
+      const productCategories = await ProductCategory.find({ ownerId: req.user.id, deleted: false });
       res.status(200).json(productCategories);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch product categories' });
@@ -75,13 +75,13 @@ const productCategoryController = {
         return res.status(400).json({ error: 'store_code_required' });
       }
 
-      const store = await Store.findOne({ storeCode, owner: req.user.id, deleted: false });
+      const store = await Store.findOne({ storeCode, ownerId: req.user.id, deleted: false });
       if (!store) {
         return res.status(404).json({ error: 'store_not_found' });
       }
 
       // Fetch product categories for the store
-      const productCategories = await ProductCategory.find({ storeId: store._id, owner: req.user.id, deleted: false });
+      const productCategories = await ProductCategory.find({ storeId: store._id, ownerId: req.user.id, deleted: false });
       res.status(200).json(productCategories);
 
     } catch (error) {
@@ -144,7 +144,7 @@ const productCategoryController = {
         return res.status(400).json({ error: 'product_category_id_required' });
       }
 
-      const productCategory = await ProductCategory.findOne({ _id: id, owner: req.user.id, deleted: false });
+      const productCategory = await ProductCategory.findOne({ _id: id, ownerId: req.user.id, deleted: false });
       if (!productCategory) {
         return res.status(404).json({ error: 'product_category_not_found' });
       }
@@ -165,7 +165,7 @@ const productCategoryController = {
         return res.status(400).json({ error: 'product_category_ids_required' });
       }
 
-      const productCategories = await ProductCategory.find({ _id: { $in: ids }, owner: req.user.id, deleted: false });
+      const productCategories = await ProductCategory.find({ _id: { $in: ids }, ownerId: req.user.id, deleted: false });
       if (productCategories.length === 0) {
         return res.status(404).json({ error: 'product_categories_not_found' });
       }
