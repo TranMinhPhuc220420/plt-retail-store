@@ -73,4 +73,12 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Create indexes for better query performance
+productSchema.index({ productCode: 1 }, { unique: true });
+productSchema.index({ name: 1 });
+productSchema.index({ ownerId: 1, storeId: 1 });
+productSchema.index({ storeId: 1 });
+productSchema.index({ status: 1 });
+productSchema.index({ deleted: 1 });
+
 module.exports = mongoose.model('Product', productSchema);
