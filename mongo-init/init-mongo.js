@@ -12,7 +12,6 @@ db.createCollection('employees');
 
 // Create indexes for better performance
 db.users.createIndex({ "email": 1 }, { unique: true });
-db.products.createIndex({ "sku": 1 }, { unique: true });
 db.products.createIndex({ "name": 1 });
 db.stores.createIndex({ "name": 1 });
 db.suppliers.createIndex({ "name": 1 });

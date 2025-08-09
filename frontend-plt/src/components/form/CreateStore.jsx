@@ -15,6 +15,7 @@ import { createMyStore, uploadAvatarStore } from "@/request/store";
 
 // Utilities
 import { } from "@/utils";
+import { IMAGE_PRODUCT_EXAMPLE } from "@/constant";
 
 const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
   // i18n
@@ -26,7 +27,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
   // State
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState("background-page-login.png");
+  const [imageUrl, setImageUrl] = useState(IMAGE_PRODUCT_EXAMPLE);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
@@ -43,7 +44,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
       await createMyStore(values);
 
       form.resetFields();
-      setImageUrl("background-page-login.png");
+      setImageUrl(IMAGE_PRODUCT_EXAMPLE);
       setImageFile(null);
       message.success(t('TXT_STORE_CREATED_SUCCESS'));
 
@@ -62,7 +63,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
 
   const handlerCancel = () => {
     form.resetFields();
-    setImageUrl("background-page-login.png");
+    setImageUrl(IMAGE_PRODUCT_EXAMPLE);
     onCancel();
   };
 
@@ -80,7 +81,7 @@ const CreateStoreForm = ({ onOK, onFail, onCancel }) => {
         setIsUploadingImage(false);
       }
     } else {
-      setImageUrl("background-page-login.png");
+      setImageUrl(IMAGE_PRODUCT_EXAMPLE);
       setImageFile(null);
     }
   };

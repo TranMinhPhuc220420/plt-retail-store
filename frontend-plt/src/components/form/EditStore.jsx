@@ -14,6 +14,7 @@ import useAuth from "@/hooks/useAuth";
 
 // Request
 import { updateMyStore, uploadAvatarStore } from "@/request/store";
+import { IMAGE_PRODUCT_EXAMPLE } from "@/constant";
 
 const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
   // i18n
@@ -24,7 +25,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
 
   // State
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState(storeData?.imageUrl || "background-page-login.png");
+  const [imageUrl, setImageUrl] = useState(storeData?.imageUrl || IMAGE_PRODUCT_EXAMPLE);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form] = Form.useForm();
@@ -41,7 +42,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
         email: storeData.email,
         description: storeData.description,
       });
-      setImageUrl(storeData.imageUrl || "background-page-login.png");
+      setImageUrl(storeData.imageUrl || IMAGE_PRODUCT_EXAMPLE);
     }
   }, [storeData, form]);
 
@@ -57,7 +58,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       await updateMyStore(storeData._id, values);
 
       form.resetFields();
-      setImageUrl("background-page-login.png");
+      setImageUrl(IMAGE_PRODUCT_EXAMPLE);
       message.success(t('TXT_STORE_UPDATED_SUCCESS'));
 
       onOK();
@@ -81,7 +82,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
       email: storeData.email,
       description: storeData.description,
     });
-    setImageUrl(storeData.imageUrl || "background-page-login.png");
+    setImageUrl(storeData.imageUrl || IMAGE_PRODUCT_EXAMPLE);
     onCancel();
   };
 
@@ -99,7 +100,7 @@ const EditStoreForm = ({ storeData, onOK, onFail, onCancel }) => {
         setIsUploadingImage(false);
       }
     } else {
-      setImageUrl(storeData.imageUrl || "background-page-login.png");
+      setImageUrl(storeData.imageUrl || IMAGE_PRODUCT_EXAMPLE);
     }
   };
 

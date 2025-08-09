@@ -44,7 +44,7 @@ export const ROLE_HIERARCHY = {
 export const AVATAR_DEFAULT = "https://cdn3d.iconscout.com/3d/premium/thumb/programmer-3d-icon-download-in-png-blend-fbx-gltf-file-formats--development-coding-programming-developer-profession-avatar-pack-people-icons-11757512.png?f=webp";
 
 // Product related constants
-export const IMAGE_PRODUCT_EXAMPLE = `${SERVER_URL}/avatars/product-concept.avif`;
+export const IMAGE_PRODUCT_EXAMPLE = `https://img.freepik.com/free-psd/product-backdrop-psd-modern-style-with-marble-podium-gold-palm-leaf_53876-140457.jpg`;
 export const PRODUCT_TYPE_TEMP_FILE = `${SERVER_URL}/download-template/product-type-template.xlsx`;
 export const UNIT_LIST_SUGGESTION = [
   { id: "kilogram", name: "kg" },

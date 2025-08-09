@@ -35,8 +35,9 @@ prod-build-clean:
 	@free -h || echo "Memory check not available"
 	@echo "Cleaning Docker resources..."
 	docker compose down --remove-orphans
-	docker system prune -f --volumes
+	docker system prune -f
 	docker image prune -f
+	docker compose -f docker-compose.yml down --rmi all
 	@echo "Building with no-cache and memory optimization..."
 	docker compose build --no-cache
 	@echo "Production build completed!"

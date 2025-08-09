@@ -88,7 +88,7 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
         setIsUploadingImage(false);
       }
     } else {
-      setImageUrl("background-page-login.png");
+      setImageUrl(IMAGE_PRODUCT_EXAMPLE);
     }
   };
 
