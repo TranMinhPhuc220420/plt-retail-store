@@ -6,15 +6,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (including devDependencies needed for build)
-RUN npm ci --only=production=false && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .
 
-# Build the app với Vite với memory optimization
-RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build && \
-    npm prune --production && \
-    npm cache clean --force
+# Build the app với Vite
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine
