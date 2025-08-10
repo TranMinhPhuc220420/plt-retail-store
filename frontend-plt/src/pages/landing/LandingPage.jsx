@@ -345,7 +345,7 @@ const LandingPage = () => {
             <Col xs={24} lg={12}>
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 rounded-2xl">
                 <img 
-                  src="https://dataflip.co/cdn/shop/files/Out-of-StockReportDashboard_1080x.jpg?v=1746551610" 
+                  src="/dashboard.png" 
                   alt="Dashboard Preview" 
                   className="w-full h-80 object-cover rounded-xl shadow-lg"
                 />

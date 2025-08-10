@@ -181,3 +181,6 @@ export const patchApi = (url, data, headers={}) => {
 export const deleteApi = (url, params = {}) => {
   return apiClient.delete(`api${url}`, { params });
 }
+
+// Export apiClient for direct use in other modules
+export { apiClient, apiFormDataClient };
