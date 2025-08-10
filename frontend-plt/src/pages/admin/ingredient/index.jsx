@@ -559,10 +559,10 @@ const IngredientManagerPage = () => {
   }, [ingredients, searchText, selectedWarehouse]);
 
   return (
-    <div className="h-full mt-2 p-4 bg-gray-100">
+    <div className="h-full w-full p-2">
       {contextHolder}
 
-      <Card>
+      <div className="h-full w-full bg-white p-2 rounded-md shadow-sm overflow-hidden">
         <div className="flex justify-between items-center mb-4">
           <div>
             <Title level={3} className="m-0">
@@ -681,7 +681,7 @@ const IngredientManagerPage = () => {
           }}
           scroll={{ x: 800 }}
         />
-      </Card>
+      </div>
 
       {/* Create Modal */}
       <Modal

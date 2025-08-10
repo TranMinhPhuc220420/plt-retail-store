@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useLocation } from "react-router";
 
 // Zustand store
 import useStoreApp from '@/store/app';
+import useActiveMenuItem from '@/hooks/useActiveMenuItem';
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -20,13 +21,17 @@ const { Sider } = Layout;
 const SiderApp = ({ isLoading, collapsed }) => {
   // Router
   const navigate = useNavigate();
+  const location = useLocation();
   const { storeCode } = useParams();
   // i18n
   const { t } = useTranslation();
 
   // State
   const [menuItems, setMenuItems] = useState([]);
-  const [keySelected, setKeySelected] = useState(false);
+  const [openKeys, setOpenKeys] = useState([]);
+  
+  // Custom hook for active menu item
+  const activeKey = useActiveMenuItem(menuItems);
 
   // Zustand store
   const { sidebarClosed } = useStoreApp((state) => state);
@@ -39,34 +44,7 @@ const SiderApp = ({ isLoading, collapsed }) => {
     wrapMenu: 'h-full',
   };
 
-  // Process func
-  const processSetItemActiveMenuByPath = () => {
-    const path = window.location.pathname;
-
-    // Check if path is in items
-    let item;
-    for (let i = 0; i < menuItems.length; i++) {
-      const element = menuItems[i];
-      if (element.pathname === path) {
-        item = element;
-        break;
-      } else if (element.children) {
-        const child = element.children.find(child => child.pathname === path);
-        if (child) {
-          item = child;
-          break;
-        }
-      }
-    }
-
-    // Set selected key based on path
-    if (item) {
-      setKeySelected(item.key);
-    } else if (menuItems.length > 0) {
-      // Default to first item
-      setKeySelected(menuItems[0].key);
-    }
-  };
+  // Process func - No longer needed as we use the hook
   const processSetMenuItems = () => {
     // Define menu items
     let items = [];
@@ -237,13 +215,28 @@ const SiderApp = ({ isLoading, collapsed }) => {
     }
   };
 
+  const handleOpenChange = (keys) => {
+    setOpenKeys(keys);
+  };
+
+  // Effect to set open keys based on active item
   useEffect(() => {
-    processSetMenuItems();
-  }, [storeCode]);
+    if (activeKey && menuItems.length > 0) {
+      // Find parent menu item if active item is a child
+      const parentItem = menuItems.find(item => 
+        item.children && item.children.some(child => child.key === activeKey)
+      );
+      
+      if (parentItem && !openKeys.includes(parentItem.key)) {
+        setOpenKeys(prev => [...prev, parentItem.key]);
+      }
+    }
+  }, [activeKey, menuItems]);
 
   useEffect(() => {
-    processSetItemActiveMenuByPath();
-  }, [storeCode, menuItems]);
+    processSetMenuItems();
+  }, [storeCode, t]);
+
   useEffect(() => {
     // Get sidebar state from localStorage
     const storedSidebarClosed = localStorage.getItem('sidebarClosed');
@@ -269,7 +262,14 @@ const SiderApp = ({ isLoading, collapsed }) => {
       <Sider collapsed={sidebarClosed} className={classes.wrapMenu} width={210} style={{ backgroundColor: '#fff' }}>
         <div className='overflow-y-auto h-full'>
           {!isLoading &&
-            <Menu defaultSelectedKeys={[keySelected]} mode="inline" items={menuItems} onSelect={handlerOnSelectMenuItem} />
+            <Menu 
+              selectedKeys={[activeKey]}
+              openKeys={openKeys}
+              onOpenChange={handleOpenChange}
+              mode="inline" 
+              items={menuItems} 
+              onSelect={handlerOnSelectMenuItem}
+            />
           }
         </div>
       </Sider>

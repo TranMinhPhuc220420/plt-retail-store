@@ -30,7 +30,8 @@ import {
   FilterOutlined,
   ExportOutlined,
   ReloadOutlined,
-  MoreOutlined
+  MoreOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 import {
   getEmployees,
@@ -379,11 +380,12 @@ const EmployeeList = ({ storeId, storeName }) => {
         </Row>
       )}
 
-      <Card>
+      <div className="h-full w-full bg-white p-2 rounded-md shadow-sm overflow-hidden">
         {/* Header */}
         <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
           <Col>
             <Title level={4} style={{ margin: 0 }}>
+              <TeamOutlined className="text-2xl text-primary mr-2"/>
               Danh sách nhân viên - {storeName}
             </Title>
           </Col>
@@ -468,7 +470,7 @@ const EmployeeList = ({ storeId, storeName }) => {
           scroll={{ x: 1200 }}
           size="middle"
         />
-      </Card>
+      </div>
 
       {/* Create/Edit Modal */}
       <Modal

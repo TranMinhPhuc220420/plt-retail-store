@@ -322,11 +322,7 @@ const ProductManagerPage = () => {
   }
 
   return (
-    <div className="h-full w-full px-4 pt-4 pb-10">
-      <div className="mb-2">
-        <Breadcrumb items={[{ title: t('TXT_PRODUCTS') }, { title: t('TXT_MANAGER') }]} />
-      </div>
-
+    <div className="h-full w-full p-2">
       <div className="h-full w-full bg-white p-2 rounded-md shadow-sm overflow-hidden">
         {/* Toolbar top */}
         <div className="flex align-items-center justify-between mb-4">

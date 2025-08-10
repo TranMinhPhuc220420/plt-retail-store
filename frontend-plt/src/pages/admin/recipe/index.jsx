@@ -251,10 +251,10 @@ const RecipeManagerPage = () => {
   }, [recipes, searchText]);
 
   return (
-    <div className="h-full mt-2 p-4 bg-gray-100 overflow-auto">
+    <div className="h-full w-full p-2">
       {contextHolder}
       
-      <Card>
+      <div className="h-full w-full bg-white p-2 rounded-md shadow-sm overflow-hidden">
         <div className="flex justify-between items-center mb-4">
           <Title level={3} className="m-0">
             {t('TXT_RECIPE_MANAGEMENT')}
@@ -294,7 +294,7 @@ const RecipeManagerPage = () => {
           }}
           scroll={{ x: 1000 }}
         />
-      </Card>
+      </div>
 
       {/* Create Modal */}
       <Modal

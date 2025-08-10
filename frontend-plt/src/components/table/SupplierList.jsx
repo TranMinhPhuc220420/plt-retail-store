@@ -403,19 +403,8 @@ const SupplierList = () => {
   }
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Row gutter={[16, 16]} align="middle" style={{ marginBottom: 24 }}>
-        <Col flex={1}>
-          <Title level={3} style={{ margin: 0 }}>
-            {t('TXT_SUPPLIER_MANAGEMENT')}
-          </Title>
-          <Text type="secondary">
-            {t('TXT_SUPPLIER_LIST_DESCRIPTION')}
-          </Text>
-        </Col>
-      </Row>
-
-      <Card>
+    <div className="h-full w-full p-2">
+      <div className="h-full w-full bg-white p-2 rounded-md shadow-sm overflow-hidden">
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Search
@@ -485,7 +474,7 @@ const SupplierList = () => {
           }}
           scroll={{ x: 1200 }}
         />
-      </Card>
+      </div>
 
       <SupplierFormModal
         visible={formModalVisible}

@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
 // Hook components
 import useAuth from "@/hooks/useAuth";
+import AdminBreadcrumb from "@/components/Breadcrumb/AdminBreadcrumb";
 
 // Ant Design
-import { LoadingOutlined, BellOutlined, ArrowLeftOutlined, LeftOutlined, RightOutlined, UserOutlined } from '@ant-design/icons';
+import { LoadingOutlined, BellOutlined, ArrowLeftOutlined, LeftOutlined, RightOutlined, UserOutlined, HomeOutlined } from '@ant-design/icons';
 import { Layout, Button, Dropdown, Badge, message, Avatar } from 'antd';
 const { Header } = Layout;
 
@@ -18,6 +19,7 @@ import useStoreApp from '@/store/app';
 
 const HeaderApp = ({ }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
   const storeCode = params.storeCode;
 
@@ -147,48 +149,49 @@ const HeaderApp = ({ }) => {
   }, [storeCode, stores]);
 
   return (
-    <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
-      {contextHolder}
-      <div className='flex items-center justify-between h-full'>
+    <>
+      <Header className='shadow' style={{ backgroundColor: '#fff', paddingLeft: 10, paddingRight: 20 }}>
+        {contextHolder}
+        <div className='flex items-center justify-between h-full'>
 
-        <div className='flex items-center justify-end gap-3'>
-          {/* Collapse button */}
-          <Button
-            type='text'
-            shape="circle"
-            icon={!sidebarClosed ? <LeftOutlined /> : <RightOutlined />}
-            onClick={handleCollapse}
-            className='border-none text-gray-500 hover:text-gray-700'
-          />
+          <div className='flex items-center justify-end gap-3'>
+            {/* Collapse button */}
+            <Button
+              type='text'
+              shape="circle"
+              icon={!sidebarClosed ? <LeftOutlined /> : <RightOutlined />}
+              onClick={handleCollapse}
+              className='border-none text-gray-500 hover:text-gray-700'
+            />
 
-          {/* Store selection dropdown */}
-          <Dropdown
-            menu={{
-              items: stores.map(store => ({
-                key: store.code,
-                label: (
-                  <div className='flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-2 py-1'>
-                    <img src={store.imageUrl} className='h-full object-cover rounded-full' style={{ width: 18, height: 18 }} />
-                    {store.name}
-                  </div>
-                ),
-                onClick: () => handleSelectStore(store),
-              })),
-            }}
-            trigger={['click']}
-          >
-            <div className='h-10 flex items-center justify-start cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 px-2'>
-              {storeActive && (
-                <img src={storeActive.imageUrl} alt="Store Logo" className='h-full object-cover rounded-full' style={{ width: 25, height: 25 }} />
-              )}
-              <div className='h-full ml-2 flex items-center justify-center'>
-                {storeActive ? storeActive.name : 'Chọn cửa hàng'}
+            {/* Store selection dropdown */}
+            <Dropdown
+              menu={{
+                items: stores.map(store => ({
+                  key: store.code,
+                  label: (
+                    <div className='flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-2 py-1'>
+                      <img src={store.imageUrl} className='h-full object-cover rounded-full' style={{ width: 18, height: 18 }} />
+                      {store.name}
+                    </div>
+                  ),
+                  onClick: () => handleSelectStore(store),
+                })),
+              }}
+              trigger={['click']}
+            >
+              <div className='h-10 flex items-center justify-start cursor-pointer border border-gray-200 rounded-lg hover:bg-gray-100 px-2'>
+                {storeActive && (
+                  <img src={storeActive.imageUrl} alt="Store Logo" className='h-full object-cover rounded-full' style={{ width: 25, height: 25 }} />
+                )}
+                <div className='h-full ml-2 flex items-center justify-center'>
+                  {storeActive ? storeActive.name : 'Chọn cửa hàng'}
+                </div>
               </div>
-            </div>
-          </Dropdown>
-        </div>
+            </Dropdown>
+          </div>
 
-        <div className='flex items-center justify-end gap-3'>
+          <div className='flex items-center justify-end gap-3'>
 
           {/* List notification */}
           <Dropdown
@@ -236,7 +239,11 @@ const HeaderApp = ({ }) => {
         </div>
 
       </div>
-    </Header>
+      </Header>
+      
+      {/* Breadcrumb */}
+      <AdminBreadcrumb storeActive={storeActive} />
+    </>
   );
 };
 

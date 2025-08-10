@@ -27,16 +27,11 @@ const EmployeeManagement = () => {
 
 
   return (
-    <div className="h-full w-full px-4 pt-4 pb-10">
-      <div className="mb-2">
-        <Breadcrumb items={[{ title: t('TXT_EMPLOYEE') }, { title: t('TXT_MANAGER') }]} />
-      </div>
-
+    <div className="h-full w-full p-2">
       <EmployeeList
         storeId={storeActive._id}
         storeName={storeActive.name}
       />
-
     </div>
   );
 };

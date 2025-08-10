@@ -4,7 +4,7 @@ import DemoMemo from '@/components/chart/DemoMemo';
 
 const DashboardPage = () => {
   return (
-    <div className="h-full mt-2 p-4 bg-gray-100 overflow-auto">
+    <div className="h-full p-2 bg-gray-100 overflow-auto">
       <div className='grid gap-4'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <div className='bg-white p-4 rounded shadow'>
