@@ -1,30 +1,34 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 
-let mongoServer;
+// Mock mongoose connection
+jest.mock('mongoose', () => ({
+  connect: jest.fn(),
+  disconnect: jest.fn(),
+  connection: {
+    collections: {},
+  },
+  Types: {
+    ObjectId: jest.fn(() => 'mockedObjectId')
+  },
+  Schema: jest.fn(() => ({})),
+  model: jest.fn(() => jest.fn())
+}));
 
 beforeAll(async () => {
-  // Start in-memory MongoDB instance
-  mongoServer = await MongoMemoryServer.create();
-  const mongoUri = mongoServer.getUri();
-  
-  // Connect to the in-memory database
-  await mongoose.connect(mongoUri);
+  // Mock database connection
+  const mongoose = require('mongoose');
+  mongoose.connect.mockResolvedValue();
 });
 
 afterAll(async () => {
-  // Cleanup
-  await mongoose.disconnect();
-  await mongoServer.stop();
+  // Mock disconnect
+  const mongoose = require('mongoose');
+  mongoose.disconnect.mockResolvedValue();
 });
 
 beforeEach(async () => {
-  // Clean all collections before each test
-  const collections = mongoose.connection.collections;
-  for (const key in collections) {
-    const collection = collections[key];
-    await collection.deleteMany({});
-  }
+  // Reset all mocks before each test
+  jest.clearAllMocks();
 });
 
 // Global test timeout

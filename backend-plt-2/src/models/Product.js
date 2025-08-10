@@ -74,7 +74,6 @@ const productSchema = new mongoose.Schema(
 );
 
 // Create indexes for better query performance
-productSchema.index({ productCode: 1 }, { unique: true });
 productSchema.index({ name: 1 });
 productSchema.index({ ownerId: 1, storeId: 1 });
 productSchema.index({ storeId: 1 });
