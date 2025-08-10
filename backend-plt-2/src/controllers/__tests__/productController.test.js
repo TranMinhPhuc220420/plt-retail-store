@@ -1,9 +1,12 @@
 const productController = require('../../controllers/productController');
 const Product = require('../../models/Product');
-const mongoose = require('mongoose');
+const Store = require('../../models/Store');
+const Recipe = require('../../models/Recipe');
 
 // Mock dependencies
 jest.mock('../../models/Product');
+jest.mock('../../models/Store');
+jest.mock('../../models/Recipe');
 
 describe('ProductController', () => {
   let req, res, next;
@@ -13,7 +16,7 @@ describe('ProductController', () => {
       body: {},
       params: {},
       query: {},
-      user: { _id: 'user123' }
+      user: { _id: 'user123', id: 'user123' }
     };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -21,328 +24,298 @@ describe('ProductController', () => {
     };
     next = jest.fn();
 
-    // Clear all mocks
+    // Reset all mocks
     jest.clearAllMocks();
   });
 
-  describe('createProduct', () => {
-    it('should create a new product successfully', async () => {
-      req.body = {
-        productCode: 'TEST001',
-        name: 'Test Product',
-        description: 'Test description',
-        category: 'electronics',
-        price: 100000,
-        retailPrice: 120000,
-        storeId: 'store123'
-      };
+  describe('getAllMy', () => {
+    it('should get all products for user successfully', async () => {
+      const mockProducts = [
+        { _id: 'product1', name: 'Product 1', ownerId: 'user123' },
+        { _id: 'product2', name: 'Product 2', ownerId: 'user123' }
+      ];
 
-      const mockProduct = {
-        _id: 'product123',
-        ...req.body,
-        createdAt: new Date(),
+      const mockFind = {
+        populate: jest.fn().mockReturnThis()
+      };
+      mockFind.populate.mockResolvedValue(mockProducts);
+      Product.find.mockReturnValue(mockFind);
+
+      await productController.getAllMy(req, res);
+
+      expect(Product.find).toHaveBeenCalledWith({ ownerId: 'user123' });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockProducts);
+    });
+
+    it('should handle errors when fetching products', async () => {
+      const mockFind = {
+        populate: jest.fn().mockReturnThis()
+      };
+      mockFind.populate.mockRejectedValue(new Error('Database error'));
+      Product.find.mockReturnValue(mockFind);
+
+      await productController.getAllMy(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'failed_to_fetch_products' });
+    });
+  });
+
+  describe('getMyById', () => {
+    beforeEach(() => {
+      req.params.id = 'product123';
+    });
+
+    it('should get product by ID successfully', async () => {
+      const mockProduct = { _id: 'product123', name: 'Test Product', ownerId: 'user123' };
+      
+      const mockFindById = {
+        populate: jest.fn().mockResolvedValue(mockProduct)
+      };
+      Product.findById.mockReturnValue(mockFindById);
+
+      await productController.getMyById(req, res);
+
+      expect(Product.findById).toHaveBeenCalledWith('product123');
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockProduct);
+    });
+
+    it('should return 404 for non-existent product', async () => {
+      const mockFindById = {
+        populate: jest.fn().mockResolvedValue(null)
+      };
+      Product.findById.mockReturnValue(mockFindById);
+
+      await productController.getMyById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: 'product_not_found' });
+    });
+
+    it('should handle database errors', async () => {
+      const mockFindById = {
+        populate: jest.fn().mockRejectedValue(new Error('Database error'))
+      };
+      Product.findById.mockReturnValue(mockFindById);
+
+      await productController.getMyById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'failed_to_fetch_product' });
+    });
+  });
+
+  describe('createMy', () => {
+    beforeEach(() => {
+      req.body = {
+        productCode: 'PROD001',
+        name: 'Test Product',
+        price: '10.00',
+        retailPrice: '15.00',
+        costPrice: '8.00',
+        minStock: 10,
+        unit: 'kilogram',
+        status: 'active'
+      };
+    });
+
+    it('should create a new product successfully', async () => {
+      const mockProduct = { 
+        _id: 'newProduct123', 
+        ...req.body, 
+        ownerId: 'user123',
         save: jest.fn().mockResolvedValue(true)
       };
 
-      Product.findOne.mockResolvedValue(null); // No duplicate
       Product.mockImplementation(() => mockProduct);
 
-      await productController.createProduct(req, res);
+      await productController.createMy(req, res);
 
-      expect(Product.findOne).toHaveBeenCalledWith({
-        productCode: 'TEST001',
-        storeId: 'store123'
+      expect(Product).toHaveBeenCalledWith({
+        ...req.body,
+        ownerId: 'user123'
       });
       expect(mockProduct.save).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          data: expect.objectContaining({
-            productCode: 'TEST001',
-            name: 'Test Product'
-          })
-        })
-      );
+      expect(res.json).toHaveBeenCalledWith(mockProduct);
     });
 
-    it('should return error for duplicate product code', async () => {
-      req.body = {
-        productCode: 'DUPLICATE001',
-        name: 'Duplicate Product',
-        storeId: 'store123'
-      };
-
-      Product.findOne.mockResolvedValue({
-        productCode: 'DUPLICATE001',
-        storeId: 'store123'
-      });
-
-      await productController.createProduct(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          message: expect.stringContaining('already exists')
-        })
-      );
-    });
-
-    it('should handle validation errors', async () => {
-      req.body = {
-        productCode: 'TEST002',
-        name: 'Test Product',
-        price: -100 // Invalid price
-      };
-
-      Product.findOne.mockResolvedValue(null);
-      const mockProduct = {
+    it('should handle product creation errors', async () => {
+      const mockProduct = { 
         save: jest.fn().mockRejectedValue(new Error('Validation error'))
       };
       Product.mockImplementation(() => mockProduct);
 
-      await productController.createProduct(req, res);
+      await productController.createMy(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          message: expect.any(String)
-        })
-      );
+      expect(res.json).toHaveBeenCalledWith({ error: 'failed_to_create_product' });
     });
   });
 
-  describe('getProducts', () => {
-    it('should get all products for a store', async () => {
-      req.query = {
-        storeId: 'store123',
-        page: '1',
-        limit: '10'
-      };
-
-      const mockProducts = [
-        {
-          _id: 'product1',
-          productCode: 'PROD001',
-          name: 'Product 1',
-          price: 100000
-        },
-        {
-          _id: 'product2',
-          productCode: 'PROD002',
-          name: 'Product 2',
-          price: 200000
-        }
-      ];
-
-      Product.find.mockReturnValue({
-        populate: jest.fn().mockReturnThis(),
-        sort: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValue(mockProducts)
-      });
-
-      Product.countDocuments.mockResolvedValue(2);
-
-      await productController.getProducts(req, res);
-
-      expect(Product.find).toHaveBeenCalledWith({ storeId: 'store123' });
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          data: mockProducts,
-          pagination: expect.objectContaining({
-            total: 2,
-            page: 1,
-            limit: 10
-          })
-        })
-      );
-    });
-
-    it('should filter products by search term', async () => {
-      req.query = {
-        storeId: 'store123',
-        search: 'laptop'
-      };
-
-      Product.find.mockReturnValue({
-        populate: jest.fn().mockReturnThis(),
-        sort: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValue([])
-      });
-
-      Product.countDocuments.mockResolvedValue(0);
-
-      await productController.getProducts(req, res);
-
-      expect(Product.find).toHaveBeenCalledWith({
-        storeId: 'store123',
-        $or: [
-          { name: { $regex: 'laptop', $options: 'i' } },
-          { productCode: { $regex: 'laptop', $options: 'i' } }
-        ]
-      });
-    });
-  });
-
-  describe('getProductById', () => {
-    it('should get product by ID successfully', async () => {
-      req.params.id = 'product123';
-
-      const mockProduct = {
-        _id: 'product123',
-        productCode: 'PROD001',
-        name: 'Product 1',
-        price: 100000
-      };
-
-      Product.findById.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(mockProduct)
-      });
-
-      await productController.getProductById(req, res);
-
-      expect(Product.findById).toHaveBeenCalledWith('product123');
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          data: mockProduct
-        })
-      );
-    });
-
-    it('should return 404 for non-existent product', async () => {
-      req.params.id = 'nonexistent123';
-
-      Product.findById.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(null)
-      });
-
-      await productController.getProductById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          message: expect.stringContaining('not found')
-        })
-      );
-    });
-
-    it('should handle invalid ObjectId', async () => {
-      req.params.id = 'invalid-id';
-
-      Product.findById.mockReturnValue({
-        populate: jest.fn().mockRejectedValue(new Error('Invalid ObjectId'))
-      });
-
-      await productController.getProductById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          message: expect.any(String)
-        })
-      );
-    });
-  });
-
-  describe('updateProduct', () => {
-    it('should update product successfully', async () => {
+  describe('updateMy', () => {
+    beforeEach(() => {
       req.params.id = 'product123';
       req.body = {
-        name: 'Updated Product Name',
-        price: 150000
+        name: 'Updated Product',
+        price: '12.00'
+      };
+    });
+
+    it('should update product successfully', async () => {
+      const mockProduct = { 
+        _id: 'product123', 
+        name: 'Old Product',
+        ownerId: 'user123',
+        save: jest.fn().mockResolvedValue(true)
       };
 
-      const mockProduct = {
-        _id: 'product123',
-        productCode: 'PROD001',
-        name: 'Updated Product Name',
-        price: 150000
-      };
+      Product.findById.mockResolvedValue(mockProduct);
 
-      Product.findByIdAndUpdate.mockResolvedValue(mockProduct);
+      await productController.updateMy(req, res);
 
-      await productController.updateProduct(req, res);
-
-      expect(Product.findByIdAndUpdate).toHaveBeenCalledWith(
-        'product123',
-        req.body,
-        { new: true, runValidators: true }
-      );
+      expect(Product.findById).toHaveBeenCalledWith('product123');
+      expect(mockProduct.save).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          data: mockProduct
-        })
-      );
+      expect(res.json).toHaveBeenCalledWith(mockProduct);
     });
 
     it('should return 404 for non-existent product', async () => {
-      req.params.id = 'nonexistent123';
-      req.body = { name: 'Updated Name' };
+      Product.findById.mockResolvedValue(null);
 
-      Product.findByIdAndUpdate.mockResolvedValue(null);
-
-      await productController.updateProduct(req, res);
+      await productController.updateMy(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          message: expect.stringContaining('not found')
-        })
-      );
+      expect(res.json).toHaveBeenCalledWith({ error: 'product_not_found' });
     });
   });
 
-  describe('deleteProduct', () => {
-    it('should delete product successfully', async () => {
+  describe('deleteMy', () => {
+    beforeEach(() => {
       req.params.id = 'product123';
+    });
 
-      const mockProduct = {
+    it('should delete product successfully', async () => {
+      const mockProduct = { 
         _id: 'product123',
-        productCode: 'PROD001',
-        name: 'Product to Delete'
+        ownerId: 'user123',
+        deleted: false,
+        save: jest.fn().mockResolvedValue(true)
       };
 
-      Product.findByIdAndDelete.mockResolvedValue(mockProduct);
+      Product.findById.mockResolvedValue(mockProduct);
 
-      await productController.deleteProduct(req, res);
+      await productController.deleteMy(req, res);
 
-      expect(Product.findByIdAndDelete).toHaveBeenCalledWith('product123');
+      expect(Product.findById).toHaveBeenCalledWith('product123');
+      expect(mockProduct.deleted).toBe(true);
+      expect(mockProduct.save).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          message: expect.stringContaining('deleted successfully')
-        })
-      );
+      expect(res.json).toHaveBeenCalledWith({ message: 'product_deleted_successfully' });
     });
 
     it('should return 404 for non-existent product', async () => {
-      req.params.id = 'nonexistent123';
+      Product.findById.mockResolvedValue(null);
 
-      Product.findByIdAndDelete.mockResolvedValue(null);
-
-      await productController.deleteProduct(req, res);
+      await productController.deleteMy(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          message: expect.stringContaining('not found')
-        })
-      );
+      expect(res.json).toHaveBeenCalledWith({ error: 'product_not_found' });
+    });
+
+    it('should return 404 for already deleted product', async () => {
+      const mockProduct = { 
+        _id: 'product123',
+        ownerId: 'user123',
+        deleted: true
+      };
+
+      Product.findById.mockResolvedValue(mockProduct);
+
+      await productController.deleteMy(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: 'product_not_found' });
+    });
+  });
+
+  describe('getAllMyInStore', () => {
+    beforeEach(() => {
+      req.params.storeCode = 'STORE001';
+    });
+
+    it('should get all products in store successfully', async () => {
+      const mockStore = { _id: 'store123', storeCode: 'STORE001' };
+      const mockProducts = [
+        { _id: 'product1', name: 'Product 1', storeId: 'store123' }
+      ];
+
+      Store.findOne.mockResolvedValue(mockStore);
+      
+      const mockFind = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockResolvedValue(mockProducts)
+      };
+      Product.find.mockReturnValue(mockFind);
+      Product.countDocuments.mockResolvedValue(1);
+
+      await productController.getAllMyInStore(req, res);
+
+      expect(Store.findOne).toHaveBeenCalledWith({ storeCode: 'STORE001' });
+      expect(Product.find).toHaveBeenCalledWith({
+        storeId: 'store123',
+        ownerId: 'user123',
+        deleted: false
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should return 404 for non-existent store', async () => {
+      Store.findOne.mockResolvedValue(null);
+
+      await productController.getAllMyInStore(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: 'store_not_found' });
+    });
+  });
+
+  describe('createMyInStore', () => {
+    beforeEach(() => {
+      req.params.storeCode = 'STORE001';
+      req.body = {
+        productCode: 'PROD001',
+        name: 'Test Product',
+        price: '10.00'
+      };
+    });
+
+    it('should create product in store successfully', async () => {
+      const mockStore = { _id: 'store123', storeCode: 'STORE001' };
+      const mockProduct = { 
+        _id: 'newProduct123',
+        ...req.body,
+        storeId: 'store123',
+        ownerId: 'user123',
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      Store.findOne.mockResolvedValue(mockStore);
+      Product.mockImplementation(() => mockProduct);
+
+      await productController.createMyInStore(req, res);
+
+      expect(Store.findOne).toHaveBeenCalledWith({ storeCode: 'STORE001' });
+      expect(Product).toHaveBeenCalledWith({
+        ...req.body,
+        storeId: 'store123',
+        ownerId: 'user123'
+      });
+      expect(res.status).toHaveBeenCalledWith(201);
     });
   });
 });
