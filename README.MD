@@ -1,106 +1,85 @@
 # PLT Retail Store
 
-## Project Description
-PLT Retail Store is a comprehensive retail management system designed to streamline store operations, inventory management, and sales tracking. It is developed by PLT Solutions to provide an efficient and user-friendly experience for retail businesses.
+## 📖 Giới thiệu
 
-## ⚡ Recent Updates - Unit Simplification
-**Important**: The system has been simplified to use only **kg** and **liter** for all measurements, eliminating complexity from multiple units (g, ml, piece, etc.). See [Unit Simplification Guide](UNIT_SIMPLIFICATION_GUIDE.md) for details.
+PLT Retail Store là một giải pháp quản lý bán lẻ toàn diện, được thiết kế để giúp các doanh nghiệp tối ưu hóa hoạt động, từ quản lý kho, bán hàng, nhân sự đến phân tích chi phí. Hệ thống bao gồm một giao diện frontend được xây dựng bằng React và một backend mạnh mẽ sử dụng Express.js, kết nối với cơ sở dữ liệu MongoDB.
 
-## Features
-- Real-time inventory tracking and management with simplified kg/liter units
-- Sales analytics and revenue forecasting
-- Employee shift scheduling and optimization
-- Multi-store management with detailed reporting
-- Integration with external systems for data import/export
-- **Simplified unit system**: Only kg (weight) and l (volume) for consistency
+## ✨ Tính năng chính
 
-## Prerequisites
-- Node.js v18+.
-- Docker (optional for containerized deployment).
-- MongoDB (for backend database).
+*   **Bảng điều khiển (Dashboard):** Cung cấp cái nhìn tổng quan về hiệu suất bán hàng, đơn hàng gần đây, và các cảnh báo quan trọng.
+*   **Quản lý Cửa hàng & Kho:** Dễ dàng thêm, sửa, xóa và quản lý thông tin nhiều cửa hàng và kho hàng.
+*   **Quản lý Sản phẩm:**
+    *   Hỗ trợ sản phẩm đơn giản và sản phẩm tổng hợp (composite products).
+    *   Quản lý danh mục, giá bán, giá vốn, và hình ảnh sản phẩm.
+*   **Quản lý Nguyên vật liệu:**
+    *   Theo dõi tồn kho, nhà cung cấp, và điều kiện bảo quản.
+    *   Thực hiện nhập, xuất, và kiểm kê kho nguyên vật liệu.
+*   **Quản lý Công thức (Recipe):**
+    *   Tạo và quản lý công thức chế biến từ các nguyên vật liệu.
+    *   Tự động tính toán chi phí và kiểm tra tính khả thi dựa trên tồn kho.
+*   **Quản lý Nhà cung cấp:** Lưu trữ thông tin chi tiết, theo dõi hiệu suất và quản lý đơn hàng.
+*   **Phân tích Chi phí:** Cung cấp các công cụ để phân tích chi phí sản phẩm và công thức, giúp tối ưu hóa lợi nhuận.
+*   **Quản lý Nhân viên:** Quản lý thông tin nhân viên, vai trò và quyền hạn.
+*   **Bảo mật & Phân quyền:** Hệ thống phân quyền người dùng và bảo mật dữ liệu.
 
-## Installation
+## 🛠️ Công nghệ sử dụng
 
-### Frontend
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend-plt
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+*   **Frontend:** React, Ant Design
+*   **Backend:** Node.js, Express.js
+*   **Cơ sở dữ liệu:** MongoDB
+*   **Containerization:** Docker, Docker Compose
 
-### Backend
-1. Navigate to the backend directory:
-   ```bash
-   cd backend-plt-2
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file with the following variables:
-   ```
-   NODE_ENV=development
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/plt-retail-store
-   ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
+## 🚀 Bắt đầu
 
-## Deployment
+### Yêu cầu hệ thống
 
-### Using Docker
-1. Build and run the frontend:
-   ```bash
-   docker build -t plt-frontend ./frontend-plt
-   docker run -p 5173:5173 plt-frontend
-   ```
-2. Build and run the backend:
-   ```bash
-   docker build -t plt-backend ./backend-plt-2
-   docker run -p 5000:5000 plt-backend
-   ```
+*   [Node.js](https://nodejs.org/) (phiên bản 16.x trở lên)
+*   [Docker](https://www.docker.com/) và [Docker Compose](https://docs.docker.com/compose/)
 
-## Folder Structure
+### Cài đặt và Chạy (Môi trường Development)
+
+1.  **Clone repository:**
+    ```bash
+    git clone <your-repository-url>
+    cd plt-retail-store
+    ```
+
+2.  **Thiết lập biến môi trường:**
+    Tạo các tệp `.env` trong thư mục gốc, `backend-plt-2` và `frontend-plt` dựa trên các tệp `.env.example` (nếu có).
+
+3.  **Khởi chạy các dịch vụ với Docker Compose:**
+    Lệnh này sẽ khởi tạo backend, frontend và cơ sở dữ liệu MongoDB.
+    ```bash
+    docker-compose -f docker-compose.dev.yml up -d --build
+    ```
+
+4.  **Truy cập ứng dụng:**
+    *   Frontend: [http://localhost:5173](http://localhost:5173)
+    *   Backend API: [http://localhost:5000](http://localhost:5000)
+
+## 📁 Cấu trúc thư mục
+
 ```
 plt-retail-store/
-├── frontend-plt/   # React-based frontend
-│   ├── src/        # Source code
-│   ├── public/     # Static assets
-│   └── ...
-├── backend-plt-2/  # Express.js backend
-│   ├── src/        # Source code
-│   ├── config/     # Configuration files
-│   └── ...
-└── README.MD       # Project documentation
+├── backend-plt-2/      # Backend (Node.js/Express)
+├── frontend-plt/       # Frontend (React)
+├── mongo-init/         # Script khởi tạo MongoDB
+├── .env                # Biến môi trường chung
+├── docker-compose.yml  # Docker Compose cho Production
+├── docker-compose.dev.yml # Docker Compose cho Development
+└── README.MD           # Tài liệu dự án
 ```
 
-## Contributing
-1. Fork the repository.
-2. Create a new branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Commit your changes:
-   ```bash
-   git commit -m "Add feature-name"
-   ```
-4. Push to the branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Open a pull request.
+## 🤝 Đóng góp
 
-## License
-This project is licensed under the MIT License.
+Chúng tôi luôn chào đón các đóng góp để cải thiện dự án. Vui lòng làm theo các bước sau:
 
-## Contact
-For questions or support, contact PLT Solutions at [support@plt-solutions.com].
+1.  Fork repository.
+2.  Tạo một branch mới (`git checkout -b feature/AmazingFeature`).
+3.  Commit các thay đổi của bạn (`git commit -m 'Add some AmazingFeature'`).
+4.  Push lên branch (`git push origin feature/AmazingFeature`).
+5.  Mở một Pull Request.
+
+## 📞 Liên hệ
+
+Nếu có bất kỳ câu hỏi hoặc cần hỗ trợ, vui lòng liên hệ với PLT Solutions qua email: [support@plt-solutions.com](mailto:support@plt-solutions.com).
