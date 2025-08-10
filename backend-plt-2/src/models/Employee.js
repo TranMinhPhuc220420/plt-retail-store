@@ -166,7 +166,6 @@ employeeSchema.set('toJSON', { virtuals: true });
 // });
 
 // Indexes for better query performance
-employeeSchema.index({ employeeCode: 1 });
 employeeSchema.index({ storeId: 1 });
 employeeSchema.index({ ownerId: 1 });
 employeeSchema.index({ role: 1 });
