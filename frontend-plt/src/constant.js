@@ -47,8 +47,8 @@ export const AVATAR_DEFAULT = "https://cdn3d.iconscout.com/3d/premium/thumb/prog
 export const IMAGE_PRODUCT_EXAMPLE = `https://img.freepik.com/free-psd/product-backdrop-psd-modern-style-with-marble-podium-gold-palm-leaf_53876-140457.jpg`;
 export const PRODUCT_TYPE_TEMP_FILE = `${SERVER_URL}/download-template/product-type-template.xlsx`;
 export const UNIT_LIST_SUGGESTION = [
-  { id: "kilogram", name: "kg" },
-  { id: "mililit", name: "ml" },
+  { id: "kg", name: "kg" },
+  { id: "lit", name: "lit" },
   { id: "pice", name: "pice" },
 ];
 export const PRODUCT_STATUS_LIST = [
@@ -64,3 +64,8 @@ export const PRODUCT_STATUS_LIST = [
   { key: "almost_out_of_stock", value: "Sắp hết hàng" },
   { key: "temporarily_out_of_stock", value: "Tạm hết hàng" },
 ];
+
+export const REGEX_PHONE_VN = /^(0[3|5|7|8|9][0-9]{8}|[1-9][0-9]{6,10})$/;
+export const REGEX_PHONE_VN_ALLOW_EMPTY = /^(0[3|5|7|8|9][0-9]{8}|[1-9][0-9]{6,10})?$/;
+export const REGEX_EMAIL = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+export const REGEX_NUMBER = /^[0-9]+$/;

@@ -651,7 +651,7 @@ const compositeProductController = {
       }
 
       // Ensure unit field is valid for composite products before saving
-      if (!['kg', 'l', 'pice'].includes(product.unit)) {
+      if (!['kg', 'lit', 'pice'].includes(product.unit)) {
         console.log(`Fixing invalid unit "${product.unit}" to "pice" for composite product`);
         product.unit = 'pice'; // Default valid unit for composite products
       }

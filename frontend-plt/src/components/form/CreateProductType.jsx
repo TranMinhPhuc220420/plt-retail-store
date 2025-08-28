@@ -34,7 +34,7 @@ const CreateProductTypeForm = ({ storeId, storeCode, onOK, onFail, onCancel }) =
     // Additional params
     values.storeCode = storeCode;
 
-    // Add store to database
+    // Add product type to database
     try {
       await createMyProductType(values);
 
@@ -67,17 +67,17 @@ const CreateProductTypeForm = ({ storeId, storeCode, onOK, onFail, onCancel }) =
         <div className="grid gap-4 p-4 bg-white">
           <Form.Item
             name="name"
-            label={t('TXT_STORE_NAME')}
+            label={t('TXT_PRODUCT_TYPE_NAME')}
             rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
           >
-            <Input />
+            <Input placeholder={t('TXT_PRODUCT_TYPE_NAME_PLACEHOLDER') || "Nhập tên loại sản phẩm"} />
           </Form.Item>
 
           <Form.Item
             name="description"
-            label={t('TXT_STORE_DESCRIPTION')}
+            label={t('TXT_PRODUCT_TYPE_DESCRIPTION')}
           >
-            <Input.TextArea rows={3} />
+            <Input.TextArea rows={3} placeholder={t('TXT_PRODUCT_TYPE_DESCRIPTION_PLACEHOLDER') || "Nhập mô tả loại sản phẩm"} />
           </Form.Item>
         </div>
 

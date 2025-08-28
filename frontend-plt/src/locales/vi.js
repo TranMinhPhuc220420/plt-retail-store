@@ -1,37 +1,28 @@
 const VIETNAMESE_TRANSLATIONS = {
   translation: {
+    // Application Info
     'TXT_COMPANY_NAME': 'PLT Solutions',
     'TXT_APP_NAME': 'PLT Retail Store',
     'TXT_APP_DESCRIPTION': 'Ứng dụng quản lý cửa hàng bán lẻ',
 
+    // Navigation & Menu
     'TXT_DASHBOARD': 'Trang chủ',
     'TXT_REPORT': 'Báo cáo',
     'TXT_PRODUCT_MANAGEMENT': 'Sản phẩm',
-    'TXT_INVENTORY_MANAGEMENT': 'Kho hàng',
+    'TXT_INVENTORY_MANAGEMENT': 'Kho hàng', 
     'TXT_REVENUE': 'Doanh thu',
     'TXT_EMPLOYEE': 'Nhân viên',
     'TXT_MANAGER': 'Quản lý',
     'TXT_OVERVIEW': 'Overview',
-    'TXT_SKILL_CATEGORIZATION': 'Danh sách cấp bậc',
-    'TXT_TRACK_WORK_HOURS': 'Theo giỏi giờ làm việc',
-    'TXT_SHIFT_OPTIMIZATION': 'Tối ưu hóa ca',
-    'TXT_SHIFT_SCHEDULING': 'Sắp xếp ca làm việc',
-    'TXT_SHIFT_SETUP': 'Thiết lập sắp xếp ca',
-    'TXT_REVENUE_FORECAST': 'Dự báo doanh thu',
-    'TXT_HISTORICAL_ANALYSIS': 'Phân tích dữ liệu lịch sử',
     'TXT_GO_TO_SALE_MEMBER_SCREEN': 'Màn hình bán hàng',
     'TXT_GO_TO_ADMIN_SCREEN': 'Màn hình quản trị',
-    'TXT_MANAGER': 'Quản lý',
     'TXT_STAFF': 'Nhân viên',
-
     'TXT_SELL': 'Bán hàng',
-    'TXT_CLIENT': 'Khách hàng',
+    'TXT_CLIENT': 'Khách hàng', 
     'TXT_INVOICE': 'Hóa đơn',
     'TXT_SHIFT_HANDOVER': 'Bàn giao ca',
 
-    'MSG_FEATURE_COMING_SOON': 'Tính năng này sẽ sớm có mặt trong tương lai',
-    'TXT_LOGOUT': 'Đăng xuất',
-    'TXT_LOGIN': 'Đăng nhập',
+    // Common Actions
     'TXT_ADD_NEW': 'Thêm mới',
     'TXT_EDIT': 'Sửa',
     'TXT_DELETE': 'Xóa',
@@ -50,17 +41,23 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_DOWNLOAD_TEMPLATE': 'Tải mẫu',
     'TXT_ADD_BY_EXCEL': 'Thêm bằng Excel',
     'TXT_ADD_BY_CSV': 'Thêm bằng CSV',
-    'MSG_UNKNOWN_ACTION': 'Hành động không xác định',
-    'MSG_ERROR_DOWNLOAD_TEMPLATE': 'Lỗi tải mẫu, vui lòng thử lại sau',
-    'TXT_SIGN_OUT_ERROR': 'Đăng xuất không thành công, vui lòng thử lại sau',
-
+    'TXT_LOGIN': 'Đăng nhập',
+    'TXT_LOGOUT': 'Đăng xuất',
+    
+    // Common Labels
     'LABEL_NAME': 'Tên',
     'LABEL_DESCRIPTION': 'Mô tả',
     'LABEL_CREATED_AT': 'Ngày tạo',
     'LABEL_UPDATED_AT': 'Ngày cập nhật',
     'LABEL_ACTIONS': 'Hành động',
 
-    // Login page
+    // Error Messages
+    'MSG_FEATURE_COMING_SOON': 'Tính năng này sẽ sớm có mặt trong tương lai',
+    'MSG_UNKNOWN_ACTION': 'Hành động không xác định',
+    'MSG_ERROR_DOWNLOAD_TEMPLATE': 'Lỗi tải mẫu, vui lòng thử lại sau',
+    'TXT_SIGN_OUT_ERROR': 'Đăng xuất không thành công, vui lòng thử lại sau',
+
+    // Authentication
     'TXT_LOGIN_WITH_GOOGLE': 'Đăng nhập bằng Google',
     'TXT_REGISTER_WITH_GOOGLE': 'Đăng ký bằng Google',
     'TXT_OR': 'Hoặc',
@@ -76,6 +73,8 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_REGISTER': 'Đăng ký ngay',
     'TXT_ALREADY_HAVE_ACCOUNT': 'Bạn đã có tài khoản?',
     'TXT_BACK_TO_LOGIN': 'Quay lại đăng nhập',
+
+    // Authentication Messages
     'MSG_PASSWORD_MISMATCH': 'Mật khẩu không khớp',
     'MSG_USERNAME_IS_REQUIRED': 'Tài khoản là bắt buộc',
     'MSG_PASSWORD_IS_REQUIRED': 'Mật khẩu là bắt buộc',
@@ -88,7 +87,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_LOGIN_SUCCESS': 'Đăng nhập thành công',
     'MSG_LOGIN_FAILED': 'Đăng nhập không thành công, vui lòng kiểm tra lại tài khoản và mật khẩu',
 
-    // Password validation messages
+    // Password Validation
     'TXT_PASSWORD_REQUIREMENTS': 'Yêu cầu mật khẩu',
     'TXT_PASSWORD_STRENGTH': 'Độ mạnh mật khẩu',
     'TXT_PASSWORD_WEAK': 'Yếu',
@@ -99,29 +98,17 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_PASSWORD_REQUIREMENT_LENGTH': 'Ít nhất 6 ký tự',
     'TXT_PASSWORD_REQUIREMENT_PATTERN': 'Chứa ít nhất một chữ cái và một số',
 
-    // Profile page
+    // Profile Management
     'TXT_PROFILE_PAGE': 'Thông tin cá nhân',
     'TXT_EDIT_PROFILE': 'Chỉnh sửa thông tin',
     'TXT_CHANGE_PASSWORD': 'Đổi mật khẩu',
     'TXT_PROFILE_INFORMATION': 'Thông tin cá nhân',
-    'TXT_AVATAR': 'Ảnh đại diện',
     'TXT_SECURITY': 'Bảo mật',
     'TXT_QUICK_INFO': 'Thông tin nhanh',
     'TXT_PHONE': 'Số điện thoại',
     'TXT_ADDRESS': 'Địa chỉ',
     'TXT_MEMBER_SINCE': 'Thành viên từ',
     'TXT_ACCOUNT_MANAGED_BY_GOOGLE': 'Tài khoản được quản lý bởi Google OAuth',
-    'MSG_FAILED_TO_LOAD_PROFILE': 'Không thể tải thông tin cá nhân',
-    'MSG_PROFILE_UPDATED_SUCCESS': 'Cập nhật thông tin thành công',
-    'MSG_PROFILE_UPDATE_FAILED': 'Cập nhật thông tin không thành công',
-    'MSG_PASSWORD_CHANGED_SUCCESS': 'Đổi mật khẩu thành công',
-    'MSG_PASSWORD_CHANGE_FAILED': 'Đổi mật khẩu không thành công',
-    'MSG_AVATAR_REMOVED_SUCCESS': 'Xóa ảnh đại diện thành công',
-    'MSG_AVATAR_REMOVE_FAILED': 'Xóa ảnh đại diện không thành công',
-    'MSG_AVATAR_UPDATED_SUCCESS': 'Cập nhật ảnh đại diện thành công',
-    'MSG_AVATAR_UPDATE_FAILED': 'Cập nhật ảnh đại diện không thành công',
-
-    // Edit Profile Form
     'TXT_FIRST_NAME': 'Tên',
     'TXT_LAST_NAME': 'Họ',
     'TXT_DISPLAY_NAME': 'Tên hiển thị',
@@ -129,33 +116,12 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_BIO': 'Giới thiệu',
     'TXT_RESET': 'Đặt lại',
     'TXT_UPDATE_PROFILE': 'Cập nhật thông tin',
-    'MSG_FIRST_NAME_MAX_LENGTH': 'Tên không được vượt quá 50 ký tự',
-    'MSG_LAST_NAME_MAX_LENGTH': 'Họ không được vượt quá 50 ký tự',
-    'MSG_DISPLAY_NAME_MAX_LENGTH': 'Tên hiển thị không được vượt quá 50 ký tự',
-    'MSG_PHONE_INVALID': 'Vui lòng nhập số điện thoại Việt Nam hợp lệ',
-    'MSG_ADDRESS_MAX_LENGTH': 'Địa chỉ không được vượt quá 200 ký tự',
-    'MSG_BIO_MAX_LENGTH': 'Giới thiệu không được vượt quá 500 ký tự',
-    'PLACEHOLDER_FIRST_NAME': 'Nhập tên của bạn',
-    'PLACEHOLDER_LAST_NAME': 'Nhập họ của bạn',
-    'PLACEHOLDER_DISPLAY_NAME': 'Nhập tên hiển thị',
-    'PLACEHOLDER_PHONE': 'Nhập số điện thoại',
-    'PLACEHOLDER_BIRTH_DATE': 'Chọn ngày sinh',
-    'PLACEHOLDER_ADDRESS': 'Nhập địa chỉ của bạn',
-    'PLACEHOLDER_BIO': 'Kể về bản thân bạn...',
-
-    // Change Password Form
     'TXT_CURRENT_PASSWORD': 'Mật khẩu hiện tại',
     'TXT_NEW_PASSWORD': 'Mật khẩu mới',
     'TXT_CONFIRM_NEW_PASSWORD': 'Xác nhận mật khẩu mới',
-    'MSG_CURRENT_PASSWORD_REQUIRED': 'Vui lòng nhập mật khẩu hiện tại',
-    'MSG_NEW_PASSWORD_REQUIRED': 'Vui lòng nhập mật khẩu mới',
-    'MSG_CONFIRM_NEW_PASSWORD_REQUIRED': 'Vui lòng xác nhận mật khẩu mới',
-    'MSG_PASSWORDS_NOT_MATCH': 'Mật khẩu không khớp',
-    'PLACEHOLDER_CURRENT_PASSWORD': 'Nhập mật khẩu hiện tại',
-    'PLACEHOLDER_NEW_PASSWORD': 'Nhập mật khẩu mới',
-    'PLACEHOLDER_CONFIRM_PASSWORD': 'Xác nhận mật khẩu mới',
 
-    // Avatar Upload
+    // Avatar Management
+    'TXT_AVATAR': 'Ảnh đại diện',
     'TXT_PROFILE_AVATAR': 'Ảnh đại diện',
     'TXT_UPLOAD_NEW_AVATAR': 'Tải lên ảnh mới',
     'TXT_REMOVE': 'Xóa',
@@ -166,16 +132,49 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_AVATAR_SIZE': 'Kích thước',
     'TXT_AVATAR_DIMENSIONS': 'Kích cỡ',
     'TXT_AVATAR_QUALITY': 'Chất lượng',
-    'MSG_ONLY_IMAGE_FILES': 'Bạn chỉ có thể tải lên file ảnh!',
-    'MSG_IMAGE_TOO_LARGE': 'Ảnh phải nhỏ hơn 2MB!',
-    'MSG_AVATAR_UPLOADED_SUCCESS': 'Tải lên ảnh đại diện thành công',
-    'MSG_AVATAR_UPLOAD_FAILED': 'Tải lên ảnh đại diện thất bại',
-    'MSG_REMOVE_AVATAR_CONFIRM': 'Bạn có chắc chắn muốn xóa ảnh đại diện hiện tại?',
     'TXT_AVATAR_DESCRIPTION': 'Tải lên ảnh đại diện mới. Kích thước khuyến nghị: 400x400px, Tối đa: 2MB',
     'TXT_AVATAR_GUIDELINES_FORMATS': 'JPG, JPEG, PNG, GIF',
     'TXT_AVATAR_GUIDELINES_SIZE': 'Tối đa 2MB',
     'TXT_AVATAR_GUIDELINES_DIMENSIONS': 'Ảnh vuông (tỷ lệ 1:1) hiển thị tốt nhất',
     'TXT_AVATAR_GUIDELINES_QUALITY': 'Sử dụng ảnh độ phân giải cao để có kết quả tốt nhất',
+
+    // Profile Form Placeholders
+    'PLACEHOLDER_FIRST_NAME': 'Nhập tên của bạn',
+    'PLACEHOLDER_LAST_NAME': 'Nhập họ của bạn',
+    'PLACEHOLDER_DISPLAY_NAME': 'Nhập tên hiển thị',
+    'PLACEHOLDER_PHONE': 'Nhập số điện thoại',
+    'PLACEHOLDER_BIRTH_DATE': 'Chọn ngày sinh',
+    'PLACEHOLDER_ADDRESS': 'Nhập địa chỉ của bạn',
+    'PLACEHOLDER_BIO': 'Kể về bản thân bạn...',
+    'PLACEHOLDER_CURRENT_PASSWORD': 'Nhập mật khẩu hiện tại',
+    'PLACEHOLDER_NEW_PASSWORD': 'Nhập mật khẩu mới',
+    'PLACEHOLDER_CONFIRM_PASSWORD': 'Xác nhận mật khẩu mới',
+
+    // Profile Validation Messages
+    'MSG_FAILED_TO_LOAD_PROFILE': 'Không thể tải thông tin cá nhân',
+    'MSG_PROFILE_UPDATED_SUCCESS': 'Cập nhật thông tin thành công',
+    'MSG_PROFILE_UPDATE_FAILED': 'Cập nhật thông tin không thành công',
+    'MSG_PASSWORD_CHANGED_SUCCESS': 'Đổi mật khẩu thành công',
+    'MSG_PASSWORD_CHANGE_FAILED': 'Đổi mật khẩu không thành công',
+    'MSG_FIRST_NAME_MAX_LENGTH': 'Tên không được vượt quá 50 ký tự',
+    'MSG_LAST_NAME_MAX_LENGTH': 'Họ không được vượt quá 50 ký tự',
+    'MSG_DISPLAY_NAME_MAX_LENGTH': 'Tên hiển thị không được vượt quá 50 ký tự',
+    'MSG_PHONE_INVALID': 'Vui lòng nhập số điện thoại Việt Nam hợp lệ',
+    'MSG_ADDRESS_MAX_LENGTH': 'Địa chỉ không được vượt quá 200 ký tự',
+    'MSG_BIO_MAX_LENGTH': 'Giới thiệu không được vượt quá 500 ký tự',
+    'MSG_CURRENT_PASSWORD_REQUIRED': 'Vui lòng nhập mật khẩu hiện tại',
+    'MSG_NEW_PASSWORD_REQUIRED': 'Vui lòng nhập mật khẩu mới',
+    'MSG_CONFIRM_NEW_PASSWORD_REQUIRED': 'Vui lòng xác nhận mật khẩu mới',
+    'MSG_PASSWORDS_NOT_MATCH': 'Mật khẩu không khớp',
+    'MSG_ONLY_IMAGE_FILES': 'Bạn chỉ có thể tải lên file ảnh!',
+    'MSG_IMAGE_TOO_LARGE': 'Ảnh phải nhỏ hơn 2MB!',
+    'MSG_AVATAR_UPLOADED_SUCCESS': 'Tải lên ảnh đại diện thành công',
+    'MSG_AVATAR_UPLOAD_FAILED': 'Tải lên ảnh đại diện thất bại',
+    'MSG_AVATAR_REMOVED_SUCCESS': 'Xóa ảnh đại diện thành công',
+    'MSG_AVATAR_REMOVE_FAILED': 'Xóa ảnh đại diện không thành công',
+    'MSG_AVATAR_UPDATED_SUCCESS': 'Cập nhật ảnh đại diện thành công',
+    'MSG_AVATAR_UPDATE_FAILED': 'Cập nhật ảnh đại diện không thành công',
+    'MSG_REMOVE_AVATAR_CONFIRM': 'Bạn có chắc chắn muốn xóa ảnh đại diện hiện tại?',
 
     // Store management
     'TXT_STORE_LIST': 'Danh sách cửa hàng',
@@ -208,8 +207,11 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_PLEASE_WAIT_FETCH_DATA': 'Vui lòng đợi trong khi chúng tôi tải dữ liệu cửa hàng của bạn...',
     'TXT_FAILED_LOAD_DASHBOARD': 'Không thể tải dữ liệu bảng điều khiển',
     'TXT_RETRY': 'Thử lại',
+    'TXT_DASHBOARD_SETTINGS': 'Cài Đặt Bảng Điều Khiển',
+    'TXT_DASHBOARD_SETTINGS_DESC': 'Tùy chỉnh bố cục và tùy chọn hiển thị',
+    'TXT_DASHBOARD_PREFERENCES': 'Cài Đặt Bảng Điều Khiển & Tùy Chọn',
 
-    // Sales Overview
+    // Sales Overview & Analytics
     'TXT_SALES_OVERVIEW': 'Tổng Quan Bán Hàng',
     'TXT_TODAY_PERFORMANCE': 'Hiệu suất hôm nay',
     'TXT_TODAY_REVENUE': 'Doanh thu hôm nay',
@@ -223,14 +225,17 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_MONTH_REVENUE': 'Doanh thu tháng',
     'TXT_MONTH_ORDERS': 'Đơn hàng tháng',
     'TXT_MONTH_PRODUCTS': 'Sản phẩm tháng',
-
-    // Revenue Chart
     'TXT_REVENUE_TRENDS': 'Xu Hướng Doanh Thu',
     'TXT_REVENUE_ANALYTICS': 'Phân tích doanh thu và hiệu suất theo thời gian',
     'TXT_TOTAL_REVENUE': 'Tổng doanh thu',
     'TXT_AVERAGE_DAILY': 'Trung bình hàng ngày',
+    'TXT_TOTAL_UNITS_SOLD': 'Tổng số lượng đã bán',
+    'TXT_MARKET_SHARE_DISTRIBUTION': 'Phân Bố Thị Phần',
+    'TXT_PERCENTAGE_BREAKDOWN': 'Phân tích phần trăm theo sản phẩm',
+    'TXT_TOP_PRODUCTS': 'Top {count} Sản Phẩm',
+    'TXT_UNITS_SOLD_COMPARISON': 'So sánh số lượng đã bán',
 
-    // Quick Actions
+    // Dashboard Quick Actions
     'TXT_QUICK_ACTIONS': 'Thao Tác Nhanh',
     'TXT_ACCESS_FEATURES': 'Truy cập các tính năng và công cụ thường dùng',
     'TXT_CREATE_NEW_ORDER': 'Tạo Đơn Hàng Mới',
@@ -241,15 +246,12 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_EXPORT_REPORT_DESC': 'Tạo và tải xuống báo cáo bán hàng chi tiết',
     'TXT_ADD_CUSTOMER': 'Thêm Khách Hàng',
     'TXT_ADD_CUSTOMER_DESC': 'Đăng ký khách hàng mới vào hệ thống',
-    'TXT_DASHBOARD_SETTINGS': 'Cài Đặt Bảng Điều Khiển',
-    'TXT_DASHBOARD_SETTINGS_DESC': 'Tùy chỉnh bố cục và tùy chọn hiển thị',
-    'TXT_DASHBOARD_PREFERENCES': 'Cài Đặt Bảng Điều Khiển & Tùy Chọn',
 
-    // Best Selling Products
+    // Product Performance
     'TXT_BEST_SELLING_PRODUCTS': 'Sản Phẩm Bán Chạy Nhất',
     'TXT_VISUAL_BREAKDOWN': 'Phân tích trực quan về các sản phẩm hiệu suất cao nhất của bạn',
 
-    // Notifications & Alerts
+    // Notifications System
     'TXT_NOTIFICATIONS_ALERTS': 'Thông Báo & Cảnh Báo',
     'TXT_IMPORTANT_UPDATES': 'Cập nhật quan trọng và cảnh báo hệ thống',
     'TXT_HIGH_PRIORITY': 'Ưu tiên cao',
@@ -259,45 +261,28 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_TOTAL': 'tổng cộng',
     'TXT_UNREAD': 'chưa đọc',
     'TXT_VIEW_ALL': 'Xem tất cả',
-    'TXT_OF': 'của',
     'TXT_NOTIFICATIONS': 'thông báo',
     'TXT_NEW': 'MỚI',
     'TXT_MARK_READ': 'Đánh dấu đã đọc',
-    'TXT_DETAILS': 'Chi tiết',
-    'TXT_DISMISS': 'Bỏ qua',
     'TXT_NO_NOTIFICATIONS': 'Không có thông báo',
     'TXT_NO_NOTIFICATIONS_DESC': 'Bạn đã xem hết! Thông báo mới sẽ xuất hiện ở đây.',
-    'TXT_TOTAL_UNITS_SOLD': 'Tổng số lượng đã bán',
-    'TXT_MARKET_SHARE_DISTRIBUTION': 'Phân Bố Thị Phần',
-    'TXT_PERCENTAGE_BREAKDOWN': 'Phân tích phần trăm theo sản phẩm',
-    'TXT_TOP_PRODUCTS': 'Top {count} Sản Phẩm',
-    'TXT_UNITS_SOLD_COMPARISON': 'So sánh số lượng đã bán',
 
-    // Recent Orders
+    // Order Management
     'TXT_RECENT_ORDERS': 'Đơn Hàng Gần Đây',
     'TXT_LATEST_CUSTOMER_ORDERS': 'Đơn hàng khách hàng mới nhất và trạng thái của chúng',
     'TXT_ORDER': 'Đơn hàng',
     'TXT_CUSTOMER': 'Khách hàng',
     'TXT_ITEMS': 'Mặt hàng',
-    'TXT_TOTAL': 'Tổng cộng',
-    'TXT_STATUS': 'Trạng thái',
-    'TXT_ACTIONS': 'Thao tác',
     'TXT_ITEM': 'mặt hàng',
     'TXT_USD': 'VND',
-    'TXT_PENDING': 'CHỜ XỬ LÝ',
-    'TXT_PROCESSING': 'ĐANG XỬ LÝ',
-    'TXT_SHIPPED': 'ĐÃ GIAO',
-    'TXT_DELIVERED': 'ĐÃ NHẬN',
-    'TXT_CANCELLED': 'ĐÃ HỦY',
     'TXT_VIEW_ORDER_DETAILS': 'Xem chi tiết đơn hàng',
     'TXT_VIEW_CUSTOMER_PROFILE': 'Xem hồ sơ khách hàng',
     'TXT_NO_RECENT_ORDERS': 'Không có đơn hàng gần đây',
     'TXT_ORDERS_APPEAR_HERE': 'Đơn hàng sẽ xuất hiện ở đây khi khách hàng bắt đầu đặt hàng.',
 
-    // Low Stock Products
+    // Inventory Status
     'TXT_LOW_STOCK_PRODUCTS': 'Sản Phẩm Sắp Hết Hàng',
     'TXT_PRODUCTS_NEED_ATTENTION': 'Sản phẩm cần chú ý ngay lập tức',
-    'TXT_PRODUCT': 'Sản phẩm',
     'TXT_STOCK_LEVEL': 'Mức tồn kho',
     'TXT_OUT_OF_STOCK': 'HẾT HÀNG',
     'TXT_CRITICAL': 'NGUY HIỂM',
@@ -308,25 +293,12 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_ALL_PRODUCTS_WELL_STOCKED': 'Tất cả sản phẩm đều có đủ hàng!',
     'TXT_NO_LOW_STOCK_ALERTS': 'Không có cảnh báo sắp hết hàng vào lúc này.',
 
-    // Notifications & Alerts
-    'TXT_NOTIFICATIONS_ALERTS': 'Thông Báo & Cảnh Báo',
-    'TXT_IMPORTANT_UPDATES': 'Cập nhật quan trọng và cảnh báo hệ thống',
-    'TXT_TOTAL': 'tổng cộng',
-    'TXT_UNREAD': 'chưa đọc',
-    'TXT_HIGH_PRIORITY': 'Ưu tiên cao',
-    'TXT_VIEW_ALL': 'Xem Tất Cả →',
+    // Notification Priority Levels
     'TXT_HIGH': 'CAO',
     'TXT_MEDIUM': 'TRUNG BÌNH',
     'TXT_LOW': 'THẤP',
     'TXT_NORMAL': 'BÌNH THƯỜNG',
-    'TXT_NEW': 'MỚI',
-    'TXT_MARK_READ': 'Đánh dấu đã đọc',
-    'TXT_DETAILS': 'Chi tiết',
-    'TXT_DISMISS': 'Bỏ qua',
-    'TXT_NO_NOTIFICATIONS': 'Không có thông báo',
-    'TXT_ALL_CAUGHT_UP': 'Bạn đã xem hết! Thông báo mới sẽ xuất hiện ở đây.',
-    "TXT_NO_REVENUE_DATA": "Không có dữ liệu doanh thu",
-    "TXT_NO_TRANSACTION_DATA": "Không có dữ liệu giao dịch để hiển thị trong biểu đồ doanh thu",
+    // Store Management - Messages
     'MSG_STORE_CODE_REQUIRED': 'Mã cửa hàng là bắt buộc',
     'MSG_STORE_CODE_INVALID_FORMAT': 'Mã cửa hàng không hợp lệ, chỉ chứa chữ cái, số và dấu gạch dưới',
     'MSG_STORE_CODE_LENGTH': 'Mã cửa hàng phải có độ dài từ 3 đến 20 ký tự',
@@ -338,25 +310,31 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_FAILED_TO_FETCH_STORES': 'Lỗi khi lấy danh sách cửa hàng',
     'MSG_FAILED_TO_FETCH_MY_STORES': 'Lỗi khi lấy danh sách cửa hàng của tôi',
     'MSG_STORE_NOT_FOUND': 'Cửa hàng không tồn tại',
+    'MSG_STORE_NAME_REQUIRED': 'Tên cửa hàng là bắt buộc',
+    'MSG_STORE_DELETED_SUCCESS': 'Cửa hàng đã được xóa thành công',
+    'MSG_STORE_DELETE_FAILED': 'Xóa cửa hàng không thành công',
+
+    // Store Management - Delete Confirmation
     'TXT_CONFIRM_DELETE_STORE': 'Bạn có chắc chắn muốn xóa cửa hàng này không?',
     'TXT_CONFIRM_DELETE_STORES_SELECTED': 'Bạn có chắc chắn muốn xóa những cửa hàng đã chọn không?',
     'TXT_CONFIRM_DELETE_STORE_DESCRIPTION': 'Bạn sẽ không thể khôi phục cửa hàng "<strong>store_name</strong>" sau khi xóa. Vui lòng nhập tên cửa hàng để xác nhận.',
     'TXT_NAME_STORE_CONFIRM_DELETE': 'Nhập tên cửa hàng để xác nhận xóa',
-    'MSG_STORE_NAME_REQUIRED': 'Tên cửa hàng là bắt buộc',
     'MSG_STORE_NAME_MISMATCH': 'Tên cửa hàng không khớp, vui lòng nhập đúng tên cửa hàng để xác nhận xóa',
-    'MSG_STORE_DELETED_SUCCESS': 'Cửa hàng đã được xóa thành công',
-    'MSG_STORE_DELETE_FAILED': 'Xóa cửa hàng không thành công',
     'TXT_CONFIRM_DELETE': 'Xác nhận xóa',
 
-    // Product types management
+    // Product Types Management
     'TXT_PRODUCT_TYPES': 'Loại sản phẩm',
-    'TXT_PRODUCT_TYPES_MANAGEMENT': 'Loại sản phẩm',
+    'TXT_PRODUCT_TYPES_MANAGEMENT': 'Quản lý loại sản phẩm',
     'TXT_PRODUCT_TYPE_LIST': 'Danh sách loại sản phẩm',
     'TITLE_ADD_PRODUCT_TYPE': 'Thêm loại sản phẩm',
     'TITLE_EDIT_PRODUCT_TYPE': 'Chỉnh sửa loại sản phẩm',
+    'TXT_PRODUCT_TYPE_NAME': 'Tên loại sản phẩm',
+    'TXT_PRODUCT_TYPE_DESCRIPTION': 'Mô tả loại sản phẩm',
+    'TXT_PRODUCT_TYPE_NAME_PLACEHOLDER': 'Nhập tên loại sản phẩm',
+    'TXT_PRODUCT_TYPE_DESCRIPTION_PLACEHOLDER': 'Nhập mô tả loại sản phẩm',
     'CONFIRM_DELETE_PRODUCT_TYPE': 'Bạn có chắc chắn muốn xóa loại sản phẩm này không?',
     'CONFIRM_DELETE_PRODUCT_TYPES_SELECTED': 'Bạn có chắc chắn muốn xóa những loại sản phẩm đã chọn không?',
-
+    
     // Product type messages
     'MSG_ERROR_PRODUCT_TYPE_NOT_FOUND': 'Loại sản phẩm không tồn tại',
     'MSG_ERROR_FETCHING_PRODUCT_TYPES': 'Lỗi khi lấy danh sách loại sản phẩm',
@@ -574,6 +552,8 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_ERROR_EMPLOYEE_NOT_FOUND': 'Nhân viên không tồn tại',
     'MSG_ERROR_NO_FILE_SELECTED': 'Không có tệp nào được chọn',
     'MSG_ERROR_FILE_TYPE': 'Tệp không hợp lệ. Vui lòng chọn tệp Excel hoặc CSV',
+    'MSG_PRICE_MIN': 'Giá phải lớn hơn hoặc bằng 0',
+    'MSG_PRICE_VALIDATION': 'Giá không một số hợp lệ',
 
     // Success messages
     'MSG_SUCCESS_ADD_EMPLOYEE': 'Thêm nhân viên thành công',
@@ -763,6 +743,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'TXT_INACTIVE_INGREDIENTS': 'Nguyên liệu không hoạt động',
     'TXT_EXPIRING_SOON': 'Sắp hết hạn',
     'TXT_EXPIRED': 'Nguyên liệu đã hết hạn',
+    'MSG_CURRENTLY_LOW_STOCK_THAN_MINIMUM': 'Tồn kho thấp hơn mức tối thiểu',
 
     'TXT_WAREHOUSE': 'Kho hàng',
     'MSG_WAREHOUSE_REQUIRED': 'Kho hàng là bắt buộc',
@@ -793,6 +774,7 @@ const VIETNAMESE_TRANSLATIONS = {
     'MSG_INGREDIENT_HAS_STOCK': 'Nguyên liệu này vẫn còn tồn kho.',
     'MSG_DELETE_INGREDIENT_CONFIRMATION': 'Bạn có chắc chắn muốn xóa nguyên liệu này không?',
     'MSG_INGREDIENT_DELETED_SUCCESSFULLY': 'Xóa nguyên liệu thành công',
+    "TXT_DELETE_RECIPE": "Xóa công thức",
 
     // Recipe management
     'TXT_RECIPE_NAME': 'Tên công thức',
@@ -1293,6 +1275,10 @@ const VIETNAMESE_TRANSLATIONS = {
     "TXT_IN_STOCK": "Trong kho",
     "TXT_PRODUCT_STOCK_TAKE": "Kiểm kê kho nguyên liệu",
     "TXT_SEARCH_PRODUCTS": "Tìm kiếm nguyên liệu...",
+    "MSG_PRODUCT_STOCK_TAKE_SUCCESS": "Kiểm kê kho nguyên liệu thành công",
+    "MSG_PRODUCT_STOCK_TAKE_FAILED": "Kiểm kê kho nguyên liệu thất bại",
+    "MSG_MIN_STOCK_EXCEEDS_MAX": "Tồn kho tối thiểu không được lớn hơn hoặc bằng Tồn kho tối đa",
+    "MSG_MAX_STOCK_BELOW_MIN": "Tồn kho tối đa không được nhỏ hơn hoặc bằng Tồn kho tối thiểu",
 
     // Product-Recipe Management
     "TXT_PRODUCT_RECIPE_MANAGEMENT": "Quản lý sản phẩm - công thức",

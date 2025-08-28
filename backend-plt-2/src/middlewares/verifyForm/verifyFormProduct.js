@@ -144,7 +144,7 @@ const verifyFormCreateProduct = async (req, res, next) => {
     return res.status(404).json({ error: 'store_not_found' });
   }
 
-  const existingProduct = await Product.findOne({ productCode, storeId: store._id, ownerId: req.user._id });
+  const existingProduct = await Product.findOne({ productCode });
   if (existingProduct) {
     return res.status(400).json({ error: 'product_code_already_exists' });
   }

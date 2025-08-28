@@ -18,7 +18,7 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [systemStock, setSystemStock] = useState(0);
-  const [countedQuantity, setCountedQuantity] = useState(0);
+  const [physicalCount, setPhysicalCount] = useState(0);
   const [variance, setVariance] = useState(0);
   const [stockInfo, setStockInfo] = useState(null);
   // Auto-select product/warehouse/batch if selectedRecord is provided
@@ -39,23 +39,23 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
         warehouseId: warehouse?._id,
         unit: product?.unit,
         batchNumber: selectedRecord.batchNumber || undefined,
-        countedQuantity: selectedRecord.countedQuantity || 0,
+        physicalCount: selectedRecord.physicalCount || selectedRecord.countedQuantity || 0,
         note: selectedRecord.note || ''
       });
 
-      // Set countedQuantity and variance state
-      setCountedQuantity(selectedRecord.countedQuantity || 0);
-      // Calculate variance based on selectedRecord.countedQuantity and systemStock
+      // Set physicalCount and variance state
+      setPhysicalCount(selectedRecord.physicalCount || selectedRecord.countedQuantity || 0);
+      // Calculate variance based on selectedRecord.physicalCount and systemStock
       // But systemStock is set async, so use a timeout to sync after updateStockInfo
       setTimeout(() => {
-        setVariance((selectedRecord.countedQuantity || 0) - (systemStock || 0));
+        setVariance((selectedRecord.physicalCount || selectedRecord.countedQuantity || 0) - (systemStock || 0));
       }, 100);
     } else if (!visible) {
       form.resetFields();
       setSelectedProduct(null);
       setSelectedWarehouse(null);
       setSystemStock(0);
-      setCountedQuantity(0);
+      setPhysicalCount(0);
       setVariance(0);
       setStockInfo(null);
     }
@@ -70,7 +70,7 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
         storeCode,
         productId: values.productId,
         warehouseId: values.warehouseId,
-        countedQuantity: values.countedQuantity,
+        physicalCount: values.physicalCount,
         unit: values.unit,
         note: values.note || '',
         batchNumber: values.batchNumber || undefined
@@ -83,7 +83,7 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
       setSelectedProduct(null);
       setSelectedWarehouse(null);
       setSystemStock(0);
-      setCountedQuantity(0);
+      setPhysicalCount(0);
       setVariance(0);
       setStockInfo(null);
       onClose();
@@ -107,18 +107,18 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
       form.setFieldsValue({
         unit: product.unit,
         warehouseId: undefined, // Reset warehouse selection
-        countedQuantity: 0
+        physicalCount: 0
       });
       setSelectedWarehouse(null);
       setSystemStock(0);
-      setCountedQuantity(0);
+      setPhysicalCount(0);
       setVariance(0);
       setStockInfo(null);
     } else {
       setSelectedProduct(null);
       setSelectedWarehouse(null);
       setSystemStock(0);
-      setCountedQuantity(0);
+      setPhysicalCount(0);
       setVariance(0);
       setStockInfo(null);
     }
@@ -135,8 +135,8 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
   /**
    * Handle counted quantity change
    */
-  const handleCountedQuantityChange = (value) => {
-    setCountedQuantity(value || 0);
+  const handlePhysicalCountChange = (value) => {
+    setPhysicalCount(value || 0);
     const newVariance = (value || 0) - systemStock;
     setVariance(newVariance);
   };
@@ -175,7 +175,7 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
     setSelectedProduct(null);
     setSelectedWarehouse(null);
     setSystemStock(0);
-    setCountedQuantity(0);
+    setPhysicalCount(0);
     setVariance(0);
     setStockInfo(null);
     onClose();
@@ -244,7 +244,7 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
         layout="vertical"
         onFinish={handleSubmit}
         initialValues={{
-          countedQuantity: 0
+          physicalCount: 0
         }}
       >
         <Row gutter={16}>
@@ -309,8 +309,8 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
             </Col>
             <Col span={8}>
               <Statistic
-                title={t('TXT_COUNTED_STOCK') || 'Counted Stock'}
-                value={countedQuantity}
+                title={t('TXT_PHYSICAL_COUNT') || 'Physical Count'}
+                value={physicalCount}
                 suffix={selectedProduct?.unit || ''}
                 valueStyle={{ color: '#52c41a' }}
               />
@@ -334,10 +334,10 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item
-              label={t('TXT_COUNTED_QUANTITY') || 'Counted Quantity'}
-              name="countedQuantity"
+              label={t('TXT_PHYSICAL_COUNT') || 'Physical Count'}
+              name="physicalCount"
               rules={[
-                { required: true, message: t('MSG_PLEASE_ENTER_COUNTED_QUANTITY') || 'Please enter counted quantity' },
+                { required: true, message: t('MSG_PLEASE_ENTER_PHYSICAL_COUNT') || 'Please enter physical count' },
                 { type: 'number', min: 0, message: t('MSG_QUANTITY_CANNOT_BE_NEGATIVE') || 'Quantity cannot be negative' }
               ]}
             >
@@ -346,8 +346,8 @@ const StockTakeModal = ({ visible, onClose, storeCode, products, warehouses, sto
                 step={0.01}
                 precision={2}
                 style={{ width: '100%' }}
-                placeholder={t('TXT_ENTER_COUNTED_QUANTITY') || 'Enter counted quantity'}
-                onChange={handleCountedQuantityChange}
+                placeholder={t('TXT_ENTER_PHYSICAL_COUNT') || 'Enter physical count'}
+                onChange={handlePhysicalCountChange}
               />
             </Form.Item>
           </Col>

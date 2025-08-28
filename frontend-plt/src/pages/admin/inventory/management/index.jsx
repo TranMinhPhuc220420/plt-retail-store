@@ -145,7 +145,9 @@ const InventoryManagement = () => {
    * Get stock level tag
    */
   const getStockLevelTag = (balance) => {
-    const { quantity, minStock } = balance;
+    const { quantity } = balance;
+    const minStock = balance.productId?.minStock || 0;
+    console.log('getStockLevelTag', { quantity, minStock });
 
     if (quantity <= 0) {
       return <Tag color="error" icon={<WarningOutlined />}>{t('TXT_OUT_OF_STOCK')}</Tag>;
@@ -162,7 +164,8 @@ const InventoryManagement = () => {
    * Get stock level progress
    */
   const getStockProgress = (balance) => {
-    const { quantity, minStock, maxStock } = balance;
+    const { quantity, maxStock } = balance;
+    const minStock = balance.productId?.minStock || 0;
 
     if (!maxStock || maxStock <= minStock) {
       return null;
@@ -341,7 +344,8 @@ const InventoryManagement = () => {
 
     // Stock status filter
     if (stockFilter !== 'all') {
-      const { quantity, minStock } = balance;
+      const { quantity } = balance;
+      const minStock = balance.productId?.minStock || 0;
       switch (stockFilter) {
         case 'low':
           return quantity > 0 && quantity <= minStock;
@@ -488,12 +492,12 @@ const InventoryManagement = () => {
       )
     },
     {
-      title: t('TXT_STATUS'),
+      title: t('TXT_WARNING'),
       key: 'status',
       width: 100,
       render: (_, record) => (
         <Tag color={record.quantity <= 0 ? 'red' : 'orange'}>
-          {t(record.stockLevel)}
+          {t('MSG_CURRENTLY_LOW_STOCK_THAN_MINIMUM')}
         </Tag>
       )
     },
@@ -514,12 +518,12 @@ const InventoryManagement = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className="p-2">
       {/* Summary Statistics */}
-      {getSummaryStats()}
+      {/* {getSummaryStats()} */}
 
       {/* Enhanced Controls */}
-      <Card size="small" style={{ marginBottom: 16 }}>
+      <div className='bg-white p-1 mb-1 rounded-lg shadow'>
         <Row gutter={16} align="middle">
           <Col span={6}>
             <Input
@@ -598,7 +602,7 @@ const InventoryManagement = () => {
             </Space>
           </Col>
         </Row>
-      </Card>
+      </div>
 
       {/* Main Table */}
       <Card>

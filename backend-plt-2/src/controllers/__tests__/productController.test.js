@@ -116,7 +116,7 @@ describe('ProductController', () => {
         retailPrice: '15.00',
         costPrice: '8.00',
         minStock: 10,
-        unit: 'kilogram',
+        unit: 'kg',
         status: 'active'
       };
     });

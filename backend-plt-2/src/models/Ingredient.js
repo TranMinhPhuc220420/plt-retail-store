@@ -14,8 +14,8 @@ const ingredientSchema = new mongoose.Schema(
     // Category of ingredient (e.g., dairy, meat, vegetables, spices)
     category: { type: String, default: 'general' },
     
-    // Unit of measurement - simplified to kg (weight) or l (volume) only
-    unit: { type: String, required: true, enum: ['kg', 'l'] },
+    // Unit of measurement - simplified to kg (weight) or l (volume) or pice (count)
+    unit: { type: String, required: true, enum: ['kg', 'lit', 'pice'] },
     
     // Current stock quantity available (deprecated - use IngredientStockBalance instead)
     stockQuantity: { type: Number, default: 0, min: 0 },

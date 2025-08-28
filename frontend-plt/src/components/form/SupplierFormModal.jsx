@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Select, Row, Col, Divider, Card, Tabs, InputNumber } from 'antd';
 import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { REGEX_PHONE_VN } from '@/constant';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -287,7 +288,7 @@ const SupplierFormModal = ({
                     name="contactInfo.phone"
                     label={t('TXT_SUPPLIER_PHONE')}
                     rules={[
-                      { pattern: /^[\+]?[0-9\s\-\(\)]+$/, message: t('MSG_SUPPLIER_PHONE_FORMAT') }
+                      { pattern: REGEX_PHONE_VN, message: t('MSG_SUPPLIER_PHONE_FORMAT') }
                     ]}
                   >
                     <Input placeholder={t('TXT_SUPPLIER_PHONE_PLACEHOLDER')} />
@@ -301,7 +302,7 @@ const SupplierFormModal = ({
                     name="contactInfo.mobile"
                     label={t('TXT_SUPPLIER_MOBILE')}
                     rules={[
-                      { pattern: /^[\+]?[0-9\s\-\(\)]+$/, message: t('MSG_SUPPLIER_MOBILE_FORMAT') }
+                      { pattern: REGEX_PHONE_VN, message: t('MSG_SUPPLIER_MOBILE_FORMAT') }
                     ]}
                   >
                     <Input placeholder={t('TXT_SUPPLIER_MOBILE_PLACEHOLDER')} />
@@ -366,7 +367,7 @@ const SupplierFormModal = ({
                     name="contactInfo.contactPerson.phone"
                     label={t('TXT_SUPPLIER_CONTACT_PERSON_PHONE')}
                     rules={[
-                      { pattern: /^[\+]?[0-9\s\-\(\)]+$/, message: t('MSG_SUPPLIER_CONTACT_PERSON_PHONE_FORMAT') }
+                      { pattern: REGEX_PHONE_VN, message: t('MSG_SUPPLIER_CONTACT_PERSON_PHONE_FORMAT') }
                     ]}
                   >
                     <Input placeholder={t('TXT_SUPPLIER_CONTACT_PERSON_PHONE_PLACEHOLDER')} />

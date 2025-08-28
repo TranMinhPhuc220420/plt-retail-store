@@ -432,14 +432,19 @@ const IngredientManagement = () => {
                 label="Cost Price"
                 rules={[
                   { required: true, message: 'Please enter cost price' },
-                  { type: 'number', min: 0.01, message: 'Cost price must be greater than 0' }
+                  { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+                  { validator: (_, value) => {
+                    if (value === null || value === undefined) return Promise.resolve();
+                    if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                    return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+                  }}
                 ]}
               >
                 <InputNumber
                   placeholder="0.00"
                   style={{ width: '100%' }}
-                  precision={2}
-                  min={0.01}
+                  precision={0}
+                  min={0}
                 />
               </Form.Item>
             </Col>

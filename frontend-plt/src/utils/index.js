@@ -1,4 +1,4 @@
-import { POSITION_LIST, EMPLOYEE_LEVEL, BRANCH_LIST } from '@/constant';
+import { POSITION_LIST, EMPLOYEE_LEVEL, BRANCH_LIST, PRODUCT_STATUS_LIST } from '@/constant';
 
 export const generateId = () => {
   // Generate a random 8-character alphanumeric and time now string
@@ -123,4 +123,18 @@ export const formatMoney = (value) => {
     }
   }
   return value;
+}
+
+export const randomCode = (length = 8) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+
+export const getStatusName = (status) => {
+  const statusObj = PRODUCT_STATUS_LIST.find(item => item.key === status);
+  return statusObj ? statusObj.value : null;
 }

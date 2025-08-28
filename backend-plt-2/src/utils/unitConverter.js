@@ -7,7 +7,7 @@
 // Standard base units (simplified to kg and liter only)
 const BASE_UNITS = {
   WEIGHT: 'kg',  // kilograms for weight
-  VOLUME: 'l'    // liters for volume
+  VOLUME: 'lit'    // liters for volume
 };
 
 // Unit conversion factors (simplified to kg and liter only)
@@ -16,13 +16,13 @@ const UNIT_CONVERSIONS = {
   'kg': 1,
   
   // Volume conversions (only liter)
-  'l': 1
+  'lit': 1
 };
 
 // Unit categories (simplified)
 const UNIT_CATEGORIES = {
   WEIGHT: ['kg'],
-  VOLUME: ['l']
+  VOLUME: ['lit']
 };
 
 /**
@@ -174,7 +174,7 @@ function checkIngredientAvailability(stockQuantity, stockUnit, requiredQuantity,
 function getRecommendedUnits() {
   return {
     weight: ['kg'],  // Only kilograms
-    volume: ['l']    // Only liters
+    volume: ['lit']    // Only liters
   };
 }
 

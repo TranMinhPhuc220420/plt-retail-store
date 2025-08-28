@@ -414,7 +414,13 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
           min={0}
           step={1000}
           value={value}
-          onChange={(val) => updateChildProduct(record.id, 'sellingPrice', val || 0)}
+          onChange={(val) => {
+            if (val !== null && val !== undefined && (!Number.isInteger(val) || val < 0)) {
+              message.error(t('MSG_PRICE_VALIDATION'));
+              return;
+            }
+            updateChildProduct(record.id, 'sellingPrice', val || 0);
+          }}
           placeholder="0"
           formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
           parser={value => value.replace(/\$\s?|(,*)/g, '')}
@@ -432,7 +438,14 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
           min={0}
           step={1000}
           value={value}
-          onChange={(val) => updateChildProduct(record.id, 'retailPrice', val || 0)}
+          onChange={(val) => {
+            // Validation cho số nguyên dương hoặc bằng 0
+            if (val !== null && val !== undefined && (!Number.isInteger(val) || val < 0)) {
+              message.error(t('MSG_PRICE_VALIDATION'));
+              return;
+            }
+            updateChildProduct(record.id, 'retailPrice', val || 0);
+          }}
           placeholder="0"
           formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
           parser={value => value.replace(/\$\s?|(,*)/g, '')}

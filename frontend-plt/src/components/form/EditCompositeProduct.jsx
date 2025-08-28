@@ -274,7 +274,13 @@ const EditCompositeProductForm = ({
           className="w-full"
           formatter={val => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
           parser={val => val.replace(/\$\s?|(,*)/g, '')}
-          onChange={(newValue) => updateChildProductPrice(record.productId, 'sellingPrice', newValue || 0)}
+          onChange={(newValue) => {
+            if (newValue !== null && newValue !== undefined && (!Number.isInteger(newValue) || newValue < 0)) {
+              message.error(t('MSG_PRICE_VALIDATION'));
+              return;
+            }
+            updateChildProductPrice(record.productId, 'sellingPrice', newValue || 0);
+          }}
         />
       )
     },
@@ -291,7 +297,13 @@ const EditCompositeProductForm = ({
           className="w-full"
           formatter={val => `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
           parser={val => val.replace(/\$\s?|(,*)/g, '')}
-          onChange={(newValue) => updateChildProductPrice(record.productId, 'retailPrice', newValue || 0)}
+          onChange={(newValue) => {
+            if (newValue !== null && newValue !== undefined && (!Number.isInteger(newValue) || newValue < 0)) {
+              message.error(t('MSG_PRICE_VALIDATION'));
+              return;
+            }
+            updateChildProductPrice(record.productId, 'retailPrice', newValue || 0);
+          }}
         />
       )
     }

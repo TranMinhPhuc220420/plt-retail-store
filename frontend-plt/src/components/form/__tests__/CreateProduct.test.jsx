@@ -35,7 +35,7 @@ vi.mock('@/store/productType', () => ({
 
 vi.mock('@/constant', () => ({
   IMAGE_PRODUCT_EXAMPLE: 'test-image-url',
-  UNIT_LIST_SUGGESTION: ['kg', 'l'],
+  UNIT_LIST_SUGGESTION: ['kg', 'lit'],
   PRODUCT_STATUS_LIST: ['active', 'inactive']
 }))
 

@@ -25,6 +25,7 @@ import {
   getManagers,
   uploadEmployeeAvatar
 } from '@/request/employee';
+import { REGEX_PHONE_VN, REGEX_PHONE_VN_ALLOW_EMPTY } from '@/constant';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -279,7 +280,8 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                   name="phone"
                   label="Số điện thoại"
                   rules={[
-                    { required: true, message: 'Vui lòng nhập số điện thoại' }
+                    { required: true, message: 'Vui lòng nhập số điện thoại' },
+                    { pattern: REGEX_PHONE_VN, message: 'Số điện thoại không hợp lệ' }
                   ]}
                 >
                   <Input placeholder="Nhập số điện thoại" />
@@ -289,11 +291,20 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                 <Form.Item
                   name="dateOfBirth"
                   label="Ngày sinh"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn ngày sinh' },
+                  ]}
                 >
                   <DatePicker
                     style={{ width: '100%' }}
                     placeholder="Chọn ngày sinh"
                     format="DD/MM/YYYY"
+                    disabledDate={(current) => {
+                      const today = moment();
+                      const maxAge = moment().subtract(120, 'years');
+                      const minAge = moment().subtract(13, 'years');
+                      return current && (current > minAge || current < maxAge);
+                    }}
                   />
                 </Form.Item>
               </Col>
@@ -506,6 +517,9 @@ const EmployeeForm = ({ employee, storeId, mode, onSuccess, onCancel }) => {
                 <Form.Item
                   name="emergencyContact.phone"
                   label="Số điện thoại"
+                  rules={[
+                    { pattern: REGEX_PHONE_VN_ALLOW_EMPTY, message: 'Số điện thoại không hợp lệ' }
+                  ]}
                 >
                   <Input placeholder="Nhập số điện thoại" />
                 </Form.Item>

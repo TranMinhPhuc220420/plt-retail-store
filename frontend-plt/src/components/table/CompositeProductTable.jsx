@@ -24,6 +24,7 @@ import {
 // Stores
 import useCompositeProductStore from "@/store/compositeProduct";
 import { parseDecimal, formatPrice } from "@/utils/numberUtils";
+import { getStatusName } from "@/utils";
 
 const { Text } = Typography;
 
@@ -182,7 +183,7 @@ const CompositeProductTable = ({
               color={getStatusColor(status)}
               icon={getStatusIcon(status)}
             >
-              {t(`TXT_STATUS_${status.toUpperCase()}`)}
+              {getStatusName(status)}
             </Tag>
             <div className="text-xs text-gray-500 mt-1">
               {formatHoursElapsed(hoursElapsed)} {t('TXT_AGO')}

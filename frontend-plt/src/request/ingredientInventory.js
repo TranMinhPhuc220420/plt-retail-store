@@ -55,7 +55,7 @@ export const ingredientStockOut = async (stockOutData) => {
  * @param {string} stockTakeData.storeCode - Store code
  * @param {string} stockTakeData.ingredientId - Ingredient ID
  * @param {string} stockTakeData.warehouseId - Warehouse ID
- * @param {number} stockTakeData.countedQuantity - Physically counted quantity
+ * @param {number} stockTakeData.physicalCount - Physical count of the ingredient
  * @param {string} stockTakeData.unit - Unit of measurement
  * @param {string} [stockTakeData.note] - Optional note about the stock take
  * @param {string} [stockTakeData.batchNumber] - Optional batch number

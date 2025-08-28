@@ -10,7 +10,7 @@ const { getRecommendedUnits, areUnitsCompatible } = require('../utils/unitConver
  * @returns {Array} Array of allowed unit strings
  */
 function getAllowedUnits() {
-  return ['kg', 'l', 'pice']; // Simplified to only kg, liter, and piece
+  return ['kg', 'lit', 'pice']; // Simplified to only kg, liter, and piece
 }
 
 /**
@@ -105,10 +105,10 @@ function suggestBetterUnit(quantity, currentUnit) {
         reason: `Converting ${currentUnit} to kg for consistency`
       };
     }
-    if (['ml', 'l', 'cup', 'tbsp', 'tsp'].includes(currentUnit)) {
+    if (['ml', 'lit', 'cup', 'tbsp', 'tsp'].includes(currentUnit)) {
       return {
         shouldChange: true,
-        suggestedUnit: 'l',
+        suggestedUnit: 'lit',
         reason: `Converting ${currentUnit} to liter for consistency`
       };
     }

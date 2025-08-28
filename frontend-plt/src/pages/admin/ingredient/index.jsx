@@ -514,7 +514,10 @@ const IngredientManagerPage = () => {
 
     // Filter by warehouse
     if (selectedWarehouse !== 'all') {
-      filtered = filtered.filter(ingredient => ingredient.warehouseId === selectedWarehouse);
+      console.log(filtered);
+      console.log(selectedWarehouse);
+      
+      filtered = filtered.filter(ingredient => ingredient.warehouseId._id === selectedWarehouse);
     }
 
     // Filter by category
@@ -555,8 +558,8 @@ const IngredientManagerPage = () => {
 
   // Effect to filter ingredients when dependencies change
   useEffect(() => {
-    // filterIngredients();
-  }, [ingredients, searchText, selectedWarehouse]);
+    performFiltering();
+  }, [ingredients, searchText, selectedWarehouse, selectedCategory, selectedStatus]);
 
   return (
     <div className="h-full w-full p-2">

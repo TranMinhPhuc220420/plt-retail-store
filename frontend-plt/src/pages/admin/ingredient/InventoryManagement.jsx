@@ -439,9 +439,9 @@ const IngredientInventoryPage = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className="p-2">
       {/* Summary Statistics */}
-      {getSummaryStats()}
+      {/* {getSummaryStats()} */}
 
       {/* Alerts for critical items */}
       {(lowStockReport.totalLowStockItems > 0 || expiringReport.totalExpiredItems > 0) && (
@@ -478,7 +478,7 @@ const IngredientInventoryPage = () => {
       )}
 
       {/* Controls */}
-      <Card size="small" style={{ marginBottom: 16 }}>
+      <div className='bg-white p-1 mb-1 rounded-lg shadow'>
         <Row gutter={16} align="middle">
           <Col span={6}>
             <Input
@@ -569,7 +569,7 @@ const IngredientInventoryPage = () => {
             </Space>
           </Col>
         </Row>
-      </Card>
+      </div>
 
       {/* Main Table */}
       <Card>

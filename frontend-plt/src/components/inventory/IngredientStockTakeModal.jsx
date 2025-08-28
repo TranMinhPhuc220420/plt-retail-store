@@ -37,7 +37,7 @@ const IngredientStockTakeModal = ({
         warehouseId: warehouse?._id,
         unit: ingredient?.unit,
         batchNumber: selectedRecord.batchNumber || undefined,
-        countedQuantity: 0,
+        physicalCount: 0,
         note: ''
       });
     } else if (!visible) {
@@ -45,7 +45,7 @@ const IngredientStockTakeModal = ({
       setSelectedIngredient(null);
       setSelectedWarehouse(null);
       setSystemStock(0);
-      setCountedQuantity(0);
+      setPhysicalCount(0);
       setVariance(0);
       setStockInfo(null);
     }
@@ -56,7 +56,7 @@ const IngredientStockTakeModal = ({
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [systemStock, setSystemStock] = useState(0);
-  const [countedQuantity, setCountedQuantity] = useState(0);
+  const [physicalCount, setPhysicalCount] = useState(0);
   const [variance, setVariance] = useState(0);
   const [stockInfo, setStockInfo] = useState(null);
   
@@ -69,7 +69,7 @@ const IngredientStockTakeModal = ({
         storeCode,
         ingredientId: values.ingredientId,
         warehouseId: values.warehouseId,
-        countedQuantity: values.countedQuantity,
+        physicalCount: values.physicalCount,
         unit: values.unit,
         note: values.note || '',
         batchNumber: values.batchNumber || undefined
@@ -82,7 +82,7 @@ const IngredientStockTakeModal = ({
       setSelectedIngredient(null);
       setSelectedWarehouse(null);
       setSystemStock(0);
-      setCountedQuantity(0);
+      setPhysicalCount(0);
       setVariance(0);
       setStockInfo(null);
       onClose();
@@ -106,11 +106,11 @@ const IngredientStockTakeModal = ({
       form.setFieldsValue({
         unit: ingredient.unit,
         warehouseId: undefined, // Reset warehouse selection
-        countedQuantity: 0
+        physicalCount: 0
       });
       setSelectedWarehouse(null);
       setSystemStock(0);
-      setCountedQuantity(0);
+      setPhysicalCount(0);
       setVariance(0);
       setStockInfo(null);
     }
@@ -125,10 +125,10 @@ const IngredientStockTakeModal = ({
   };
 
   /**
-   * Handle counted quantity change
+   * Handle physical count change
    */
-  const handleCountedQuantityChange = (value) => {
-    setCountedQuantity(value || 0);
+  const handlePhysicalCountChange = (value) => {
+    setPhysicalCount(value || 0);
     const newVariance = (value || 0) - systemStock;
     setVariance(newVariance);
   };
@@ -150,10 +150,10 @@ const IngredientStockTakeModal = ({
     const totalStock = balances.reduce((sum, balance) => sum + balance.quantity, 0);
     setSystemStock(totalStock);
 
-    // Reset counted quantity and variance
-    setCountedQuantity(0);
+    // Reset physical count and variance
+    setPhysicalCount(0);
     setVariance(-totalStock);
-    form.setFieldsValue({ countedQuantity: 0 });
+    form.setFieldsValue({ physicalCount: 0 });
 
     setStockInfo({
       totalStock,
@@ -176,7 +176,7 @@ const IngredientStockTakeModal = ({
     setSelectedIngredient(null);
     setSelectedWarehouse(null);
     setSystemStock(0);
-    setCountedQuantity(0);
+    setPhysicalCount(0);
     setVariance(0);
     setStockInfo(null);
     onClose();
@@ -227,7 +227,7 @@ const IngredientStockTakeModal = ({
       />
     );
   };
-  
+
   return (
     <Modal
       title={
@@ -247,7 +247,7 @@ const IngredientStockTakeModal = ({
         layout="vertical"
         onFinish={handleSubmit}
         initialValues={{
-          countedQuantity: 0
+          physicalCount: 0
         }}
       >
         <Row gutter={16}>
@@ -312,8 +312,8 @@ const IngredientStockTakeModal = ({
             </Col>
             <Col span={8}>
               <Statistic
-                title={t('TXT_COUNTED_STOCK') || 'Counted Stock'}
-                value={countedQuantity}
+                title={t('TXT_PHYSICAL_COUNT') || 'Physical Count'}
+                value={physicalCount}
                 suffix={selectedIngredient?.unit || ''}
                 valueStyle={{ color: '#52c41a' }}
               />
@@ -337,10 +337,10 @@ const IngredientStockTakeModal = ({
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item
-              label={t('TXT_COUNTED_QUANTITY') || 'Counted Quantity'}
-              name="countedQuantity"
+              label={t('TXT_PHYSICAL_COUNT') || 'Physical Count'}
+              name="physicalCount"
               rules={[
-                { required: true, message: t('MSG_PLEASE_ENTER_COUNTED_QUANTITY') || 'Please enter counted quantity' },
+                { required: true, message: t('MSG_PLEASE_ENTER_PHYSICAL_COUNT') || 'Please enter physical count' },
                 { type: 'number', min: 0, message: t('MSG_QUANTITY_CANNOT_BE_NEGATIVE') || 'Quantity cannot be negative' }
               ]}
             >
@@ -349,8 +349,8 @@ const IngredientStockTakeModal = ({
                 step={0.01}
                 precision={2}
                 style={{ width: '100%' }}
-                placeholder={t('TXT_ENTER_COUNTED_QUANTITY') || 'Enter counted quantity'}
-                onChange={handleCountedQuantityChange}
+                placeholder={t('TXT_ENTER_PHYSICAL_COUNT') || 'Enter physical count'}
+                onChange={handlePhysicalCountChange}
               />
             </Form.Item>
           </Col>

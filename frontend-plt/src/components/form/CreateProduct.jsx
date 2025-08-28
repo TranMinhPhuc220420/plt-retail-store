@@ -17,7 +17,7 @@ import { createMyProduct, uploadAvatarProduct } from "@/request/product";
 import useStoreProductType from "@/store/productType";
 
 // Utilities
-import { } from "@/utils";
+import { randomCode } from "@/utils";
 
 // Constants
 import { IMAGE_PRODUCT_EXAMPLE, UNIT_LIST_SUGGESTION, PRODUCT_STATUS_LIST } from "@/constant";
@@ -92,6 +92,19 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
     }
   };
 
+  const initialValues = {
+    name: '',
+    productCode: randomCode(8),
+    unit: '',
+    status: PRODUCT_STATUS_LIST[0].key,
+    price: 0,
+    retailPrice: 0,
+    costPrice: 0,
+    minStock: 0,
+    categories: [],
+    description: '',
+  };
+
   // Fetch product types on mount
   useEffect(() => {
     fetchProductTypes(storeCode);
@@ -100,7 +113,7 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
   // Render
   return (
     <div>
-      <Form form={form} layout="vertical" onFinish={onSubmit}>
+      <Form form={form} initialValues={initialValues} layout="vertical" onFinish={onSubmit}>
         {/* Avatar input */}
         <div className="w-full flex justify-center items-center">
           <Upload
@@ -173,8 +186,16 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 bg-white">
           <Form.Item
             name="price"
-            label={t('TXT_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
+            label={t('LABEL_WHOLESALE_PRICE')}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+              { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+              { validator: (_, value) => {
+                if (value === null || value === undefined) return Promise.resolve();
+                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+              }}
+            ]}
           >
             <InputNumber
               min={0}
@@ -188,7 +209,15 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
           <Form.Item
             name="retailPrice"
             label={t('TXT_RETAIL_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+              { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+              { validator: (_, value) => {
+                if (value === null || value === undefined) return Promise.resolve();
+                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+              }}
+            ]}
           >
             <InputNumber
               min={0}
@@ -202,7 +231,15 @@ const CreateProduct = ({ onOK, onFail, onCancel, storeCode }) => {
           <Form.Item
             name="costPrice"
             label={t('TXT_COST_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+              { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+              { validator: (_, value) => {
+                if (value === null || value === undefined) return Promise.resolve();
+                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+              }}
+            ]}
           >
             <InputNumber
               min={0}

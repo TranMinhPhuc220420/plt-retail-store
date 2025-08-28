@@ -13,6 +13,7 @@ const { Column } = Table;
 import useStoreProduct from "@/store/product";
 import useStoreStore from "@/store/store";
 import useStoreProductType from "@/store/productType";
+import { getStatusName } from "@/utils";
 
 // Constants
 
@@ -59,7 +60,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
     },
     {
       key: 'price',
-      title: t('LABEL_PRICE'),
+      title: t('LABEL_WHOLESALE_PRICE'),
       dataIndex: 'price',
       width: 100,
       render: (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price),
@@ -93,11 +94,13 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
       title: t('LABEL_STATUS'),
       dataIndex: 'status',
       width: 100,
-      render: (status) => (
-        <Tag color={status === 'selling' ? 'green' : status === 'out_of_stock' ? 'red' : 'orange'}>
-          {t(`STATUS_${status.toUpperCase()}`)}
-        </Tag>
-      ),
+      render: (status) => {
+        return (
+          <Tag color={status === 'selling' ? 'green' : status === 'out_of_stock' ? 'red' : 'orange'}>
+            {getStatusName(status)}
+          </Tag>
+        )
+      },
     },
     {
       key: 'categories',
@@ -109,7 +112,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
           {categories?.map((category_id) => {
             const productType = productTypes.find((type) => type._id === category_id);
             if (!productType) return null;
-            
+
             return (
               <Tag key={category_id} color="blue">
                 {productType.name}
@@ -166,7 +169,7 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
   }, []);
 
   return (
-    <Table 
+    <Table
       dataSource={dataSource}
       loading={isLoading}
       scroll={{ y: height, x: true }}
@@ -181,13 +184,13 @@ const AdminProductTable = ({ storeCode, onEdit, onDelete, onSelectionChange }) =
           onFilter={column.onFilter}
           width={column.width}
           render={column.render}
-          />
+        />
       ))}
       <Column key="action" render={(_, record) => (
         <Space size="small">
 
-          <Button type="primary" 
-            icon={<EditOutlined />} 
+          <Button type="primary"
+            icon={<EditOutlined />}
             loading={record.isEditing}
             disabled={record.isEditing || record.isDeleting}
             onClick={() => handlerEdit(record)}

@@ -199,7 +199,7 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
                 })}</p>
                 <p className="text-sm text-gray-600 mt-1">
                   {t('TXT_CHILD_PRODUCT_RESTRICTED_FIELDS')}: 
-                  <span className="font-medium"> {t('TXT_PRICE')}, {t('TXT_RETAIL_PRICE')}, {t('TXT_COST_PRICE')}, {t('TXT_UNIT')}</span>
+                  <span className="font-medium"> {t('LABEL_WHOLESALE_PRICE')}, {t('TXT_RETAIL_PRICE')}, {t('TXT_COST_PRICE')}, {t('TXT_UNIT')}</span>
                 </p>
               </div>
             }
@@ -265,8 +265,16 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 bg-white">
           <Form.Item
             name="price"
-            label={t('TXT_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
+            label={t('LABEL_WHOLESALE_PRICE')}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+              { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+              { validator: (_, value) => {
+                if (value === null || value === undefined) return Promise.resolve();
+                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+              }}
+            ]}
           >
             <InputNumber
               min={0}
@@ -281,7 +289,15 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
           <Form.Item
             name="retailPrice"
             label={t('TXT_RETAIL_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+              { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+              { validator: (_, value) => {
+                if (value === null || value === undefined) return Promise.resolve();
+                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+              }}
+            ]}
           >
             <InputNumber
               min={0}
@@ -296,7 +312,15 @@ const EditProduct = ({ storeId, storeCode, productData, onOK, onFail, onCancel }
           <Form.Item
             name="costPrice"
             label={t('TXT_COST_PRICE')}
-            rules={[{ required: true, message: t('MSG_ERROR_REQUIRED') }]}
+            rules={[
+              { required: true, message: t('MSG_ERROR_REQUIRED') },
+              { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+              { validator: (_, value) => {
+                if (value === null || value === undefined) return Promise.resolve();
+                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+              }}
+            ]}
           >
             <InputNumber
               min={0}

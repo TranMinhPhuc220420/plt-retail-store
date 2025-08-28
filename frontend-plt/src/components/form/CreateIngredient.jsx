@@ -227,7 +227,16 @@ const CreateIngredientForm = ({
             label={t('TXT_MIN_STOCK')}
             name="minStock"
             rules={[
-              { type: 'number', min: 0, message: t('MSG_MIN_STOCK_MIN') }
+              { type: 'number', min: 0, message: t('MSG_MIN_STOCK_MIN') },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const maxStock = getFieldValue('maxStock');
+                  if (!value || !maxStock || value < maxStock) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error(t('MSG_MIN_STOCK_EXCEEDS_MAX')));
+                }
+              })
             ]}
           >
             <InputNumber
@@ -244,7 +253,16 @@ const CreateIngredientForm = ({
             label={t('TXT_MAX_STOCK')}
             name="maxStock"
             rules={[
-              { type: 'number', min: 0, message: t('MSG_MAX_STOCK_MIN') }
+              { type: 'number', min: 0, message: t('MSG_MAX_STOCK_MIN') },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const minStock = getFieldValue('minStock');
+                  if (!value || !minStock || value > minStock) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error(t('MSG_MAX_STOCK_BELOW_MIN')));
+                }
+              })
             ]}
           >
             <InputNumber
@@ -261,7 +279,12 @@ const CreateIngredientForm = ({
             label={t('TXT_STANDARD_COST')}
             name="standardCost"
             rules={[
-              { type: 'number', min: 0, message: t('MSG_STANDARD_COST_MIN') }
+              { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
+              { validator: (_, value) => {
+                if (value === null || value === undefined) return Promise.resolve();
+                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+              }}
             ]}
           >
             <InputNumber

@@ -29,20 +29,20 @@ describe('Cost Calculation Utils', () => {
               name: 'Chicken Breast',
               standardCost: 15.00,
               averageCost: 14.50,
-              unit: 'kilogram'
+              unit: 'kg'
             },
             amountUsed: 2,
-            unit: 'kilogram'
+            unit: 'kg'
           },
           {
             ingredientId: {
               _id: 'ingredient2',
               name: 'Rice',
               standardCost: 3.00,
-              unit: 'kilogram'
+              unit: 'kg'
             },
             amountUsed: 1.5,
-            unit: 'kilogram'
+            unit: 'kg'
           }
         ],
         yield: { quantity: 4, unit: 'portions' }
@@ -101,10 +101,10 @@ describe('Cost Calculation Utils', () => {
               _id: 'ingredient1',
               name: 'Valid Ingredient',
               standardCost: 10.00,
-              unit: 'kilogram'
+              unit: 'kg'
             },
             amountUsed: 1,
-            unit: 'kilogram'
+            unit: 'kg'
           },
           {
             ingredientId: null // Missing ingredient
@@ -134,20 +134,20 @@ describe('Cost Calculation Utils', () => {
               name: 'Ingredient with Average',
               standardCost: 10.00,
               averageCost: 12.00,
-              unit: 'kilogram'
+              unit: 'kg'
             },
             amountUsed: 1,
-            unit: 'kilogram'
+            unit: 'kg'
           },
           {
             ingredientId: {
               _id: 'ingredient2',
               name: 'Ingredient without Average',
               standardCost: 8.00,
-              unit: 'kilogram'
+              unit: 'kg'
             },
             amountUsed: 1,
-            unit: 'kilogram'
+            unit: 'kg'
           }
         ],
         yield: { quantity: 1, unit: 'portion' }
@@ -174,10 +174,10 @@ describe('Cost Calculation Utils', () => {
               _id: 'ingredient1',
               name: 'Free Ingredient',
               standardCost: 0,
-              unit: 'kilogram'
+              unit: 'kg'
             },
             amountUsed: 5,
-            unit: 'kilogram'
+            unit: 'kg'
           }
         ],
         yield: { quantity: 1, unit: 'portion' }
@@ -203,10 +203,10 @@ describe('Cost Calculation Utils', () => {
               _id: 'ingredient1',
               name: 'Expensive Spice',
               standardCost: 25.333,
-              unit: 'kilogram'
+              unit: 'kg'
             },
             amountUsed: 0.15,
-            unit: 'kilogram'
+            unit: 'kg'
           }
         ],
         yield: { quantity: 3, unit: 'portions' }
@@ -236,7 +236,7 @@ describe('Cost Calculation Utils', () => {
               standardCost: 999999.99
             },
             amountUsed: 100,
-            unit: 'kilogram'
+            unit: 'kg'
           }
         ],
         yield: { quantity: 1, unit: 'portion' }
@@ -292,7 +292,7 @@ describe('Cost Calculation Utils', () => {
               standardCost: 10.00
             },
             amountUsed: 2,
-            unit: 'kilogram'
+            unit: 'kg'
           }
         ]
         // No yield property

@@ -353,7 +353,7 @@ const ingredientInventoryController = {
           $set: {
             lastTransactionDate: new Date(),
             lastTransactionId: stockTransaction._id,
-            deleted: { $cond: { if: { $eq: [{ $subtract: ['$quantity', quantity] }, 0] }, then: true, else: false } }
+            deleted: (stockBalance.quantity - quantity) === 0 // Set deleted to true if quantity becomes 0
           }
         },
         { new: true }

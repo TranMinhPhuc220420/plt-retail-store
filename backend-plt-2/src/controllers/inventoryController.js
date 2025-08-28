@@ -259,7 +259,7 @@ const inventoryController = {
       
       res.status(201).json({
         transaction: populatedTransaction,
-        balance: stockBalance,
+        balance: updatedStockBalance,
         message: 'stock_out_successful'
       });
       
