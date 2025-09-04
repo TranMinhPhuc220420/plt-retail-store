@@ -147,16 +147,27 @@ const InventoryManagement = () => {
   const getStockLevelTag = (balance) => {
     const { quantity } = balance;
     const minStock = balance.productId?.minStock || 0;
-    console.log('getStockLevelTag', { quantity, minStock });
+
+    // DEBUG: Log thực tế
+    console.log('🔍 Frontend Debug - getStockLevelTag:', {
+      productName: balance.productId?.name,
+      productCode: balance.productId?.productCode,
+      quantity: quantity,
+      minStock: minStock,
+      productIdFull: balance.productId
+    });
 
     if (quantity <= 0) {
+      console.log('-> Result: OUT_OF_STOCK');
       return <Tag color="error" icon={<WarningOutlined />}>{t('TXT_OUT_OF_STOCK')}</Tag>;
     }
 
     if (quantity <= minStock) {
-      return <Tag color="error" icon={<WarningOutlined />}>{t('TXT_LOW_STOCK')}</Tag>;
+      console.log('-> Result: LOW_STOCK');
+      return <Tag color="warning" icon={<WarningOutlined />}>{t('TXT_LOW_STOCK')}</Tag>;
     }
 
+    console.log('-> Result: GOOD_STOCK');
     return <Tag color="success" icon={<CheckCircleOutlined />}>{t('TXT_GOOD_STOCK')}</Tag>;
   };
 
@@ -164,8 +175,9 @@ const InventoryManagement = () => {
    * Get stock level progress
    */
   const getStockProgress = (balance) => {
-    const { quantity, maxStock } = balance;
+    const { quantity } = balance;
     const minStock = balance.productId?.minStock || 0;
+    const maxStock = balance.productId?.maxStock;
 
     if (!maxStock || maxStock <= minStock) {
       return null;
@@ -250,8 +262,8 @@ const InventoryManagement = () => {
       width: 120,
       render: (_, record) => (
         <div style={{ fontSize: '12px' }}>
-          <div>Min: {record.minStock} {record.unit}</div>
-          {record.maxStock && <div>Max: {record.maxStock} {record.unit}</div>}
+          <div>Min: {record.productId?.minStock || 0} {record.unit}</div>
+          {record.productId?.maxStock && <div>Max: {record.productId?.maxStock} {record.unit}</div>}
         </div>
       )
     },
@@ -400,9 +412,15 @@ const InventoryManagement = () => {
    */
   const getSummaryStats = () => {
     const totalItems = stockBalances.length;
-    const lowStockItems = stockBalances.filter(item => item.quantity > 0 && item.quantity <= item.minStock).length;
+    const lowStockItems = stockBalances.filter(item => {
+      const minStock = item.productId?.minStock || 0;
+      return item.quantity > 0 && item.quantity <= minStock;
+    }).length;
     const outOfStockItems = stockBalances.filter(item => item.quantity <= 0).length;
-    const goodStockItems = stockBalances.filter(item => item.quantity > item.minStock).length;
+    const goodStockItems = stockBalances.filter(item => {
+      const minStock = item.productId?.minStock || 0;
+      return item.quantity > minStock;
+    }).length;
 
     return (
       <Row gutter={16} style={{ marginBottom: 24 }}>

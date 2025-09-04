@@ -273,7 +273,6 @@ const LandingPage = () => {
               <Col xs={24} md={12} lg={8} xl={6} key={index}>
                 <Card 
                   className="h-full text-center landing-feature-card feature-card-hover border-0 shadow-lg"
-                  bodyStyle={{ padding: '2rem' }}
                 >
                   <div className="mb-6">
                     {feature.icon}
@@ -406,7 +405,6 @@ const LandingPage = () => {
               <Col xs={24} md={8} key={index}>
                 <Card 
                   className={`h-full text-center relative ${plan.recommended ? 'border-2 border-blue-500 shadow-2xl' : 'border shadow-lg'}`}
-                  bodyStyle={{ padding: '2rem' }}
                 >
                   {plan.recommended && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">

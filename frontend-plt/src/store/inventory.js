@@ -211,14 +211,31 @@ const useInventoryStore = create((set, get) => ({
     set({ isLoadingBalance: true, error: null });
     try {
       const balances = await getAllStockBalances(storeCode, params);
-      const formattedBalances = balances.map((balance, index) => ({
-        ...balance,
-        key: balance._id || index,
-        lastTransactionDateFormatted: balance.lastTransactionDate 
-          ? moment(balance.lastTransactionDate).format(DATETIME_FORMAT)
-          : '',
-        isLowStock: balance.productId?.minStock && balance.quantity <= balance.productId.minStock
-      }));
+      
+      // DEBUG: Log raw response from API
+      console.log('🔍 DEBUG Store - Raw API Response:', balances);
+      
+      const formattedBalances = balances.map((balance, index) => {
+        const minStock = balance.productId?.minStock;
+        const isLowStock = minStock && balance.quantity <= minStock;
+        
+        // DEBUG: Log each balance processing
+        console.log('🔍 DEBUG Store - Processing balance:', {
+          productName: balance.productId?.name,
+          quantity: balance.quantity,
+          minStock: minStock,
+          isLowStock: isLowStock
+        });
+        
+        return {
+          ...balance,
+          key: balance._id || index,
+          lastTransactionDateFormatted: balance.lastTransactionDate 
+            ? moment(balance.lastTransactionDate).format(DATETIME_FORMAT)
+            : '',
+          isLowStock: isLowStock
+        };
+      });
       
       set({ 
         stockBalances: formattedBalances,

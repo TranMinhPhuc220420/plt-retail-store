@@ -10,6 +10,7 @@ const productSchema = new mongoose.Schema(
     retailPrice: { type: mongoose.Schema.Types.Decimal128, required: true },
     costPrice: { type: mongoose.Schema.Types.Decimal128, required: true },
     minStock: { type: Number, required: true },
+    maxStock: { type: Number, default: null }, // Maximum stock level (optional)
     unit: { type: String, required: true, enum: ['kg', 'lit', 'pice'] },
     status: { type: String, required: true },
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

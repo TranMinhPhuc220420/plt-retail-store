@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 
 // React Router
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 // i18n
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ import { ShoppingCartOutlined, UserOutlined, FileDoneOutlined, LoadingOutlined, 
 import { Layout, Button, Dropdown, Space, Menu, message, Avatar } from 'antd';
 const { Header } = Layout;
 
-const SiderApp = ({ isLoading }) => {
+const HeaderApp = ({ isLoading }) => {
 
   // Ant Design message
   const [messageApi, contextHolder] = message.useMessage();
@@ -26,6 +26,8 @@ const SiderApp = ({ isLoading }) => {
 
   // Use navigate
   const navigate = useNavigate();
+  const params = useParams();
+  const storeCode = params.storeCode;
 
   // Hook components
   const { user, signOut } = useAuth();
@@ -91,37 +93,37 @@ const SiderApp = ({ isLoading }) => {
     {
       key: 'employee_dashboard',
       icon: <HomeOutlined />,
-      pathname: '/',
+      pathname: `/store/${storeCode}`,
       label: t('TXT_DASHBOARD'),
     },
     {
       key: 'sale_dashboard',
       icon: <ShoppingCartOutlined />,
-      pathname: '/ban-hang',
+      pathname: `/store/${storeCode}/ban-hang`,
       label: t('TXT_SELL'),
     },
     {
       key: 'client_dashboard',
       icon: <UserOutlined />,
-      pathname: '/khach-hang',
+      pathname: `/store/${storeCode}/khach-hang`,
       label: t('TXT_CLIENT'),
     },
     {
       key: 'invoice_dashboard',
       icon: <FileDoneOutlined />,
-      pathname: '/hoa-don',
+      pathname: `/store/${storeCode}/hoa-don`,
       label: t('TXT_INVOICE'),
     },
     {
       key: 'shift_handover_dashboard',
       icon: <BlockOutlined />,
-      pathname: '/giao-ca',
+      pathname: `/store/${storeCode}/giao-ca`,
       label: t('TXT_SHIFT_HANDOVER'),
     },
     {
       key: 'profile_dashboard',
       icon: <UserOutlined />,
-      pathname: '/profile',
+      pathname: `/store/${storeCode}/profile`,
       label: 'Profile',
     }
   ];
@@ -196,4 +198,4 @@ const SiderApp = ({ isLoading }) => {
 };
 
 
-export default SiderApp;
+export default HeaderApp;

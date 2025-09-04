@@ -443,7 +443,7 @@ const inventoryController = {
         warehouseId,
         deleted: false
       })
-      .populate('productId', 'name productCode unit')
+      .populate('productId', 'name productCode unit minStock maxStock')
       .populate('storeId', 'name storeCode')
       .populate('warehouseId', 'name address')
       .populate('lastTransactionId', 'type date note');
@@ -495,11 +495,22 @@ const inventoryController = {
       
       // Get all stock balances for the store
       const stockBalances = await StockBalance.find(query)
-      .populate('productId', 'name productCode unit minStock')
+      .populate('productId', 'name productCode unit minStock maxStock')
       .populate('storeId', 'name storeCode')
       .populate('warehouseId', 'name address')
       .populate('lastTransactionId', 'type date note')
       .sort({ 'productId.name': 1 });
+      
+      // DEBUG: Log the response structure
+      console.log('🔍 DEBUG getAllStockBalances - Sample response:');
+      if (stockBalances.length > 0) {
+        console.log('Sample record:', JSON.stringify(stockBalances[0], null, 2));
+        console.log('ProductId structure:', {
+          minStock: stockBalances[0].productId?.minStock,
+          maxStock: stockBalances[0].productId?.maxStock,
+          name: stockBalances[0].productId?.name
+        });
+      }
       
       res.status(200).json(stockBalances);
       
@@ -571,7 +582,7 @@ const inventoryController = {
       
       // Get transactions with pagination
       const transactions = await StockTransaction.find(filter)
-        .populate('productId', 'name productCode unit')
+        .populate('productId', 'name productCode unit minStock maxStock')
         .populate('storeId', 'name storeCode')
         .populate('warehouseId', 'name address')
         .populate('userId', 'username displayName')
@@ -630,7 +641,7 @@ const inventoryController = {
       
       // Get all stock balances with product details
       const stockBalances = await StockBalance.find(query)
-      .populate('productId', 'name productCode unit minStock')
+      .populate('productId', 'name productCode unit minStock maxStock')
       .populate('storeId', 'name storeCode')
       .populate('warehouseId', 'name address');
       

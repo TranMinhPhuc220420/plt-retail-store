@@ -17,6 +17,9 @@ router.post('/my-products-stores', verifyFormCreateProduct, productController.cr
 router.put('/my-products-stores/:id', verifyFormUpdateProduct, productController.updateMyInStore);
 router.delete('/my-products-stores/:id', productController.deleteMyInStore);
 
+// POS specific endpoint - get both regular and composite products optimized for POS
+router.get('/pos/:storeCode', productController.getPOSProducts);
+
 // Route để lấy sản phẩm thường (không composite) cho việc tạo composite
 router.get('/regular-products/store/:storeCode', productController.getRegularProductsForComposite);
 router.get('/regular-products', productController.getRegularProductsForComposite);

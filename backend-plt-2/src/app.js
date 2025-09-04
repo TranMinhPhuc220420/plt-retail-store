@@ -68,6 +68,10 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Demo routes (no authentication required)
+const { createDemoOrder } = require('./controllers/order.controller');
+app.post('/api/demo/orders', createDemoOrder);
+
 // Routes
 app.use('/api', apiRoutes);
 app.use('/upload', uploadRoutes);

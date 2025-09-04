@@ -21,6 +21,8 @@ const productRecipeRouter = require('./product_recipe.route');
 const compositeProductRouter = require('./compositeProducts');
 const costAnalysisRouter = require('./costAnalysis'); // ✅ THÊM COST ANALYSIS ROUTER
 const employeeRouter = require('./employee.route'); // ✅ THÊM EMPLOYEE ROUTER
+const orderRouter = require('./order.route'); // ✅ THÊM ORDER ROUTER
+const demoRouter = require('./demo.route'); // ✅ THÊM DEMO ROUTER
 
 const router = Router();
 
@@ -41,6 +43,10 @@ router.use('/', verifyJWT, isAdmin, productRecipeRouter); // Admin only
 router.use('/composite-products', verifyJWT, isAdminOrStaff, compositeProductRouter); // Staff can view composite products
 router.use('/cost-analysis', verifyJWT, isAdmin, costAnalysisRouter); // Admin only
 router.use('/employees', verifyJWT, isAdminOrStaff, employeeRouter); // ✅ Employee management routes
+router.use('/orders', verifyJWT, isAdminOrStaff, orderRouter); // ✅ Order management routes - Staff can create and view orders
+
+// Demo routes (no authentication required)
+router.use('/demo', demoRouter); // ✅ Demo routes for testing
 
 // export default router;
 module.exports = router;

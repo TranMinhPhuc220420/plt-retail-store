@@ -147,6 +147,262 @@ const productController = {
     }
   },
 
+  // POS specific endpoint - Get both regular and composite products optimized for POS
+  getPOSProducts: async (req, res) => {
+    try {
+      const { storeCode } = req.params;
+      if (!storeCode) {
+        return res.status(400).json({ error: 'store_code_required' });
+      }
+      
+      const store = await Store.findOne({ storeCode, ownerId: req.user._id, deleted: false });
+      if (!store) {
+        return res.status(404).json({ error: 'store_not_found' });
+      }
+
+      // Get all products (both regular and composite)
+      const products = await Product.find({
+        storeId: store._id, 
+        ownerId: req.user._id, 
+        deleted: false
+        // Remove status filter - some products might not have status field or might be inactive but still sellable
+      })
+      .populate({
+        path: 'compositeInfo.childProducts.productId',
+        select: 'name productCode unit imageUrl description'
+      })
+      .populate({
+        path: 'compositeInfo.recipeId',
+        select: 'dishName description'
+      })
+      .lean(); // Use lean for better performance
+
+      // Get actual stock balances from StockBalance collection
+      const StockBalance = require('../models/StockBalance');
+      const stockBalances = await StockBalance.find({
+        storeId: store._id,
+        deleted: false
+      });
+      
+      // Create a map of productId to total stock quantity
+      const stockMap = {};
+      stockBalances.forEach(balance => {
+        const productId = balance.productId.toString();
+        if (!stockMap[productId]) {
+          stockMap[productId] = 0;
+        }
+        stockMap[productId] += balance.quantity;
+      });
+
+      console.log('🔍 Found products:', products.length);
+      console.log('🔍 Stock balances found:', stockBalances.length);
+      console.log('🔍 Products breakdown:', {
+        total: products.length,
+        composite: products.filter(p => p.isComposite).length,
+        regular: products.filter(p => !p.isComposite).length
+      });
+
+      // Find all product IDs that are child products of composite products
+      const childProductIds = new Set();
+      products.forEach(product => {
+        if (product.isComposite && product.compositeInfo && product.compositeInfo.childProducts) {
+          product.compositeInfo.childProducts.forEach(child => {
+            if (child.productId) {
+              // Handle both populated object and string ID cases
+              const childId = typeof child.productId === 'object' ? child.productId._id : child.productId;
+              childProductIds.add(childId.toString());
+              console.log(`🔍 Adding child product ID to exclude: ${childId} (from composite "${product.name}")`);
+            }
+          });
+        }
+      });
+
+      console.log('🔍 Child product IDs to exclude:', Array.from(childProductIds));
+
+      // Filter out regular products that are child products of composite products
+      const filteredProducts = products.filter(product => {
+        // Keep composite products always
+        if (product.isComposite) return true;
+        
+        // For regular products, only keep them if they're NOT child products
+        const isChildProduct = childProductIds.has(product._id.toString());
+        if (isChildProduct) {
+          console.log(`🔍 Excluding regular product "${product.name}" (ID: ${product._id}) as it's a child of composite product`);
+          return false;
+        }
+        console.log(`🔍 Keeping regular product "${product.name}" (ID: ${product._id}) as it's standalone`);
+        return true;
+      });
+
+      console.log('🔍 After filtering child products:', {
+        original: products.length,
+        filtered: filteredProducts.length,
+        excluded: products.length - filteredProducts.length
+      });
+
+      // Process products for POS optimization
+      const posProducts = [];
+      
+      filteredProducts.forEach(product => {
+        if (product.isComposite && product.compositeInfo) {
+          // For composite products, calculate effective selling price
+          let effectivePOSPrice = product.retailPrice;
+          
+          // If composite has child products, use their total selling price as POS price
+          if (product.compositeInfo.childProducts && product.compositeInfo.childProducts.length > 0) {
+            const childSellingTotal = product.compositeInfo.childProducts.reduce((total, child) => {
+              return total + (parseFloat(child.sellingPrice?.toString() || '0') || 0);
+            }, 0);
+            
+            // Use child products selling price if available, otherwise fallback to retail price
+            if (childSellingTotal > 0) {
+              effectivePOSPrice = childSellingTotal;
+            }
+          }
+
+          // Create individual POS items for each child product with composite pricing
+          if (product.compositeInfo.childProducts && product.compositeInfo.childProducts.length > 0) {
+            // Determine stock for composite products
+            let compositeStock = 0;
+            
+            // Priority 1: Use prepared stock if available (already cooked/prepared items)
+            const preparedStock = product.compositeInfo.currentStock || 0;
+            
+            // Priority 2: Calculate potential stock from raw materials
+            let maxPossibleCompositeStock = Infinity;
+            product.compositeInfo.childProducts.forEach(childInfo => {
+              if (childInfo.productId) {
+                const childProductId = typeof childInfo.productId === 'object' ? childInfo.productId._id : childInfo.productId;
+                const availableChildStock = stockMap[childProductId.toString()] || 0;
+                const requiredPerComposite = childInfo.quantityPerServing || childInfo.quantity || 1;
+                
+                // Calculate how many composites this child product can support
+                const possibleFromThisChild = Math.floor(availableChildStock / requiredPerComposite);
+                maxPossibleCompositeStock = Math.min(maxPossibleCompositeStock, possibleFromThisChild);
+                
+                console.log(`🔢 Child "${childInfo.productId.name}": available=${availableChildStock}, required=${requiredPerComposite}, can make=${possibleFromThisChild} composites`);
+              }
+            });
+            
+            // If no child products found or calculation failed, use 0
+            if (maxPossibleCompositeStock === Infinity) {
+              maxPossibleCompositeStock = 0;
+            }
+            
+            // Use prepared stock + potential stock from raw materials
+            compositeStock = preparedStock + maxPossibleCompositeStock;
+            
+            console.log(`🍽️ Composite "${product.name}" stock calculation:`, {
+              preparedStock,
+              maxPossibleFromRaw: maxPossibleCompositeStock,
+              totalAvailableStock: compositeStock
+            });
+            
+            product.compositeInfo.childProducts.forEach(childInfo => {
+              if (childInfo.productId) {
+                const childProduct = childInfo.productId;
+                
+                // DEBUG: Log child product info including imageUrl
+                console.log(`🖼️  Child product "${childProduct.name}":`, {
+                  imageUrl: childProduct.imageUrl,
+                  description: childProduct.description,
+                  unit: childProduct.unit
+                });
+                
+                // Create a POS item that looks like the child product but priced as composite
+                posProducts.push({
+                  ...childProduct,
+                  // Keep child product identity
+                  _id: product._id, // Use composite ID for cart/ordering
+                  originalChildId: childProduct._id, // Store original child ID for reference
+                  name: childProduct.name,
+                  productCode: childProduct.productCode,
+                  imageUrl: childProduct.imageUrl,
+                  description: childProduct.description,
+                  unit: childProduct.unit,
+                  
+                  // Use composite product pricing and info
+                  posPrice: effectivePOSPrice,
+                  retailPrice: effectivePOSPrice,
+                  price: effectivePOSPrice,
+                  
+                  // Composite product metadata
+                  posType: 'composite-child',
+                  posDisplayName: childProduct.name,
+                  posDescription: `Từ combo "${product.name}" • ${childInfo.quantityPerServing || childInfo.quantity || 1} ${childProduct.unit}`,
+                  posStock: compositeStock, // Use total available stock (prepared + can be made)
+                  posMaxStock: product.compositeInfo.capacity?.quantity || 1,
+                  
+                  // Composite reference
+                  compositeProductId: product._id,
+                  compositeProductName: product.name,
+                  quantityPerServing: childInfo.quantityPerServing || childInfo.quantity || 1,
+                  
+                  // Child products info for cart display
+                  childProductsInfo: [],
+                  
+                  // Inherit composite product's other fields
+                  ownerId: product.ownerId,
+                  storeId: product.storeId,
+                  categories: product.categories,
+                  status: product.status
+                });
+              }
+            });
+          }
+        } else {
+          // For regular products (only standalone products, not child products)
+          // Get actual stock from StockBalance collection
+          const actualStock = stockMap[product._id.toString()] || 0;
+          
+          posProducts.push({
+            ...product,
+            posPrice: product.retailPrice,
+            posType: 'regular',
+            posDisplayName: product.name,
+            posDescription: `Sản phẩm • ${product.unit}`,
+            posStock: actualStock, // Use actual stock from StockBalance
+            posMaxStock: null,
+            childProductsInfo: []
+          });
+        }
+      });
+
+      // Sort: composite-child products first, then regular products
+      posProducts.sort((a, b) => {
+        if (a.posType === 'composite-child' && b.posType === 'regular') return -1;
+        if (a.posType === 'regular' && b.posType === 'composite-child') return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      console.log('🔍 Final POS products:', {
+        total: posProducts.length,
+        regular: posProducts.filter(p => p.posType === 'regular').length,
+        compositeChild: posProducts.filter(p => p.posType === 'composite-child').length,
+        stockInfo: {
+          regularWithStock: posProducts.filter(p => p.posType === 'regular' && p.posStock > 0).length,
+          compositeChildWithStock: posProducts.filter(p => p.posType === 'composite-child' && p.posStock > 0).length,
+          outOfStock: posProducts.filter(p => p.posStock <= 0).length
+        },
+        products: posProducts.map(p => ({ 
+          name: p.name, 
+          posType: p.posType,
+          price: p.posPrice,
+          imageUrl: p.imageUrl,
+          compositeReference: p.compositeProductName || 'N/A',
+          posStock: p.posStock, // Add stock info to debug output
+          stockStatus: p.posStock > 0 ? 'IN_STOCK' : 'OUT_OF_STOCK'
+        }))
+      });
+
+      res.status(200).json(posProducts);
+
+    } catch (error) {
+      console.error('Error fetching POS products:', error);
+      res.status(500).json({ error: 'failed_to_fetch_pos_products' });
+    }
+  },
+
   createMyInStore: async (req, res) => {
     try {
       const newProduct = new Product({
@@ -195,6 +451,7 @@ const productController = {
 
       res.status(200).json(updatedProduct);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: 'failed_to_update_store' });
     }
   },

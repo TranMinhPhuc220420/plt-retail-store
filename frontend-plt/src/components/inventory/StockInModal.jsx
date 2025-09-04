@@ -19,16 +19,25 @@ const StockInModal = ({ visible, onClose, storeCode, products, warehouses, onSuc
   // Set default selected product when modal opens
   useEffect(() => {
     if (visible && selectedRecord) {
+      // Find the selected product to get the correct unit
+      const selectedProduct = products.find(p => 
+        p._id === (selectedRecord.productId?._id || selectedRecord.productId)
+      );
+      
       form.setFieldsValue({
         productId: selectedRecord.productId?._id || selectedRecord.productId,
-        unit: selectedRecord.unit,
+        unit: selectedProduct?.unit || selectedRecord.unit || 'N/A',
         quantity: selectedRecord.quantity || 1,
         note: ''
       });
     } else if (visible) {
       form.resetFields();
+      // Reset unit field when modal opens without selected record
+      form.setFieldsValue({
+        unit: ''
+      });
     }
-  }, [visible, selectedRecord, form]);
+  }, [visible, selectedRecord, form, products]);
 
   /**
    * Handle form submission
@@ -67,7 +76,12 @@ const StockInModal = ({ visible, onClose, storeCode, products, warehouses, onSuc
     const selectedProduct = products.find(p => p._id === productId);
     if (selectedProduct) {
       form.setFieldsValue({
-        unit: selectedProduct.unit
+        unit: selectedProduct.unit || 'N/A'
+      });
+    } else {
+      // Clear unit if no product selected
+      form.setFieldsValue({
+        unit: ''
       });
     }
   };
@@ -77,6 +91,10 @@ const StockInModal = ({ visible, onClose, storeCode, products, warehouses, onSuc
    */
   const handleCancel = () => {
     form.resetFields();
+    // Clear unit field explicitly
+    form.setFieldsValue({
+      unit: ''
+    });
     onClose();
   };
   
@@ -172,8 +190,17 @@ const StockInModal = ({ visible, onClose, storeCode, products, warehouses, onSuc
           rules={[
             { required: true, message: t('MSG_PLEASE_ENTER_UNIT') }
           ]}
+          tooltip={t('TXT_UNIT_AUTO_SELECTED_HINT') || 'Đơn vị sẽ được tự động chọn khi bạn chọn sản phẩm'}
         >
-          <Input placeholder={t('TXT_UNIT_PLACEHOLDER')} />
+          <Input 
+            placeholder={t('TXT_UNIT_AUTO_PLACEHOLDER') || 'Đơn vị sẽ tự động hiển thị khi chọn sản phẩm'} 
+            disabled={true}
+            style={{ 
+              backgroundColor: '#f5f5f5', 
+              color: '#666',
+              cursor: 'not-allowed'
+            }}
+          />
         </Form.Item>
         
         <Form.Item
