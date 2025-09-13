@@ -53,6 +53,41 @@ export const parseCompositeProductData = (compositeProductData) => {
           retailPrice: parseDecimal(child.productId.retailPrice)
         } : child.productId
       })) || []
+    } : {},
+    // Parse recipe data if exists
+    compositeInfo: compositeProductData.compositeInfo ? {
+      ...compositeProductData.compositeInfo,
+      recipeCost: parseDecimal(compositeProductData.compositeInfo.recipeCost),
+      currentStock: compositeProductData.compositeInfo.currentStock || 0,
+      expiryHours: compositeProductData.compositeInfo.expiryHours || 24,
+      capacity: compositeProductData.compositeInfo.capacity || { quantity: 1, unit: 'phần' },
+      // Parse recipe ingredients if exists
+      recipeId: compositeProductData.compositeInfo.recipeId ? {
+        ...compositeProductData.compositeInfo.recipeId,
+        ingredients: compositeProductData.compositeInfo.recipeId.ingredients?.map(recipeIngredient => ({
+          ...recipeIngredient,
+          amountUsed: parseFloat(recipeIngredient.amountUsed) || 0,
+          ingredientId: recipeIngredient.ingredientId ? {
+            ...recipeIngredient.ingredientId,
+            standardCost: parseDecimal(recipeIngredient.ingredientId.standardCost),
+            costPrice: parseDecimal(recipeIngredient.ingredientId.costPrice),
+            stockQuantity: parseFloat(recipeIngredient.ingredientId.stockQuantity) || 0
+          } : recipeIngredient.ingredientId
+        })) || []
+      } : compositeProductData.compositeInfo.recipeId,
+      childProducts: compositeProductData.compositeInfo.childProducts?.map(child => ({
+        ...child,
+        quantityPerServing: parseFloat(child.quantityPerServing) || 1,
+        unit: child.unit || 'piece',
+        costPrice: parseDecimal(child.costPrice),
+        sellingPrice: parseDecimal(child.sellingPrice),
+        retailPrice: parseDecimal(child.retailPrice),
+        productId: typeof child.productId === 'object' ? {
+          ...child.productId,
+          costPrice: parseDecimal(child.productId.costPrice),
+          retailPrice: parseDecimal(child.productId.retailPrice)
+        } : child.productId
+      })) || []
     } : {}
   };
 };

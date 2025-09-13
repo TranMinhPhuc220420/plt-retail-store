@@ -4,6 +4,12 @@ const Store = require('../models/Store');
 const CompositeProductHistory = require('../models/CompositeProductHistory');
 const { checkStockBalances } = require('../utils/checkStockBalances');
 const { calculateRecipeIngredientCost } = require('../utils/costCalculation_FIXED');
+const { 
+  getTotalIngredientStock, 
+  getIngredientStockBalances, 
+  checkIngredientAvailability, 
+  deductIngredientsFromStock 
+} = require('../utils/ingredientStockUtils');
 const costCache = require('../utils/costCache'); // ✅ THÊM CACHE SUPPORT
 const costUpdateManager = require('../utils/costUpdateManager'); // ✅ THÊM UPDATE MANAGER
 const websocketManager = require('../utils/websocketManager'); // ✅ THÊM WEBSOCKET SUPPORT
@@ -216,7 +222,7 @@ const compositeProductController = {
         select: 'dishName ingredients yield',
         populate: {
           path: 'ingredients.ingredientId',
-          select: 'name unit stockQuantity'
+          select: 'name unit standardCost costPrice ingredientCode'
         }
       });
 
@@ -255,10 +261,9 @@ const compositeProductController = {
         recipeBatchesNeeded
       });
 
-      // Calculate required ingredients and check availability
-      const requiredIngredients = {};
-      const unavailableIngredients = [];
-
+      // Calculate required ingredients and check availability using utility functions
+      const ingredientRequirements = [];
+      
       if (!recipe.ingredients || recipe.ingredients.length === 0) {
         return res.status(400).json({
           error: 'recipe_has_no_ingredients',
@@ -266,7 +271,7 @@ const compositeProductController = {
         });
       }
 
-      // Check each ingredient in the recipe
+      // Prepare ingredient requirements
       for (const recipeIngredient of recipe.ingredients) {
         const ingredient = recipeIngredient.ingredientId;
 
@@ -277,37 +282,32 @@ const compositeProductController = {
           });
         }
 
-        // Calculate total needed for all recipe batches
-        const totalNeededPerRecipeBatch = recipeIngredient.amountUsed;
-        const totalNeeded = totalNeededPerRecipeBatch * recipeBatchesNeeded;
-
-        requiredIngredients[ingredient._id] = {
-          name: ingredient.name,
-          needed: totalNeeded,
-          unit: ingredient.unit,
-          available: ingredient.stockQuantity || 0,
-          neededPerRecipeBatch: totalNeededPerRecipeBatch,
+        const totalNeeded = recipeIngredient.amountUsed * recipeBatchesNeeded;
+        
+        ingredientRequirements.push({
+          ingredientId: ingredient._id,
+          ingredientName: ingredient.name,
+          quantity: totalNeeded,
+          unit: recipeIngredient.unit || ingredient.unit,
+          storeId: product.storeId,
+          ownerId: (req.user && req.user._id) || product.ownerId,
+          unitCost: ingredient.standardCost || ingredient.costPrice || 0,
+          amountUsed: recipeIngredient.amountUsed,
           recipeBatchesNeeded: recipeBatchesNeeded
-        };
-
-        // Check if we have enough stock
-        if ((ingredient.stockQuantity || 0) < totalNeeded) {
-          unavailableIngredients.push({
-            name: ingredient.name,
-            needed: totalNeeded,
-            available: ingredient.stockQuantity || 0,
-            unit: ingredient.unit,
-            shortfall: totalNeeded - (ingredient.stockQuantity || 0)
-          });
-        }
+        });
       }
 
+      // Check availability using utility function
+      const availabilityCheck = await checkIngredientAvailability(ingredientRequirements);
+      
+      console.log('Ingredient availability check:', availabilityCheck);
+
       // If ingredients are not available, return error with details
-      if (unavailableIngredients.length > 0) {
+      if (!availabilityCheck.isAvailable) {
         return res.status(400).json({
           error: 'insufficient_ingredients',
           message: 'Not enough ingredients to prepare the requested quantity',
-          details: unavailableIngredients,
+          details: availabilityCheck.unavailable,
           preparationInfo: {
             quantityToPrepare,
             totalServingsNeeded,
@@ -317,20 +317,48 @@ const compositeProductController = {
         });
       }
 
-      // Import Ingredient model to update stock
-      const Ingredient = require('../models/Ingredient');
+      // Prepare ingredient usage for deduction
+      const ingredientUsage = ingredientRequirements.map(req => ({
+        ingredientId: req.ingredientId,
+        quantity: req.quantity,
+        storeId: req.storeId,
+        ownerId: req.ownerId || (req.user && req.user._id) || product.ownerId,
+        userId: req.ownerId || (req.user && req.user._id) || product.ownerId
+      }));
 
-      // Deduct ingredients from stock
-      for (const recipeIngredient of recipe.ingredients) {
-        const ingredient = recipeIngredient.ingredientId;
-        const totalNeeded = recipeIngredient.amountUsed * recipeBatchesNeeded;
+      // Deduct ingredients from stock using utility function
+      const transactionDetails = {
+        reason: `Used for composite product preparation: ${product.name} (${quantityToPrepare} batches)`,
+        referenceId: product._id,
+        referenceModel: 'Product',
+        metadata: {
+          compositeProductId: product._id,
+          quantityPrepared: quantityToPrepare,
+          totalServingsCreated: totalServingsNeeded,
+          recipeId: recipe._id,
+          recipeBatchesNeeded: recipeBatchesNeeded
+        }
+      };
 
-        // Update ingredient stock
-        await Ingredient.findByIdAndUpdate(ingredient._id, {
-          $inc: { stockQuantity: -totalNeeded }
-        });
+      const stockTransactions = await deductIngredientsFromStock(ingredientUsage, transactionDetails);
 
-        console.log(`Updated ingredient ${ingredient.name}: deducted ${totalNeeded} ${ingredient.unit}`);
+      console.log(`Created ${stockTransactions.length} stock transactions for ingredient deduction`);
+
+      // Create requiredIngredients object for response (backward compatibility)
+      const requiredIngredients = {};
+      for (const req of ingredientRequirements) {
+        const availabilityDetail = availabilityCheck.details.find(d => d.ingredientId.toString() === req.ingredientId.toString());
+        
+        requiredIngredients[req.ingredientId] = {
+          name: req.ingredientName,
+          needed: req.quantity,
+          unit: req.unit,
+          available: availabilityDetail?.available || 0,
+          neededPerRecipeBatch: req.amountUsed,
+          recipeBatchesNeeded: req.recipeBatchesNeeded,
+          unitCost: req.unitCost,
+          totalCost: req.unitCost * req.quantity
+        };
       }
 
       // Update composite product stock and timestamp
@@ -343,12 +371,27 @@ const compositeProductController = {
       // Calculate cost per serving from product cost price
       const totalCostPerServing = product.costPrice || 0;
 
+      // Calculate total recipe cost from ingredients
+      let totalRecipeCost = 0;
+      for (const ingredientId in requiredIngredients) {
+        totalRecipeCost += requiredIngredients[ingredientId].totalCost || 0;
+      }
+
+      console.log('Preparation cost calculation:', {
+        totalCostPerServing,
+        totalRecipeCost,
+        totalServingsNeeded,
+        costPerServing: totalRecipeCost / totalServingsNeeded
+      });
+
       // Record history
       const historyData = {
         notes: `Đã chuẩn bị ${quantityToPrepare} lô, tạo ra ${totalServingsNeeded} ${product.compositeInfo.capacity.unit}`,
         costInfo: {
-          totalCost: totalCostPerServing * totalServingsNeeded,
-          unitCost: totalCostPerServing
+          totalCost: totalRecipeCost,
+          unitCost: totalRecipeCost / totalServingsNeeded,
+          recipeCost: totalRecipeCost,
+          servings: totalServingsNeeded
         },
         batchInfo: {
           batchNumber: `${product.productCode}-${Date.now()}`,
@@ -360,7 +403,8 @@ const compositeProductController = {
               name: ing.ingredientId.name,
               quantity: ing.amountUsed * recipeBatchesNeeded,
               unit: ing.ingredientId.unit,
-              cost: ing.amountUsed * recipeBatchesNeeded * (ing.ingredientId.costPrice || 0)
+              cost: (ing.ingredientId.standardCost || ing.ingredientId.costPrice || 0) * ing.amountUsed * recipeBatchesNeeded,
+              unitCost: ing.ingredientId.standardCost || ing.ingredientId.costPrice || 0
             }))
           }
         }
@@ -555,12 +599,40 @@ const compositeProductController = {
           select: 'dishName description yield expiryHours ingredients',
           populate: {
             path: 'ingredients.ingredientId',
-            select: 'name unit standardCost stockQuantity'
+            select: 'name unit standardCost costPrice ingredientCode'
           }
         });
 
       if (!compositeProduct) {
         return res.status(404).json({ error: 'composite_product_not_found' });
+      }
+
+      // Get actual stock balances for recipe ingredients
+      const IngredientStockBalance = require('../models/IngredientStockBalance');
+      
+      if (compositeProduct.compositeInfo?.recipeId?.ingredients) {
+        // Populate stock information for each ingredient
+        for (const recipeIngredient of compositeProduct.compositeInfo.recipeId.ingredients) {
+          const ingredient = recipeIngredient.ingredientId;
+          
+          if (ingredient) {
+            // Get stock balances for this ingredient
+            const stockBalances = await IngredientStockBalance.find({
+              ingredientId: ingredient._id,
+              storeId: compositeProduct.storeId,
+              ownerId: req.user._id,
+              deleted: false,
+              quantity: { $gt: 0 }
+            });
+
+            // Calculate total available stock
+            const totalStock = stockBalances.reduce((sum, balance) => sum + balance.quantity, 0);
+            
+            // Add stock information to ingredient object
+            ingredient.stockQuantity = totalStock;
+            ingredient.stockBalances = stockBalances;
+          }
+        }
       }
 
       // Add status information

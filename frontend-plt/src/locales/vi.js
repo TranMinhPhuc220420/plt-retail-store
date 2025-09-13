@@ -1745,6 +1745,9 @@ const VIETNAMESE_TRANSLATIONS = {
     "TXT_ADD_USER": "Thêm nhân viên",
 
     "MSG_USERNAME_INVALID": "Tên người dùng không hợp lệ. Chỉ cho phép chữ cái, số và dấu gạch dưới.",
+    "TXT_PREPARE": "Chuẩn bị",
+    "TOTAL_REVENUE": "Tổng doanh thu",
+    "TXT_BATCH": "lô",
   }
 };
 

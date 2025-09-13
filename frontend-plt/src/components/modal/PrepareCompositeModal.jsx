@@ -12,9 +12,17 @@ import {
   Typography,
   Divider,
   List,
-  Tag
+  Tag,
+  Alert,
+  Space
 } from "antd";
-import { FireOutlined, ExperimentOutlined } from "@ant-design/icons";
+import { 
+  FireOutlined, 
+  ExperimentOutlined,
+  WarningOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined 
+} from "@ant-design/icons";
 
 // Requests
 import { prepareCompositeProduct, getCompositeProductDetails } from "@/request/compositeProduct";
@@ -35,6 +43,7 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
   const [loading, setLoading] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [detailedProduct, setDetailedProduct] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   
   // Move useWatch hook to top to follow Rules of Hooks
   const watchQuantity = Form.useWatch('quantityToPrepare', form) || 1;
@@ -82,26 +91,45 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
     return parsedProduct;
   }, [detailedProduct, product]);
 
-  // Form submission
+  // Form submission - Show confirmation first
   const handleSubmit = async (values) => {
     try {
-      setLoading(true);
-      setPreparingProduct(product._id, true);
-
-      // Validate before submission
+      // Validate before showing confirmation
       if (!values.quantityToPrepare || values.quantityToPrepare < 1 || values.quantityToPrepare > 10) {
         messageApi.error(t('MSG_INVALID_QUANTITY_TO_PREPARE'));
         return;
       }
 
-      // Check if we have valid requirements
+      // Check if we have valid requirements (prioritize ingredient requirements)
       const currentCalculation = calculatePrepareCompositeValues();
-      if (currentCalculation.requirements.length === 0 && (!productToUse?.compositeInfo?.recipeCost || productToUse.compositeInfo.recipeCost <= 0)) {
+      const hasIngredientRequirements = currentCalculation.ingredientRequirements && currentCalculation.ingredientRequirements.length > 0;
+      const hasRequirements = currentCalculation.requirements && currentCalculation.requirements.length > 0;
+      
+      if (!hasIngredientRequirements && !hasRequirements && (!productToUse?.compositeInfo?.recipeCost || productToUse.compositeInfo.recipeCost <= 0)) {
         messageApi.error(t('MSG_NO_VALID_REQUIREMENTS'));
         return;
       }
 
-      // Check for invalid requirements
+      // Check for insufficient stock in ingredients
+      if (hasIngredientRequirements) {
+        const insufficientIngredients = currentCalculation.ingredientRequirements.filter(req => 
+          !req.isStockSufficient
+        );
+
+        if (insufficientIngredients.length > 0) {
+          const shortfallMessage = insufficientIngredients.map(ing => 
+            `${ing.ingredientName}: cần ${ing.quantityNeeded.toFixed(2)} ${ing.unit}, chỉ có ${ing.availableStock.toFixed(2)} ${ing.unit}`
+          ).join('\n');
+          
+          messageApi.error({
+            content: `Không đủ nguyên liệu trong kho:\n${shortfallMessage}`,
+            duration: 8
+          });
+          return;
+        }
+      }
+
+      // Check for invalid requirements (legacy validation)
       const invalidRequirements = currentCalculation.requirements.filter(req => 
         !req.isValid || isNaN(req.quantityNeeded) || req.quantityNeeded <= 0
       );
@@ -111,6 +139,21 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
         console.error('Invalid requirements:', invalidRequirements);
         return;
       }
+
+      // Show confirmation modal
+      setShowConfirmation(true);
+    } catch (error) {
+      console.error('Error in validation:', error);
+      messageApi.error('Có lỗi xảy ra khi kiểm tra dữ liệu');
+    }
+  };
+
+  // Actual preparation function
+  const handleConfirmedPrepare = async () => {
+    const values = form.getFieldsValue();
+    try {
+      setLoading(true);
+      setPreparingProduct(product._id, true);
 
       const result = await prepareCompositeProduct(product._id, values.quantityToPrepare);
       
@@ -131,6 +174,7 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
       });
       
       form.resetFields();
+      setShowConfirmation(false);
       onOk();
     } catch (error) {
       console.error('Error preparing composite product:', error);
@@ -205,91 +249,173 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
 
   const handleCancel = () => {
     form.resetFields();
+    setShowConfirmation(false);
     onCancel();
   };
 
-  // Calculate pricing based on detailed product child products (similar to ServeCompositeModal)
+  const handleConfirmationCancel = () => {
+    setShowConfirmation(false);
+  };
+
+  // Calculate required ingredients based on recipe (aligned with backend logic)
   const calculatePrepareCompositeValues = () => {
     console.log('🔍 calculatePrepareCompositeValues called');
     console.log('🔍 productToUse:', productToUse);
     console.log('🔍 watchQuantity:', watchQuantity);
     
-    if (!productToUse?.compositeInfo?.childProducts || productToUse.compositeInfo.childProducts.length === 0) {
-      console.log('🔍 No child products, using fallback calculation');
-      // Fallback to recipe cost if available, or product pricing
-      const recipeCostPerServing = productToUse?.compositeInfo?.recipeCost || 0;
-      const sellingPricePerServing = productToUse?.price || 0;
-      const retailPricePerServing = productToUse?.retailPrice || 0;
-      
-      const capacityQuantity = productToUse?.compositeInfo?.capacity?.quantity || 1;
-      const totalServings = capacityQuantity * watchQuantity;
-      
+    if (!productToUse) {
+      console.log('🔍 No productToUse available');
       return {
-        totalCost: recipeCostPerServing * watchQuantity,
-        totalSellingRevenue: sellingPricePerServing * watchQuantity,
-        totalRetailRevenue: retailPricePerServing * watchQuantity,
-        costPerServing: recipeCostPerServing,
-        totalServings: totalServings,
-        requirements: []
+        totalCost: 0,
+        totalSellingRevenue: 0,
+        totalRetailRevenue: 0,
+        costPerServing: 0,
+        totalServings: 0,
+        requirements: [],
+        ingredientRequirements: []
       };
     }
-
-    // Calculate from child products - use sellingPrice and costPrice from child products in composite
-    let costPerServing = 0;
-    let sellingRevenuePerServing = 0;
-    let retailRevenuePerServing = 0;
     
-    const requirements = productToUse.compositeInfo.childProducts.map(child => {
-      const quantityPerServing = parseFloat(child.quantityPerServing) || 1;
-      const unit = child.unit || child.productId.unit || 'phần';
-      
-      // Use sellingPrice and costPrice from child products in composite (not from productId)
-      const childCostPrice = parseDecimal(child.costPrice) || 0;
-      const childSellingPrice = parseDecimal(child.sellingPrice) || 0;
-      const childRetailPrice = parseDecimal(child.retailPrice) || 0;
-      
-      // Calculate costs per serving using child product prices
-      const childCostPerServing = childCostPrice * quantityPerServing;
-      const childSellingRevenuePerServing = childSellingPrice * quantityPerServing;
-      const childRetailRevenuePerServing = childRetailPrice * quantityPerServing;
-      
-      costPerServing += childCostPerServing;
-      sellingRevenuePerServing += childSellingRevenuePerServing;
-      retailRevenuePerServing += childRetailRevenuePerServing;
-      
-      // Calculate total needed for all batches
-      const capacityQuantity = parseFloat(productToUse.compositeInfo.capacity.quantity) || 1;
-      const totalNeeded = quantityPerServing * capacityQuantity * watchQuantity;
-      
-      const requirement = {
-        productId: child.productId._id,
-        productName: child.name || 'Unknown Product',
-        quantityNeeded: totalNeeded,
-        unit: unit,
-        costPrice: childCostPrice,
-        sellingPrice: childSellingPrice,
-        retailPrice: childRetailPrice,
-        totalCost: childCostPrice * totalNeeded,
-        totalSellingRevenue: childSellingPrice * totalNeeded,
-        totalRetailRevenue: childRetailPrice * totalNeeded,
-        isValid: totalNeeded > 0 && !isNaN(totalNeeded),
-        isLegacyData: !child.quantityPerServing || !child.unit
-      };
-      
-      console.log('🔍 Child requirement:', requirement);
-      return requirement;
-    }).filter(req => req !== null && req.isValid);
-
+    // Get recipe information from the product
+    const recipe = productToUse?.compositeInfo?.recipeId;
     const capacityQuantity = productToUse?.compositeInfo?.capacity?.quantity || 1;
     const totalServings = capacityQuantity * watchQuantity;
     
+    console.log('🔍 Recipe info:', { 
+      recipe: recipe ? 'found' : 'not found', 
+      ingredients: recipe?.ingredients?.length || 0,
+      capacityQuantity,
+      totalServings 
+    });
+    
+    console.log('🔍 Product pricing info:', {
+      recipeCost: productToUse?.compositeInfo?.recipeCost,
+      costPrice: productToUse?.costPrice,
+      price: productToUse?.price,
+      retailPrice: productToUse?.retailPrice
+    });
+    
+    if (!recipe || !recipe.ingredients || recipe.ingredients.length === 0) {
+      console.log('🔍 No recipe or ingredients found, using fallback calculation');
+      // Fallback to recipe cost if available, or product pricing
+      const recipeCostPerServingRaw = productToUse?.compositeInfo?.recipeCost || productToUse?.costPrice || 0;
+      const recipeCostPerServing = parseDecimal(recipeCostPerServingRaw);
+      const sellingPricePerServingRaw = productToUse?.price || 0;
+      const sellingPricePerServing = parseDecimal(sellingPricePerServingRaw);
+      const retailPricePerServingRaw = productToUse?.retailPrice || 0;
+      const retailPricePerServing = parseDecimal(retailPricePerServingRaw);
+      
+      // Calculate total cost based on total servings, not just quantity to prepare
+      const totalCostFallback = recipeCostPerServing * totalServings;
+      
+      console.log('🔍 Fallback calculation:', {
+        recipeCostPerServingRaw,
+        recipeCostPerServing,
+        watchQuantity,
+        totalServings,
+        totalCostFallback
+      });
+      
+      return {
+        totalCost: totalCostFallback,
+        totalSellingRevenue: sellingPricePerServing * totalServings,
+        totalRetailRevenue: retailPricePerServing * totalServings,
+        costPerServing: recipeCostPerServing,
+        totalServings: totalServings,
+        requirements: [],
+        ingredientRequirements: []
+      };
+    }
+
+    // Calculate ingredient requirements based on recipe
+    const recipeYield = recipe.yield?.quantity || 1;
+    const recipeBatchesNeeded = Math.ceil(totalServings / recipeYield);
+    
+    console.log('🔍 Recipe calculation:', {
+      recipeYield,
+      totalServings,
+      recipeBatchesNeeded,
+      watchQuantity
+    });
+
+    let totalRecipeCost = 0;
+    const ingredientRequirements = recipe.ingredients.map(recipeIngredient => {
+      const ingredient = recipeIngredient.ingredientId;
+      
+      if (!ingredient) {
+        return null;
+      }
+      
+      const amountPerRecipeBatch = recipeIngredient.amountUsed || 0;
+      const totalNeeded = amountPerRecipeBatch * recipeBatchesNeeded;
+      const availableStock = ingredient.stockQuantity || 0;
+      
+      // Use standardCost first, fallback to costPrice, parse Decimal128 properly
+      const unitCostRaw = ingredient.standardCost || ingredient.costPrice || 0;
+      const unitCost = parseDecimal(unitCostRaw);
+      const ingredientCost = unitCost * totalNeeded;
+      
+      totalRecipeCost += ingredientCost;
+      
+      console.log('🔍 Ingredient calculation:', {
+        name: ingredient.name,
+        amountPerRecipeBatch,
+        recipeBatchesNeeded,
+        totalNeeded,
+        standardCostRaw: ingredient.standardCost,
+        costPriceRaw: ingredient.costPrice,
+        unitCost,
+        ingredientCost,
+        availableStock,
+        ingredient: ingredient // Log full ingredient object for debugging
+      });
+      
+      const requirement = {
+        ingredientId: ingredient._id,
+        ingredientName: ingredient.name,
+        quantityNeeded: totalNeeded,
+        unit: ingredient.unit || 'kg',
+        availableStock: availableStock,
+        isStockSufficient: availableStock >= totalNeeded,
+        shortfall: Math.max(0, totalNeeded - availableStock),
+        costPrice: unitCost,
+        totalCost: ingredientCost,
+        amountPerRecipeBatch: amountPerRecipeBatch,
+        recipeBatchesNeeded: recipeBatchesNeeded,
+        isValid: totalNeeded > 0 && !isNaN(totalNeeded)
+      };
+      
+      console.log('🔍 Ingredient requirement:', requirement);
+      return requirement;
+    }).filter(req => req !== null && req.isValid);
+
+    // Calculate costs
+    const costPerServing = totalServings > 0 ? totalRecipeCost / totalServings : 0;
+    const sellingPricePerServingRaw = productToUse?.price || 0;
+    const sellingPricePerServing = parseDecimal(sellingPricePerServingRaw);
+    const retailPricePerServingRaw = productToUse?.retailPrice || 0;
+    const retailPricePerServing = parseDecimal(retailPricePerServingRaw);
+    
+    console.log('🔍 Cost calculation summary:', {
+      totalRecipeCost,
+      totalServings,
+      costPerServing,
+      sellingPricePerServingRaw,
+      sellingPricePerServing,
+      retailPricePerServingRaw,
+      retailPricePerServing
+    });
+    
     const result = {
-      totalCost: costPerServing * watchQuantity,
-      totalSellingRevenue: sellingRevenuePerServing * watchQuantity, 
-      totalRetailRevenue: retailRevenuePerServing * watchQuantity,
+      totalCost: totalRecipeCost,
+      totalSellingRevenue: sellingPricePerServing * totalServings,
+      totalRetailRevenue: retailPricePerServing * totalServings,
       costPerServing: costPerServing,
       totalServings: totalServings,
-      requirements: requirements
+      requirements: [], // Keep empty for backward compatibility
+      ingredientRequirements: ingredientRequirements,
+      recipeBatchesNeeded: recipeBatchesNeeded,
+      recipeYield: recipeYield
     };
     
     console.log('🔍 Final prepare calculation:', result);
@@ -303,7 +429,10 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
     totalRetailRevenue,
     costPerServing,
     totalServings,
-    requirements
+    requirements,
+    ingredientRequirements,
+    recipeBatchesNeeded,
+    recipeYield
   } = calculatePrepareCompositeValues();
 
   // Validate product structure before rendering
@@ -382,6 +511,25 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
           </div>
         ) : (
           <>
+            {/* Debug Information - Remove in production */}
+            {/* {process.env.NODE_ENV === 'development' && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                <details>
+                  <summary className="cursor-pointer font-semibold">🔍 Debug Info - Cost Calculation</summary>
+                  <div className="mt-2 space-y-2">
+                    <div>Total Recipe Cost: <span className="font-mono">{totalCost}</span></div>
+                    <div>Recipe Ingredients Count: <span className="font-mono">{ingredientRequirements?.length || 0}</span></div>
+                    <div>Recipe Batches Needed: <span className="font-mono">{recipeBatchesNeeded || 0}</span></div>
+                    <div>Total Servings: <span className="font-mono">{totalServings || 0}</span></div>
+                    {ingredientRequirements?.slice(0, 2).map((ing, idx) => (
+                      <div key={idx}>
+                        {ing.ingredientName}: standardCost=<span className="font-mono">{JSON.stringify(productToUse?.compositeInfo?.recipeId?.ingredients?.[idx]?.ingredientId?.standardCost)}</span>, costPrice=<span className="font-mono">{JSON.stringify(productToUse?.compositeInfo?.recipeId?.ingredients?.[idx]?.ingredientId?.costPrice)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            )} */}
             <Row gutter={16} className="mb-4">
               <Col span={8}>
                 <Card size="small" className="text-center">
@@ -409,7 +557,7 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
                     {formatPrice(isNaN(totalSellingRevenue) ? 0 : totalSellingRevenue)}
                   </Title>
                   <Text className="text-gray-500">
-                    {t('TXT_SELLING_PRICE')}
+                    {t('TOTAL_REVENUE')}
                   </Text>
                 </Card>
               </Col>
@@ -417,75 +565,152 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
 
             <Divider>{t('TXT_REQUIRED_INGREDIENTS')}</Divider>
 
-            {requirements.length === 0 ? (
+            {/* Show recipe information if available */}
+            {recipeBatchesNeeded && recipeYield && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Text className="text-sm text-gray-600">
+                      <strong>Công thức:</strong> {productToUse?.compositeInfo?.recipeId?.dishName || 'N/A'}
+                    </Text>
+                  </Col>
+                  <Col span={12}>
+                    <Text className="text-sm text-gray-600">
+                      <strong>Số lô công thức cần làm:</strong> {recipeBatchesNeeded} lô (mỗi lô = {recipeYield} phần)
+                    </Text>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {(!ingredientRequirements || ingredientRequirements.length === 0) && (!requirements || requirements.length === 0) ? (
               <div className="text-center py-4">
                 <Text type="secondary">{t('TXT_NO_INGREDIENTS_REQUIRED')}</Text>
               </div>
             ) : (
               <>
-                {requirements.some(req => req.isLegacyData) && (
-                  <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                    <Text type="warning" className="text-sm">
-                      ⚠️ {t('TXT_LEGACY_DATA_WARNING', 'Some ingredients are using default quantities. Please update the composite product configuration for accurate calculations.')}
-                    </Text>
+                {/* Show ingredient requirements (from recipe) */}
+                {ingredientRequirements && ingredientRequirements.length > 0 && (
+                  <div className="mb-4">
+                    <Text strong className="block mb-2">Nguyên liệu cần thiết (từ công thức):</Text>
+                    <List
+                      size="small"
+                      dataSource={ingredientRequirements}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            title={
+                              <div className="flex items-center justify-between">
+                                <span>{item.ingredientName}</span>
+                                <div className="flex space-x-1">
+                                  {!item.isStockSufficient && (
+                                    <Tag color="red" size="small">Thiếu {item.shortfall.toFixed(2)} {item.unit}</Tag>
+                                  )}
+                                  {item.isStockSufficient && (
+                                    <Tag color="green" size="small">Đủ</Tag>
+                                  )}
+                                </div>
+                              </div>
+                            }
+                            description={
+                              <div className="flex justify-between items-center">
+                                <span>
+                                  <Text strong className={!item.isStockSufficient ? 'text-red-600' : ''}>
+                                    Cần: {typeof item.quantityNeeded === 'number' && !isNaN(item.quantityNeeded) 
+                                      ? item.quantityNeeded.toFixed(2) 
+                                      : '0'} {item.unit}
+                                  </Text>
+                                  <Text type="secondary" className="ml-2">
+                                    (Tồn kho: {item.availableStock.toFixed(2)} {item.unit})
+                                  </Text>
+                                </span>
+                                <div className="flex space-x-2">
+                                  <Tag color="red">
+                                    Chi phí: {formatPrice(
+                                      typeof item.totalCost === 'number' && !isNaN(item.totalCost) 
+                                        ? item.totalCost 
+                                        : 0
+                                    )}
+                                  </Tag>
+                                </div>
+                              </div>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
                   </div>
                 )}
-                
-                <List
-                  size="small"
-                  dataSource={requirements}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <List.Item.Meta
-                        title={
-                          <div className="flex items-center justify-between">
-                            <span>{item.productName}</span>
-                            <div className="flex space-x-1">
-                              {!item.isValid && (
-                                <Tag color="red" size="small">Invalid</Tag>
-                              )}
-                              {item.isLegacyData && (
-                                <Tag color="orange" size="small">Legacy</Tag>
-                              )}
-                            </div>
-                          </div>
-                        }
-                        description={
-                          <div className="flex justify-between items-center">
-                            <span>
-                              <Text strong>
-                                {typeof item.quantityNeeded === 'number' && !isNaN(item.quantityNeeded) 
-                                  ? item.quantityNeeded.toFixed(2) 
-                                  : '0'}
-                              </Text> {item.unit || 'units'}
-                              {item.isLegacyData && (
-                                <Text type="secondary" className="ml-2 text-xs">
-                                  (default: 1 per serving)
-                                </Text>
-                              )}
-                            </span>
-                            <div className="flex space-x-2">
-                              <Tag color="green">
-                                {formatPrice(
-                                  typeof item.totalSellingRevenue === 'number' && !isNaN(item.totalSellingRevenue) 
-                                    ? item.totalSellingRevenue 
-                                    : 0
-                                )}
-                              </Tag>
-                              <Tag color="red">
-                                {formatPrice(
-                                  typeof item.totalCost === 'number' && !isNaN(item.totalCost) 
-                                    ? item.totalCost 
-                                    : 0
-                                )}
-                              </Tag>
-                            </div>
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
+
+                {/* Fallback to child products if no ingredients */}
+                {(!ingredientRequirements || ingredientRequirements.length === 0) && requirements && requirements.length > 0 && (
+                  <>
+                    {requirements.some(req => req.isLegacyData) && (
+                      <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                        <Text type="warning" className="text-sm">
+                          ⚠️ {t('TXT_LEGACY_DATA_WARNING', 'Some ingredients are using default quantities. Please update the composite product configuration for accurate calculations.')}
+                        </Text>
+                      </div>
+                    )}
+                    
+                    <Text strong className="block mb-2">Sản phẩm thành phần:</Text>
+                    <List
+                      size="small"
+                      dataSource={requirements}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            title={
+                              <div className="flex items-center justify-between">
+                                <span>{item.productName}</span>
+                                <div className="flex space-x-1">
+                                  {!item.isValid && (
+                                    <Tag color="red" size="small">Invalid</Tag>
+                                  )}
+                                  {item.isLegacyData && (
+                                    <Tag color="orange" size="small">Legacy</Tag>
+                                  )}
+                                </div>
+                              </div>
+                            }
+                            description={
+                              <div className="flex justify-between items-center">
+                                <span>
+                                  <Text strong>
+                                    {typeof item.quantityNeeded === 'number' && !isNaN(item.quantityNeeded) 
+                                      ? item.quantityNeeded.toFixed(2) 
+                                      : '0'}
+                                  </Text> {item.unit || 'units'}
+                                  {item.isLegacyData && (
+                                    <Text type="secondary" className="ml-2 text-xs">
+                                      (default: 1 per serving)
+                                    </Text>
+                                  )}
+                                </span>
+                                <div className="flex space-x-2">
+                                  <Tag color="green">
+                                    {formatPrice(
+                                      typeof item.totalSellingRevenue === 'number' && !isNaN(item.totalSellingRevenue) 
+                                        ? item.totalSellingRevenue 
+                                        : 0
+                                    )}
+                                  </Tag>
+                                  <Tag color="red">
+                                    {formatPrice(
+                                      typeof item.totalCost === 'number' && !isNaN(item.totalCost) 
+                                        ? item.totalCost 
+                                        : 0
+                                    )}
+                                  </Tag>
+                                </div>
+                              </div>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  </>
+                )}
               </>
             )}
           </>
@@ -499,12 +724,118 @@ const PrepareCompositeModal = ({ open, product, onOk, onCancel, storeCode }) => 
             type="primary" 
             htmlType="submit" 
             loading={loading}
+            disabled={loadingDetails}
             icon={<FireOutlined />}
           >
-            {t('TXT_START_PREPARATION')}
+            {t('TXT_PREPARE')} {watchQuantity} {t('TXT_BATCH')}
           </Button>
         </div>
       </Form>
+
+      {/* Confirmation Modal */}
+      <Modal
+        title={
+          <div className="flex items-center space-x-2">
+            <ExclamationCircleOutlined className="text-orange-500" />
+            <span>Xác nhận chuẩn bị sản phẩm</span>
+          </div>
+        }
+        open={showConfirmation}
+        onCancel={handleConfirmationCancel}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={handleConfirmationCancel}>
+            Hủy
+          </Button>,
+          <Button 
+            key="confirm" 
+            type="primary" 
+            loading={loading}
+            onClick={handleConfirmedPrepare}
+            icon={<CheckCircleOutlined />}
+            danger
+          >
+            Xác nhận chuẩn bị
+          </Button>
+        ]}
+      >
+        <div className="space-y-4">
+          <Alert
+            message="Cảnh báo: Nguyên vật liệu sẽ được trừ khỏi kho"
+            description="Sau khi xác nhận, các nguyên vật liệu dưới đây sẽ được tự động trừ khỏi kho để chuẩn bị sản phẩm. Hành động này không thể hoàn tác."
+            type="warning"
+            icon={<WarningOutlined />}
+            showIcon
+          />
+
+          <div className="bg-gray-50 p-4 rounded">
+            <Row gutter={16} className="mb-4">
+              <Col span={8}>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-blue-600">
+                    {watchQuantity || 1}
+                  </div>
+                  <div className="text-sm text-gray-600">Số lô chuẩn bị</div>
+                </div>
+              </Col>
+              <Col span={8}>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-green-600">
+                    {totalServings || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Tổng phần tạo ra</div>
+                </div>
+              </Col>
+              <Col span={8}>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-orange-600">
+                    {recipeBatchesNeeded || 1}
+                  </div>
+                  <div className="text-sm text-gray-600">Lô công thức cần làm</div>
+                </div>
+              </Col>
+            </Row>
+          </div>
+
+          {ingredientRequirements && ingredientRequirements.length > 0 && (
+            <div>
+              <Text strong className="block mb-3">
+                🔥 Nguyên vật liệu sẽ bị trừ khỏi kho:
+              </Text>
+              <List
+                size="small"
+                dataSource={ingredientRequirements}
+                renderItem={(item) => (
+                  <List.Item className="!px-4 !py-2 border rounded mb-2">
+                    <div className="flex justify-between items-center w-full">
+                      <div>
+                        <Text strong>{item.ingredientName}</Text>
+                        <div className="text-sm text-gray-600">
+                          Tồn kho hiện tại: {item.availableStock.toFixed(2)} {item.unit}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-red-600 font-semibold">
+                          - {item.quantityNeeded.toFixed(2)} {item.unit}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Còn lại: {(item.availableStock - item.quantityNeeded).toFixed(2)} {item.unit}
+                        </div>
+                      </div>
+                    </div>
+                  </List.Item>
+                )}
+              />
+            </div>
+          )}
+
+          <div className="bg-blue-50 p-3 rounded">
+            <Text className="text-sm text-blue-800">
+              💡 <strong>Lưu ý:</strong> Sau khi chuẩn bị xong, sản phẩm sẽ được thêm vào kho với số lượng {totalServings} {productToUse?.compositeInfo?.capacity?.unit || 'phần'}.
+            </Text>
+          </div>
+        </div>
+      </Modal>
     </Modal>
   );
 };
