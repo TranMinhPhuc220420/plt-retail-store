@@ -28,6 +28,7 @@ import { parseDecimal, formatPrice } from "@/utils/numberUtils";
 import RecipeSelector from "@/components/form/RecipeSelector";
 import useAuth from "@/hooks/useAuth";
 import { UNIT_LIST_SUGGESTION } from "@/constant";
+import { randomCode } from "@/utils";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -578,6 +579,9 @@ const CreateCompositeProductForm = ({ storeId, storeCode, onCancel, onOK }) => {
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
+        initialValues={{
+          productCode: randomCode(8),
+        }}
       >
         <Row gutter={16}>
           <Col span={12}>

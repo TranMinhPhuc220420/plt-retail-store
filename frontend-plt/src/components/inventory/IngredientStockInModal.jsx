@@ -81,10 +81,14 @@ const IngredientStockInModal = ({
   const handleIngredientChange = (ingredientId) => {
     const ingredient = ingredients.find(i => i._id === ingredientId);
     if (ingredient) {
+      console.log(ingredient);
+      
       setSelectedIngredient(ingredient);
       form.setFieldsValue({
         unit: ingredient.unit,
-        warehouseId: ingredient.warehouseId,
+        warehouseId: ingredient.warehouseId._id,
+        // standardCost
+        costPerUnit: ingredient.standardCost.$numberDecimal || 0,
         temperatureCondition: ingredient.properties?.storageTemp || 'room_temp'
       });
 

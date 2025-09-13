@@ -105,10 +105,6 @@ const CreateRecipeForm = ({
       requiredMark={false}
       initialValues={{
         ingredients: [{}],
-        yield: {
-          quantity: 1,
-          unit: 'phần'
-        }
       }}
     >
       <Row gutter={16}>

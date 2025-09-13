@@ -7,6 +7,7 @@ const User = require('../models/User');
 const { logError, logSuccess, logInfo } = require('../middlewares/logger');
 const { blacklistToken } = require('../middlewares/verifyJWT');
 const { responses } = require('../utils/responseFormatter');
+const { ADMIN_ROLE } = require('../config/constant');
 
 const authController = {
   googleAuth: (req, res, next) => {
@@ -118,7 +119,8 @@ const authController = {
         username, 
         email, 
         password: hash, 
-        displayName: fullname 
+        displayName: fullname,
+        role: ADMIN_ROLE
       });
 
       logSuccess('User Registration', 'New user registered successfully', {

@@ -154,7 +154,7 @@ const SellManagerPage = () => {
       setProducts(transformedProducts);
       setCategories(categories || []);
       
-      message.success(`Đã tải ${transformedProducts.length} sản phẩm thành công`);
+      // message.success(`Đã tải ${transformedProducts.length} sản phẩm thành công`);
     } catch (error) {
       console.error('❌ Error loading POS data:', error);
       message.error('Lỗi khi tải dữ liệu: ' + (error.message || 'Unknown error'));
@@ -432,24 +432,27 @@ const SellManagerPage = () => {
               <Col span={6}>
                 <Button 
                   onClick={() => {
-                    console.log('🔍 DEBUG - Current state:', {
-                      productsCount: products.length,
-                      filteredCount: filteredProducts.length,
-                      selectedProductType,
-                      storeCode,
-                      loading,
-                      products: products.map(p => ({ 
-                        name: p.name, 
-                        posType: p.posType, 
-                        isComposite: p.isComposite,
-                        imageUrl: p.imageUrl,
-                        imageUrlLength: p.imageUrl ? p.imageUrl.length : 'N/A',
-                        imageUrlValid: p.imageUrl && p.imageUrl !== '',
-                        compositeProductName: p.compositeProductName,
-                        stock: p.stock,
-                        retailPrice: p.retailPrice
-                      }))
-                    });
+                    // console.log('🔍 DEBUG - Current state:', {
+                    //   productsCount: products.length,
+                    //   filteredCount: filteredProducts.length,
+                    //   selectedProductType,
+                    //   storeCode,
+                    //   loading,
+                    //   products: products.map(p => ({ 
+                    //     name: p.name, 
+                    //     posType: p.posType, 
+                    //     isComposite: p.isComposite,
+                    //     imageUrl: p.imageUrl,
+                    //     imageUrlLength: p.imageUrl ? p.imageUrl.length : 'N/A',
+                    //     imageUrlValid: p.imageUrl && p.imageUrl !== '',
+                    //     compositeProductName: p.compositeProductName,
+                    //     stock: p.stock,
+                    //     retailPrice: p.retailPrice
+                    //   }))
+                    // });
+
+                    console.log(products);
+                    
                   }}
                   type="dashed"
                 >

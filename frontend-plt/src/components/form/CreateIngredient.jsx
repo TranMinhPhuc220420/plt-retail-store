@@ -12,6 +12,9 @@ import { UNIT_LIST_SUGGESTION } from '@/constant';
 const { Option } = Select;
 const { TextArea } = Input;
 
+// Utilities
+import { randomCode } from "@/utils";
+
 /**
  * Form component for creating new ingredients
  * @param {Object} props - Component props
@@ -98,6 +101,7 @@ const CreateIngredientForm = ({
       requiredMark={false}
       initialValues={{
         status: 'active',
+        ingredientCode: randomCode(8),
         properties: {
           storageTemp: 'room_temp'
         }
@@ -280,11 +284,13 @@ const CreateIngredientForm = ({
             name="standardCost"
             rules={[
               { type: 'number', min: 0, message: t('MSG_PRICE_MIN') },
-              { validator: (_, value) => {
-                if (value === null || value === undefined) return Promise.resolve();
-                if (Number.isInteger(value) && value >= 0) return Promise.resolve();
-                return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
-              }}
+              {
+                validator: (_, value) => {
+                  if (value === null || value === undefined) return Promise.resolve();
+                  if (Number.isInteger(value) && value >= 0) return Promise.resolve();
+                  return Promise.reject(new Error(t('MSG_PRICE_VALIDATION')));
+                }
+              }
             ]}
           >
             <InputNumber

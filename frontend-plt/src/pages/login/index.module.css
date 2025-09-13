@@ -1,3 +1,5 @@
 .page_login {
   background-image: url('/background-page-login.png');
+  background-repeat: no-repeat;
+  background-size: cover;
 }

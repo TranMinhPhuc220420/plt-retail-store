@@ -243,7 +243,7 @@ const productController = {
       // Process products for POS optimization
       const posProducts = [];
       
-      filteredProducts.forEach(product => {
+      for (const product of filteredProducts) {
         if (product.isComposite && product.compositeInfo) {
           // For composite products, calculate effective selling price
           let effectivePOSPrice = product.retailPrice;
@@ -270,7 +270,7 @@ const productController = {
             
             // Priority 2: Calculate potential stock from raw materials
             let maxPossibleCompositeStock = Infinity;
-            product.compositeInfo.childProducts.forEach(childInfo => {
+            for (const childInfo of product.compositeInfo.childProducts) {
               if (childInfo.productId) {
                 const childProductId = typeof childInfo.productId === 'object' ? childInfo.productId._id : childInfo.productId;
                 const availableChildStock = stockMap[childProductId.toString()] || 0;
@@ -282,7 +282,7 @@ const productController = {
                 
                 console.log(`🔢 Child "${childInfo.productId.name}": available=${availableChildStock}, required=${requiredPerComposite}, can make=${possibleFromThisChild} composites`);
               }
-            });
+            }
             
             // If no child products found or calculation failed, use 0
             if (maxPossibleCompositeStock === Infinity) {
@@ -298,20 +298,20 @@ const productController = {
               totalAvailableStock: compositeStock
             });
             
-            product.compositeInfo.childProducts.forEach(childInfo => {
+            for (let i = 0; i < product.compositeInfo.childProducts.length; i++) {
+              const childInfo = product.compositeInfo.childProducts[i];
               if (childInfo.productId) {
-                const childProduct = childInfo.productId;
+                const childProduct = await Product.findOne({ _id: childInfo.productId });
+                console.log(childProduct);
                 
-                // DEBUG: Log child product info including imageUrl
-                console.log(`🖼️  Child product "${childProduct.name}":`, {
-                  imageUrl: childProduct.imageUrl,
-                  description: childProduct.description,
-                  unit: childProduct.unit
-                });
-                
+
+                let categories = [];
+                if (childProduct.categories) {
+                  categories = childProduct.categories || [];
+                }
                 // Create a POS item that looks like the child product but priced as composite
                 posProducts.push({
-                  ...childProduct,
+                  ...childInfo.productId,
                   // Keep child product identity
                   _id: product._id, // Use composite ID for cart/ordering
                   originalChildId: childProduct._id, // Store original child ID for reference
@@ -344,11 +344,11 @@ const productController = {
                   // Inherit composite product's other fields
                   ownerId: product.ownerId,
                   storeId: product.storeId,
-                  categories: product.categories,
+                  categories: categories,
                   status: product.status
                 });
               }
-            });
+            }
           }
         } else {
           // For regular products (only standalone products, not child products)
@@ -366,33 +366,13 @@ const productController = {
             childProductsInfo: []
           });
         }
-      });
+      }
 
       // Sort: composite-child products first, then regular products
       posProducts.sort((a, b) => {
         if (a.posType === 'composite-child' && b.posType === 'regular') return -1;
         if (a.posType === 'regular' && b.posType === 'composite-child') return 1;
         return a.name.localeCompare(b.name);
-      });
-
-      console.log('🔍 Final POS products:', {
-        total: posProducts.length,
-        regular: posProducts.filter(p => p.posType === 'regular').length,
-        compositeChild: posProducts.filter(p => p.posType === 'composite-child').length,
-        stockInfo: {
-          regularWithStock: posProducts.filter(p => p.posType === 'regular' && p.posStock > 0).length,
-          compositeChildWithStock: posProducts.filter(p => p.posType === 'composite-child' && p.posStock > 0).length,
-          outOfStock: posProducts.filter(p => p.posStock <= 0).length
-        },
-        products: posProducts.map(p => ({ 
-          name: p.name, 
-          posType: p.posType,
-          price: p.posPrice,
-          imageUrl: p.imageUrl,
-          compositeReference: p.compositeProductName || 'N/A',
-          posStock: p.posStock, // Add stock info to debug output
-          stockStatus: p.posStock > 0 ? 'IN_STOCK' : 'OUT_OF_STOCK'
-        }))
       });
 
       res.status(200).json(posProducts);

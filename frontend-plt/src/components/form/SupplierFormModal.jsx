@@ -8,6 +8,9 @@ const { Option } = Select;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 
+// Utilities
+import { randomCode } from '@/utils';
+
 const SupplierFormModal = ({
   visible,
   onClose,
@@ -180,6 +183,9 @@ const SupplierFormModal = ({
         form={form}
         layout="vertical"
         requiredMark={false}
+        initialValues={{
+          supplierCode: randomCode(8),
+        }}
       >
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <TabPane tab={t('TXT_SUPPLIER_BASIC_INFO')} key="basic">
