@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Employee = require('../models/Employee');
 const Store = require('../models/Store');
 const StockBalance = require('../models/StockBalance');
+const { checkProductStock, updateProductStock } = require('../utils/stockUtils');
 
 // Helper function to serialize Order objects for frontend
 const serializeOrderForResponse = (order) => {
@@ -184,16 +185,21 @@ const createOrder = async (req, res) => {
         });
       }
 
-      // Always check stock availability for production orders
-      const stockBalance = await StockBalance.findOne({
-        productId: item.productId,
-        storeId: storeId
-      });
-
-      if (!stockBalance || stockBalance.quantity < item.quantity) {
-        return res.status(400).json({
+      // Check stock availability using utility function
+      try {
+        const stockCheck = await checkProductStock(item.productId, storeId, item.quantity);
+        
+        if (!stockCheck.isAvailable) {
+          const productType = stockCheck.product.isComposite ? 'sản phẩm tổng hợp' : 'sản phẩm';
+          return res.status(400).json({
+            success: false,
+            message: `Không đủ hàng trong kho cho ${productType}: ${stockCheck.product.name}. Tồn kho: ${stockCheck.availableStock}, Yêu cầu: ${item.quantity}`
+          });
+        }
+      } catch (error) {
+        return res.status(500).json({
           success: false,
-          message: `Không đủ hàng trong kho cho sản phẩm: ${product.name}. Tồn kho: ${stockBalance?.quantity || 0}, Yêu cầu: ${item.quantity}`
+          message: `Lỗi khi kiểm tra stock cho sản phẩm: ${error.message}`
         });
       }
 
@@ -266,14 +272,24 @@ const createOrder = async (req, res) => {
     const order = new Order(orderData);
     await order.save();
 
-    // Always update stock balances for production orders
+    // Update stock for all order items using utility function
+    const stockUpdateResults = [];
     for (const item of orderItems) {
-      await StockBalance.findOneAndUpdate(
-        { productId: item.productId, storeId: orderData.storeId },
-        { $inc: { quantity: -item.quantity } },
-        { new: true }
-      );
+      try {
+        const updateResult = await updateProductStock(
+          item.productId, 
+          orderData.storeId, 
+          item.quantity, 
+          `Order ${orderNumber}`
+        );
+        stockUpdateResults.push(updateResult);
+      } catch (error) {
+        console.error(`Error updating stock for product ${item.productId}:`, error);
+        // Continue with other products, but log the error
+      }
     }
+    
+    console.log(`✅ Updated stock for ${stockUpdateResults.length} products in order ${orderNumber}`);
 
     // Try to populate order for response, but handle errors gracefully
     try {

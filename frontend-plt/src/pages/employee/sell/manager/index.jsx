@@ -98,6 +98,7 @@ const SellManagerPage = () => {
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshingStock, setRefreshingStock] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedProductType, setSelectedProductType] = useState('all'); // 'all', 'regular', 'composite'
@@ -200,6 +201,75 @@ const SellManagerPage = () => {
     } catch (error) {
       console.error('Error fetching categories:', error);
       message.error('Lỗi khi tải danh mục');
+    }
+  };
+
+  // Refresh product stock after order (lightweight update)
+  const refreshProductStock = async () => {
+    if (!storeCode) return;
+    
+    try {
+      setRefreshingStock(true);
+      console.log('🔄 Refreshing product stock after order...');
+      const { products: updatedProducts } = await posAPI.getPOSData(storeCode);
+      
+      if (updatedProducts && Array.isArray(updatedProducts)) {
+        const transformedProducts = transformProductData(updatedProducts);
+        setProducts(transformedProducts);
+        console.log('✅ Product stock refreshed successfully');
+        
+        // Show success message briefly
+        message.success('Số lượng sản phẩm đã được cập nhật', 2);
+      }
+    } catch (error) {
+      console.error('Error refreshing product stock:', error);
+      // Don't show error message as this is background operation
+      // message.error('Không thể cập nhật số lượng sản phẩm');
+    } finally {
+      setRefreshingStock(false);
+    }
+  };
+
+  // Update stock for specific products from cart (more efficient)
+  const updateCartProductsStock = async (cartItems) => {
+    if (!storeCode || !cartItems || cartItems.length === 0) return;
+    
+    try {
+      setRefreshingStock(true);
+      console.log('🔄 Updating stock for cart products...');
+      
+      // Create a map of cart products for quick lookup
+      const cartProductIds = new Set(cartItems.map(item => item.productId));
+      
+      // Get fresh product data
+      const { products: updatedProducts } = await posAPI.getPOSData(storeCode);
+      
+      if (updatedProducts && Array.isArray(updatedProducts)) {
+        const transformedProducts = transformProductData(updatedProducts);
+        
+        // Update products state by replacing only the cart products
+        setProducts(prevProducts => {
+          return prevProducts.map(product => {
+            if (cartProductIds.has(product._id)) {
+              // Find the updated product
+              const updatedProduct = transformedProducts.find(p => p._id === product._id);
+              return updatedProduct || product;
+            }
+            return product;
+          });
+        });
+        
+        console.log(`✅ Updated stock for ${cartProductIds.size} products from cart`);
+        
+        // Show brief success message
+        message.success(`Đã cập nhật số lượng ${cartProductIds.size} sản phẩm`, 1.5);
+      }
+    } catch (error) {
+      console.error('Error updating cart products stock:', error);
+      // Fallback to full refresh
+      await refreshProductStock();
+    } finally {
+      setRefreshingStock(false);
     }
   };
 
@@ -381,10 +451,16 @@ const SellManagerPage = () => {
       const response = await posAPI.processSale(orderData);
       const order = response.data;
 
+      // Store cart items before clearing for stock update
+      const cartItemsToUpdate = [...cart];
+
       setCurrentOrder(order);
       setPaymentModalVisible(false);
       setInvoiceModalVisible(true);
       clearCart();
+      
+      // Update stock for products that were in the cart (more efficient)
+      await updateCartProductsStock(cartItemsToUpdate);
       
       message.success('Thanh toán thành công!');
     } catch (error) {
@@ -419,7 +495,17 @@ const SellManagerPage = () => {
         {/* Products Section */}
         <Col span={16}>
           <Card 
-            title="Danh sách sản phẩm" 
+            title={
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>Danh sách sản phẩm</span>
+                {refreshingStock && (
+                  <>
+                    <Spin size="small" />
+                    <Text type="secondary" style={{ fontSize: 12 }}>Đang cập nhật...</Text>
+                  </>
+                )}
+              </div>
+            }
             style={{ height: '100%' }}
           >
             {/* Search and Filter */}
@@ -500,10 +586,11 @@ const SellManagerPage = () => {
                   <Button 
                     type="primary" 
                     onClick={fetchInitialData}
-                    loading={loading}
+                    loading={loading || refreshingStock}
                     icon={<SearchOutlined />}
+                    disabled={refreshingStock}
                   >
-                    Tải lại danh sách sản phẩm
+                    {refreshingStock ? 'Đang cập nhật...' : 'Tải lại danh sách sản phẩm'}
                   </Button>
                 </Col>
               </Row>
