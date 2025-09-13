@@ -41,4 +41,7 @@ router.post('/:id/serve', validateServeComposite, compositeProductController.ser
 // POST /api/composite-products/calculate-price-from-recipe - Tính giá từ công thức
 router.post('/calculate-price-from-recipe', compositeProductController.calculatePriceFromRecipe);
 
+// GET /api/composite-products/:id/history - Lấy lịch sử hoạt động sản phẩm composite
+router.get('/:id/history', compositeProductController.getCompositeHistory);
+
 module.exports = router;

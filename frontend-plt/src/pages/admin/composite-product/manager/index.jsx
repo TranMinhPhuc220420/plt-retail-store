@@ -29,6 +29,7 @@ import EditCompositeProductForm from "@/components/form/EditCompositeProduct";
 import CompositeProductTable from "@/components/table/CompositeProductTable";
 import PrepareCompositeModal from "@/components/modal/PrepareCompositeModal";
 import ServeCompositeModal from "@/components/modal/ServeCompositeModal";
+import CompositeHistoryModal from "@/components/modal/CompositeHistoryModal";
 
 // Requests
 import { deleteCompositeProduct } from "@/request/compositeProduct";
@@ -59,6 +60,7 @@ const CompositeProductManagerPage = () => {
   const [productEdit, setProductEdit] = useState(null);
   const [productToPrepare, setProductToPrepare] = useState(null);
   const [productToServe, setProductToServe] = useState(null);
+  const [productHistory, setProductHistory] = useState(null);
   
   // Loading states
   const [isDeletingLoading, setIsDeletingLoading] = useState(false);
@@ -68,6 +70,7 @@ const CompositeProductManagerPage = () => {
   const [isModalEditOpen, setIsModalEditOpen] = useState(false);
   const [isModalPrepareOpen, setIsModalPrepareOpen] = useState(false);
   const [isModalServeOpen, setIsModalServeOpen] = useState(false);
+  const [isModalHistoryOpen, setIsModalHistoryOpen] = useState(false);
   
   // Message API
   const [messageApi, contextHolder] = message.useMessage();
@@ -152,6 +155,17 @@ const CompositeProductManagerPage = () => {
   const handleServeCancel = () => {
     setIsModalServeOpen(false);
     setProductToServe(null);
+  };
+
+  // History handlers
+  const handleViewHistory = (product) => {
+    setProductHistory(product);
+    setIsModalHistoryOpen(true);
+  };
+
+  const handleHistoryClose = () => {
+    setIsModalHistoryOpen(false);
+    setProductHistory(null);
   };
 
   // Delete handlers
@@ -327,6 +341,7 @@ const CompositeProductManagerPage = () => {
           onDelete={handleConfirmDeleteItem}
           onPrepare={handlePrepare}
           onServe={handleServe}
+          onViewHistory={handleViewHistory}
           onSelectionChange={setSelectedProducts}
           loading={isLoading}
         />
@@ -384,6 +399,12 @@ const CompositeProductManagerPage = () => {
           storeCode={storeCode}
           onOk={handleServeOk}
           onCancel={handleServeCancel}
+        />
+
+        <CompositeHistoryModal
+          visible={isModalHistoryOpen}
+          product={productHistory}
+          onClose={handleHistoryClose}
         />
       </div>
     </div>

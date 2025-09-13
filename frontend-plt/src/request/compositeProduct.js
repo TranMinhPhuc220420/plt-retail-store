@@ -189,3 +189,23 @@ export const updateChildProductPrices = async (id, childProducts) => {
     throw new Error(error.response?.data?.message || error.message || 'Failed to update child product prices');
   }
 };
+
+/**
+ * Get composite product history
+ * @param {string} id - Composite product ID
+ * @param {Object} params - Query parameters
+ * @param {string} [params.startDate] - Start date for filtering
+ * @param {string} [params.endDate] - End date for filtering
+ * @param {string} [params.action] - Action type filter ('prepare', 'serve', 'all')
+ * @param {number} [params.limit=50] - Number of records to fetch
+ * @param {number} [params.page=1] - Page number for pagination
+ * @returns {Promise<Object>} History data with pagination and summary
+ */
+export const getCompositeProductHistory = async (id, params = {}) => {
+  try {
+    const response = await getApi(`/composite-products/${id}/history`, params);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message || 'Failed to fetch composite product history');
+  }
+};

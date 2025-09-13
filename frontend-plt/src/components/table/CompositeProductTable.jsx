@@ -18,7 +18,8 @@ import {
   ShoppingOutlined,
   ExperimentOutlined,
   ClockCircleOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  HistoryOutlined
 } from "@ant-design/icons";
 
 // Stores
@@ -34,6 +35,7 @@ const CompositeProductTable = ({
   onDelete,
   onPrepare,
   onServe,
+  onViewHistory,
   onSelectionChange,
   loading
 }) => {
@@ -226,7 +228,7 @@ const CompositeProductTable = ({
     {
       title: t('TXT_ACTIONS'),
       key: 'actions',
-      width: 200,
+      width: 250,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -253,6 +255,16 @@ const CompositeProductTable = ({
                 record.compositeInfo.currentStock === 0 ||
                 (record.statusInfo && record.statusInfo.status === 'expired')
               }
+            />
+          </Tooltip>
+
+          <Tooltip title={t('TXT_VIEW_HISTORY', 'Xem lịch sử')}>
+            <Button
+              type="default"
+              size="small"
+              icon={<HistoryOutlined />}
+              onClick={() => onViewHistory && onViewHistory(record)}
+              disabled={isProductDeleting(record._id)}
             />
           </Tooltip>
 

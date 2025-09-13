@@ -1,6 +1,7 @@
 const Product = require('../models/Product');
 const Recipe = require('../models/Recipe');
 const Store = require('../models/Store');
+const CompositeProductHistory = require('../models/CompositeProductHistory');
 const { checkStockBalances } = require('../utils/checkStockBalances');
 const { calculateRecipeIngredientCost } = require('../utils/costCalculation_FIXED');
 const costCache = require('../utils/costCache'); // ✅ THÊM CACHE SUPPORT
@@ -333,10 +334,49 @@ const compositeProductController = {
       }
 
       // Update composite product stock and timestamp
+      const stockBefore = product.compositeInfo.currentStock;
       product.compositeInfo.currentStock += totalServingsNeeded;
       product.compositeInfo.lastPreparedAt = new Date();
 
       await product.save();
+
+      // Calculate cost per serving from product cost price
+      const totalCostPerServing = product.costPrice || 0;
+
+      // Record history
+      const historyData = {
+        notes: `Đã chuẩn bị ${quantityToPrepare} lô, tạo ra ${totalServingsNeeded} ${product.compositeInfo.capacity.unit}`,
+        costInfo: {
+          totalCost: totalCostPerServing * totalServingsNeeded,
+          unitCost: totalCostPerServing
+        },
+        batchInfo: {
+          batchNumber: `${product.productCode}-${Date.now()}`,
+          expiryTime: new Date(Date.now() + (product.compositeInfo.expiryHours || 24) * 60 * 60 * 1000),
+          preparationDetails: {
+            recipeUsed: product.compositeInfo.recipeId._id,
+            ingredientsUsed: recipe.ingredients.map(ing => ({
+              ingredientId: ing.ingredientId._id,
+              name: ing.ingredientId.name,
+              quantity: ing.amountUsed * recipeBatchesNeeded,
+              unit: ing.ingredientId.unit,
+              cost: ing.amountUsed * recipeBatchesNeeded * (ing.ingredientId.costPrice || 0)
+            }))
+          }
+        }
+      };
+
+      await compositeProductController.recordHistory(
+        product,
+        'prepare',
+        totalServingsNeeded,
+        stockBefore,
+        product.compositeInfo.currentStock,
+        req.user,
+        historyData
+      );
+
+      console.log('✅ History recorded successfully for prepare action');
 
       res.status(200).json({
         message: 'composite_product_prepared_successfully',
@@ -399,8 +439,29 @@ const compositeProductController = {
       }
 
       // Giảm stock
+      const stockBefore = product.compositeInfo.currentStock;
       product.compositeInfo.currentStock -= quantityToServe;
       await product.save();
+
+      // Record history
+      const historyData = {
+        notes: `Đã phục vụ ${quantityToServe} ${product.compositeInfo.capacity.unit}`,
+        costInfo: {
+          unitCost: product.costPrice || 0,
+          totalCost: (product.costPrice || 0) * quantityToServe,
+          estimatedRevenue: (product.price || 0) * quantityToServe
+        }
+      };
+
+      await compositeProductController.recordHistory(
+        product,
+        'serve',
+        quantityToServe,
+        stockBefore,
+        product.compositeInfo.currentStock,
+        req.user,
+        historyData
+      );
 
       res.status(200).json({
         message: 'composite_product_served_successfully',
@@ -817,6 +878,189 @@ const compositeProductController = {
     } catch (error) {
       console.error('Error deleting composite product:', error);
       res.status(500).json({ error: 'failed_to_delete_composite_product' });
+    }
+  },
+
+  /**
+   * Helper function để ghi lịch sử hoạt động
+   */
+  recordHistory: async (product, action, quantity, stockBefore, stockAfter, user, additionalData = {}) => {
+    try {
+      console.log('🔄 Recording history:', {
+        productId: product._id,
+        productName: product.name,
+        action,
+        quantity,
+        stockBefore,
+        stockAfter,
+        userId: user._id,
+        userName: user.fullName || user.username
+      });
+
+      const historyRecord = CompositeProductHistory.createHistoryRecord({
+        productId: product._id,
+        productName: product.name,
+        productCode: product.productCode,
+        storeId: product.storeId,
+        action: action,
+        quantity: quantity,
+        unit: product.compositeInfo.capacity.unit,
+        stockBefore: stockBefore,
+        stockAfter: stockAfter,
+        notes: additionalData.notes || '',
+        costInfo: additionalData.costInfo || {},
+        operator: {
+          userId: user._id,
+          username: user.username,
+          fullName: user.fullName,
+          role: user.role
+        },
+        batchInfo: additionalData.batchInfo || {},
+        metadata: additionalData.metadata || {}
+      });
+
+      const savedRecord = await historyRecord.save();
+      console.log('✅ History record saved successfully:', savedRecord._id);
+      return savedRecord;
+    } catch (error) {
+      console.error('❌ Error recording history:', error);
+      // Không throw error để không làm gián đoạn luồng chính
+      return null;
+    }
+  },
+
+  /**
+   * Lấy lịch sử hoạt động của sản phẩm composite
+   */
+  getCompositeHistory: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { startDate, endDate, action, limit = 50, page = 1 } = req.query;
+
+      console.log('🔍 Getting composite history:', {
+        productId: id,
+        filters: { startDate, endDate, action, limit, page }
+      });
+
+      // Verify product exists and belongs to user
+      const product = await Product.findOne({
+        _id: id,
+        ownerId: req.user._id,
+        isComposite: true,
+        deleted: false
+      });
+
+      if (!product) {
+        console.log('❌ Product not found for history request');
+        return res.status(404).json({ error: 'composite_product_not_found' });
+      }
+
+      console.log('✅ Product found:', product.name);
+
+      // Build query filter
+      let filter = { productId: id };
+
+      // Date range filter
+      if (startDate || endDate) {
+        filter.actionTime = {};
+        if (startDate) {
+          filter.actionTime.$gte = new Date(startDate);
+        }
+        if (endDate) {
+          filter.actionTime.$lte = new Date(endDate);
+        }
+      }
+
+      // Action filter
+      if (action && action !== 'all') {
+        filter.action = action;
+      }
+
+      console.log('📋 Query filter:', filter);
+
+      // Get total count for pagination
+      const totalRecords = await CompositeProductHistory.countDocuments(filter);
+      console.log('📊 Total records found:', totalRecords);
+
+      // Get paginated records
+      const records = await CompositeProductHistory.find(filter)
+        .populate({
+          path: 'operator.userId',
+          select: 'username fullName role'
+        })
+        .sort({ actionTime: -1 })
+        .limit(parseInt(limit))
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .lean();
+
+      // Format response
+      const formattedRecords = records.map(record => ({
+        _id: record._id,
+        action: record.action,
+        quantity: record.quantity,
+        unit: record.unit,
+        stockBefore: record.stockBefore,
+        stockAfter: record.stockAfter,
+        notes: record.notes,
+        operator: {
+          username: record.operator.username,
+          fullName: record.operator.fullName,
+          role: record.operator.role
+        },
+        actionTime: record.actionTime,
+        createdAt: record.createdAt,
+        costInfo: record.costInfo,
+        batchInfo: record.batchInfo
+      }));
+
+      // Calculate summary statistics
+      const stats = await CompositeProductHistory.aggregate([
+        { $match: filter },
+        {
+          $group: {
+            _id: '$action',
+            count: { $sum: 1 },
+            totalQuantity: { $sum: '$quantity' }
+          }
+        }
+      ]);
+
+      const summary = {
+        prepare: { count: 0, totalQuantity: 0 },
+        serve: { count: 0, totalQuantity: 0 },
+        waste: { count: 0, totalQuantity: 0 },
+        expire: { count: 0, totalQuantity: 0 }
+      };
+
+      stats.forEach(stat => {
+        if (summary[stat._id]) {
+          summary[stat._id] = {
+            count: stat.count,
+            totalQuantity: stat.totalQuantity
+          };
+        }
+      });
+
+      res.status(200).json({
+        data: formattedRecords,
+        pagination: {
+          total: totalRecords,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(totalRecords / parseInt(limit))
+        },
+        summary: summary,
+        product: {
+          _id: product._id,
+          name: product.name,
+          productCode: product.productCode,
+          currentStock: product.compositeInfo.currentStock,
+          unit: product.compositeInfo.capacity.unit
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching composite history:', error);
+      res.status(500).json({ error: 'failed_to_fetch_composite_history' });
     }
   }
 };
