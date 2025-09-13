@@ -34,6 +34,7 @@ import {
 } from "antd";
 import { useParams } from "react-router";
 import { posAPI } from '@/request/pos.api';
+import useOrderContext from '@/hooks/useOrderContext';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -42,6 +43,14 @@ const SellManagerPage = () => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const { storeCode } = useParams();
+  const { getOrderContext, isReady, user, storeActive } = useOrderContext();
+  
+  // Check if user context is ready
+  useEffect(() => {
+    if (!isReady) {
+      message.warning('Vui lòng đăng nhập và chọn cửa hàng để sử dụng tính năng bán hàng');
+    }
+  }, [isReady]);
   
   // Utility function to parse Decimal128 from MongoDB
   const parseDecimal = (value) => {
@@ -331,6 +340,11 @@ const SellManagerPage = () => {
       return;
     }
     
+    if (!isReady) {
+      message.warning('Vui lòng đăng nhập và chọn cửa hàng để tiếp tục');
+      return;
+    }
+    
     setPaymentDetails({
       method: 'cash',
       cashAmount: total,
@@ -344,7 +358,10 @@ const SellManagerPage = () => {
     try {
       setLoading(true);
       
-      // Create order object
+      // Get real user and store context
+      const orderContext = getOrderContext();
+      
+      // Create order object with real data
       const orderData = {
         customerName: customerInfo.name,
         customerPhone: customerInfo.phone,
@@ -354,8 +371,10 @@ const SellManagerPage = () => {
         discountRate: 0,
         paymentMethod: paymentDetails.method,
         paymentDetails,
-        employeeId: 'current-employee-id', // TODO: Get from auth context
-        storeId: 'current-store-id' // TODO: Get from auth context or store data
+        employeeId: orderContext.employeeId,
+        storeId: orderContext.storeId,
+        storeCode: orderContext.storeCode,
+        // notes: `Đơn hàng tạo bởi ${orderContext.employeeName} tại ${orderContext.storeName}`
       };
 
       // Use POS API to process sale
@@ -370,7 +389,20 @@ const SellManagerPage = () => {
       message.success('Thanh toán thành công!');
     } catch (error) {
       console.error('Payment processing error:', error);
-      message.error('Lỗi khi xử lý thanh toán: ' + (error.message || 'Unknown error'));
+      
+      // Enhanced error handling
+      let errorMessage = 'Lỗi khi xử lý thanh toán';
+      if (error.message) {
+        if (error.message.includes('authenticated')) {
+          errorMessage = 'Vui lòng đăng nhập lại để tiếp tục';
+        } else if (error.message.includes('Store')) {
+          errorMessage = 'Vui lòng chọn cửa hàng để tiếp tục';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

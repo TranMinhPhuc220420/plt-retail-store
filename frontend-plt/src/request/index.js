@@ -17,6 +17,22 @@ const apiFormDataClient = axios.create({
   },
 });
 
+// Add request interceptor for form data client as well
+apiFormDataClient.interceptors.request.use(
+  config => {
+    // Add authentication token if available
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => {
+    console.error('Form data request interceptor error:', error);
+    return Promise.reject(error);
+  }
+);
+
 // Response interceptor for form data client (same as regular client)
 apiFormDataClient.interceptors.response.use(
   response => {
@@ -60,9 +76,16 @@ apiFormDataClient.interceptors.response.use(
   }
 );
 
-// Request interceptor for debugging
+// Request interceptor to add auth token
 apiClient.interceptors.request.use(
   config => {
+    // Add authentication token if available
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Debug logging (commented out for production)
     // console.log('API Request:', {
     //   method: config.method?.toUpperCase(),
     //   url: config.url,

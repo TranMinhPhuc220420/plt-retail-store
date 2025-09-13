@@ -135,7 +135,7 @@ const createOrder = async (req, res) => {
       paymentDetails = {},
       notes,
       employeeId,
-      storeId
+      storeCode
     } = req.body;
 
     // Validate required fields
@@ -146,36 +146,32 @@ const createOrder = async (req, res) => {
       });
     }
 
-    if (!employeeId || !storeId) {
+    if (!storeCode) {
       return res.status(400).json({
         success: false,
-        message: 'Thiếu thông tin nhân viên hoặc cửa hàng'
+        message: 'invalid_store_code'
       });
     }
 
-    // For now, skip employee verification if it's a placeholder
-    let employee = null;
-    let store = null;
-    
-    if (employeeId !== 'current-employee-id') {
-      employee = await Employee.findById(employeeId);
-      if (!employee) {
-        return res.status(404).json({
-          success: false,
-          message: 'Không tìm thấy nhân viên'
-        });
-      }
+    // Validate employee exists
+    // const employee = await Employee.findById(employeeId);
+    // if (!employee) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: 'not_found_employee'
+    //   });
+    // }
+
+    // Validate store exists  
+    const store = await Store.findOne({ storeCode: storeCode, ownerId: req.user._id });
+    if (!store) {
+      return res.status(404).json({
+        success: false,
+        message: 'not_found_store'
+      });
     }
 
-    if (storeId !== 'current-store-id') {
-      store = await Store.findById(storeId);
-      if (!store) {
-        return res.status(404).json({
-          success: false,
-          message: 'Không tìm thấy cửa hàng'
-        });
-      }
-    }
+    const storeId = store._id;
 
     // Validate and prepare order items
     const orderItems = [];
@@ -188,19 +184,17 @@ const createOrder = async (req, res) => {
         });
       }
 
-      // Check stock availability only if we have a valid storeId
-      if (storeId !== 'current-store-id') {
-        const stockBalance = await StockBalance.findOne({
-          productId: item.productId,
-          storeId: storeId
-        });
+      // Always check stock availability for production orders
+      const stockBalance = await StockBalance.findOne({
+        productId: item.productId,
+        storeId: storeId
+      });
 
-        if (!stockBalance || stockBalance.quantity < item.quantity) {
-          return res.status(400).json({
-            success: false,
-            message: `Không đủ hàng trong kho cho sản phẩm: ${product.name}`
-          });
-        }
+      if (!stockBalance || stockBalance.quantity < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Không đủ hàng trong kho cho sản phẩm: ${product.name}. Tồn kho: ${stockBalance?.quantity || 0}, Yêu cầu: ${item.quantity}`
+        });
       }
 
       const unitPrice = parseFloat(product.retailPrice.toString());
@@ -211,58 +205,74 @@ const createOrder = async (req, res) => {
         productName: product.name,
         productCode: product.productCode,
         quantity: item.quantity,
-        unitPrice: unitPrice,
-        totalPrice: totalPrice,
+        unitPrice: mongoose.Types.Decimal128.fromString(String(unitPrice)),
+        totalPrice: mongoose.Types.Decimal128.fromString(String(totalPrice)),
         unit: product.unit
       });
     }
 
-    // Create order - handle placeholder values
+    // Calculate totals
+    const subtotal = orderItems.reduce((sum, item) => {
+      const itemTotal = parseFloat(item.totalPrice.toString());
+      return sum + itemTotal;
+    }, 0);
+    const taxAmount = (subtotal * taxRate) / 100;
+    const discountAmount = (subtotal * discountRate) / 100;
+    const totalAmount = subtotal + taxAmount - discountAmount;
+
+    // Generate order number
+    const date = new Date();
+    const dateString = date.toISOString().slice(0, 10).replace(/-/g, '');
+    const timestamp = Date.now().toString().slice(-4);
+    const orderNumber = `ORD${dateString}${timestamp}`;
+
+    // Process payment details and convert amounts to Decimal128
+    const processedPaymentDetails = paymentDetails ? {
+      cashAmount: paymentDetails.cashAmount ? mongoose.Types.Decimal128.fromString(String(paymentDetails.cashAmount)) : mongoose.Types.Decimal128.fromString('0'),
+      cardAmount: paymentDetails.cardAmount ? mongoose.Types.Decimal128.fromString(String(paymentDetails.cardAmount)) : mongoose.Types.Decimal128.fromString('0'),
+      transferAmount: paymentDetails.transferAmount ? mongoose.Types.Decimal128.fromString(String(paymentDetails.transferAmount)) : mongoose.Types.Decimal128.fromString('0'),
+      changeAmount: paymentDetails.changeAmount ? mongoose.Types.Decimal128.fromString(String(paymentDetails.changeAmount)) : mongoose.Types.Decimal128.fromString('0')
+    } : {
+      cashAmount: mongoose.Types.Decimal128.fromString(String(totalAmount)),
+      cardAmount: mongoose.Types.Decimal128.fromString('0'),
+      transferAmount: mongoose.Types.Decimal128.fromString('0'),
+      changeAmount: mongoose.Types.Decimal128.fromString('0')
+    };
+
+    // Create order with validated data
     const orderData = {
+      orderNumber,
       customerName,
       customerPhone,
       customerEmail,
       items: orderItems,
+      subtotal: mongoose.Types.Decimal128.fromString(String(subtotal)),
+      taxAmount: mongoose.Types.Decimal128.fromString(String(taxAmount)),
       taxRate,
+      discountAmount: mongoose.Types.Decimal128.fromString(String(discountAmount)),
       discountRate,
+      totalAmount: mongoose.Types.Decimal128.fromString(String(totalAmount)),
       paymentMethod,
-      paymentDetails,
+      paymentDetails: processedPaymentDetails,
       paymentStatus: 'paid',
       status: 'completed',
-      notes
+      notes,
+      employeeId: req.user._id,
+      employeeName: req.user._id,
+      storeId: store._id,
+      ownerId: store.ownerId
     };
-
-    // Set employeeId and employeeName if valid
-    if (employeeId !== 'current-employee-id' && employee) {
-      orderData.employeeId = employeeId;
-      orderData.employeeName = employee.name;
-    } else {
-      // Use placeholder or get from auth context
-      orderData.employeeId = req.user?._id || employeeId; 
-      orderData.employeeName = req.user?.name || 'Nhân viên bán hàng';
-    }
-
-    // Set storeId and ownerId if valid
-    if (storeId !== 'current-store-id' && store) {
-      orderData.storeId = storeId;
-      orderData.ownerId = store.ownerId;
-    } else {
-      // Use placeholder or get from auth context
-      orderData.storeId = req.user?.storeId || storeId;
-      orderData.ownerId = req.user?._id || req.user?.ownerId;
-    }
 
     const order = new Order(orderData);
     await order.save();
 
-    // Update stock balances - only if we have valid storeId
-    if (orderData.storeId && orderData.storeId !== 'current-store-id') {
-      for (const item of orderItems) {
-        await StockBalance.findOneAndUpdate(
-          { productId: item.productId, storeId: orderData.storeId },
-          { $inc: { quantity: -item.quantity } }
-        );
-      }
+    // Always update stock balances for production orders
+    for (const item of orderItems) {
+      await StockBalance.findOneAndUpdate(
+        { productId: item.productId, storeId: orderData.storeId },
+        { $inc: { quantity: -item.quantity } },
+        { new: true }
+      );
     }
 
     // Try to populate order for response, but handle errors gracefully

@@ -138,16 +138,25 @@ export const posAPI = {
   validateOrder: (orderData) => {
     const errors = [];
 
+    if (!orderData) {
+      errors.push('Dữ liệu đơn hàng không hợp lệ');
+      return { isValid: false, errors };
+    }
+
     if (!orderData.items || orderData.items.length === 0) {
       errors.push('Đơn hàng phải có ít nhất một sản phẩm');
     }
 
-    if (!orderData.employeeId) {
-      errors.push('Thiếu thông tin nhân viên');
+    // if (!orderData.employeeId) {
+    //   errors.push('Thiếu thông tin nhân viên');
+    // }
+
+    if (!orderData.storeCode) {
+      errors.push('Thiếu thông tin cửa hàng');
     }
 
-    if (!orderData.storeId) {
-      errors.push('Thiếu thông tin cửa hàng');
+    if (!orderData.paymentMethod) {
+      errors.push('Vui lòng chọn phương thức thanh toán');
     }
 
     orderData.items?.forEach((item, index) => {
@@ -156,6 +165,9 @@ export const posAPI = {
       }
       if (!item.quantity || item.quantity <= 0) {
         errors.push(`Số lượng sản phẩm thứ ${index + 1} phải lớn hơn 0`);
+      }
+      if (!item.unitPrice || item.unitPrice <= 0) {
+        errors.push(`Giá sản phẩm thứ ${index + 1} không hợp lệ`);
       }
     });
 
@@ -174,8 +186,8 @@ export const posAPI = {
         throw new Error(validation.errors.join(', '));
       }
 
-      // Use demo order endpoint for now
-      const response = await orderAPI.createDemoOrder(orderData);
+      // Use production order endpoint
+      const response = await orderAPI.createOrder(orderData);
       return response;
     } catch (error) {
       console.error('Error processing sale:', error);
