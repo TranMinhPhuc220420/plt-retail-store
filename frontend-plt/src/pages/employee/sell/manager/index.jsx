@@ -444,7 +444,7 @@ const SellManagerPage = () => {
         employeeId: orderContext.employeeId,
         storeId: orderContext.storeId,
         storeCode: orderContext.storeCode,
-        // notes: `Đơn hàng tạo bởi ${orderContext.employeeName} tại ${orderContext.storeName}`
+        notes: `Đơn hàng tạo bởi ${orderContext.employeeName} (${orderContext.employeeId})`
       };
 
       // Use POS API to process sale

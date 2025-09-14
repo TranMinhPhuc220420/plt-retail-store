@@ -147,9 +147,9 @@ export const posAPI = {
       errors.push('Đơn hàng phải có ít nhất một sản phẩm');
     }
 
-    // if (!orderData.employeeId) {
-    //   errors.push('Thiếu thông tin nhân viên');
-    // }
+    if (!orderData.employeeId) {
+      errors.push('Thiếu thông tin nhân viên');
+    }
 
     if (!orderData.storeCode) {
       errors.push('Thiếu thông tin cửa hàng');

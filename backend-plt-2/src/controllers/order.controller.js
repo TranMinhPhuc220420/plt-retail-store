@@ -155,13 +155,13 @@ const createOrder = async (req, res) => {
     }
 
     // Validate employee exists
-    // const employee = await Employee.findById(employeeId);
-    // if (!employee) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     message: 'not_found_employee'
-    //   });
-    // }
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'not_found_employee'
+      });
+    }
 
     // Validate store exists  
     const store = await Store.findOne({ storeCode: storeCode, ownerId: req.user._id });
@@ -263,8 +263,8 @@ const createOrder = async (req, res) => {
       paymentStatus: 'paid',
       status: 'completed',
       notes,
-      employeeId: req.user._id,
-      employeeName: req.user._id,
+      employeeId: employee._id,
+      employeeName: `${employee.firstName} ${employee.lastName}`,
       storeId: store._id,
       ownerId: store.ownerId
     };
