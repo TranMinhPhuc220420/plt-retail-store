@@ -450,6 +450,44 @@ class EmployeeController {
       });
     }
   }
+
+  // Get all employees (for admin dropdown) - New endpoint
+  async getAllEmployees(req, res) {
+    try {
+      const { limit = 1000, search } = req.query;
+
+      // Build filter
+      const filter = { deleted: false };
+      
+      if (search) {
+        filter.$or = [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { name: { $regex: search, $options: 'i' } }
+        ];
+      }
+
+      const employees = await Employee.find(filter)
+        .select('_id name firstName lastName email avatar role department storeId')
+        .populate('storeId', 'name')
+        .sort({ name: 1, firstName: 1 })
+        .limit(parseInt(limit));
+
+      res.json({
+        success: true,
+        data: employees,
+        total: employees.length
+      });
+    } catch (error) {
+      console.error('Get all employees error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Lỗi khi lấy danh sách nhân viên',
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new EmployeeController();

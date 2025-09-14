@@ -145,6 +145,11 @@ const validateStatusUpdate = [
 
 // Routes
 
+// GET /api/employees - Get all employees (for admin dropdown)
+router.get('/', 
+  employeeController.getAllEmployees
+);
+
 // GET /api/employees/store/:storeId - Get all employees for a store
 router.get('/store/:storeId', 
   validateStoreId,

@@ -20,7 +20,14 @@ const serializeOrderForResponse = (order) => {
       ...item,
       unitPrice: parseFloat(item.unitPrice?.toString() || 0),
       totalPrice: parseFloat(item.totalPrice?.toString() || 0)
-    })) || []
+    })) || [],
+    // Fix paymentDetails serialization
+    paymentDetails: orderObj.paymentDetails ? {
+      cashAmount: parseFloat(orderObj.paymentDetails.cashAmount?.toString() || 0),
+      cardAmount: parseFloat(orderObj.paymentDetails.cardAmount?.toString() || 0),
+      transferAmount: parseFloat(orderObj.paymentDetails.transferAmount?.toString() || 0),
+      changeAmount: parseFloat(orderObj.paymentDetails.changeAmount?.toString() || 0)
+    } : {}
   };
 };
 
@@ -117,6 +124,208 @@ const getOrderById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Lỗi khi lấy thông tin đơn hàng',
+      error: error.message
+    });
+  }
+};
+
+// Get employee sales history for admin
+const getEmployeeSalesHistory = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      employeeId,
+      startDate,
+      endDate,
+      status,
+      paymentStatus
+    } = req.query;
+
+    const skip = (page - 1) * limit;
+    let query = { deleted: false };
+
+    // Filter by employee if specified
+    if (employeeId) {
+      query.employeeId = employeeId;
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    // Status filters
+    if (status) query.status = status;
+    if (paymentStatus) query.paymentStatus = paymentStatus;
+
+    // Get orders with employee and store details
+    const orders = await Order.find(query)
+      .populate('employeeId', 'name email avatar')
+      .populate('storeId', 'name address')
+      .populate('items.productId', 'name imageUrl')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+
+    console.log(`Query: ${JSON.stringify(query)}`);
+    console.log(`Found ${orders.length} orders`);
+
+    const total = await Order.countDocuments(query);
+    console.log(`Total orders found: ${total}`);
+    
+
+    // Calculate statistics
+    const stats = await Order.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: { $toDouble: '$totalAmount' } },
+          avgOrderValue: { $avg: { $toDouble: '$totalAmount' } },
+          completedOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+    console.log(`Sales statistics:`, stats);
+    
+
+    const statistics = stats[0] || {
+      totalOrders: 0,
+      totalRevenue: 0,
+      avgOrderValue: 0,
+      completedOrders: 0
+    };
+
+    // Get employee sales summary if filtering by specific employee
+    let employeeSummary = null;
+    if (employeeId) {
+      const employee = await Employee.findById(employeeId).select('name email avatar');
+      if (employee) {
+        employeeSummary = {
+          employee: employee,
+          ...statistics
+        };
+      }
+    }
+
+    console.log(`Sending response with ${orders.length} orders`);
+    const responseData = {
+      success: true,
+      data: orders.map(order => serializeOrderForResponse(order)),
+      statistics,
+      employeeSummary,
+      pagination: {
+        current: parseInt(page),
+        total,
+        pageSize: parseInt(limit),
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+    
+    console.log(`Response structure:`, {
+      success: responseData.success,
+      dataLength: responseData.data.length,
+      hasStatistics: !!responseData.statistics,
+      hasPagination: !!responseData.pagination
+    });
+    
+    res.json(responseData);
+  } catch (error) {
+    console.error('Get employee sales history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy lịch sử bán hàng của nhân viên',
+      error: error.message
+    });
+  }
+};
+
+// Get all employees sales summary for admin dashboard
+const getEmployeesSalesSummary = async (req, res) => {
+  try {
+    const {
+      startDate,
+      endDate,
+      limit = 10
+    } = req.query;
+
+    let dateQuery = { deleted: false };
+    
+    // Date range filter
+    if (startDate || endDate) {
+      dateQuery.createdAt = {};
+      if (startDate) dateQuery.createdAt.$gte = new Date(startDate);
+      if (endDate) dateQuery.createdAt.$lte = new Date(endDate);
+    }
+
+    // Aggregate sales data by employee
+    const employeesSales = await Order.aggregate([
+      { $match: dateQuery },
+      {
+        $group: {
+          _id: '$employeeId',
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: { $toDouble: '$totalAmount' } },
+          avgOrderValue: { $avg: { $toDouble: '$totalAmount' } },
+          completedOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+          },
+          lastOrderDate: { $max: '$createdAt' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'employees',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'employee'
+        }
+      },
+      {
+        $unwind: {
+          path: '$employee',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          employeeId: '$_id',
+          employeeName: '$employee.name',
+          employeeEmail: '$employee.email',
+          employeeAvatar: '$employee.avatar',
+          totalOrders: 1,
+          totalRevenue: { $round: ['$totalRevenue', 2] },
+          avgOrderValue: { $round: ['$avgOrderValue', 2] },
+          completedOrders: 1,
+          completionRate: {
+            $round: [
+              { $multiply: [{ $divide: ['$completedOrders', '$totalOrders'] }, 100] },
+              1
+            ]
+          },
+          lastOrderDate: 1
+        }
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: parseInt(limit) }
+    ]);
+
+    res.json({
+      success: true,
+      data: employeesSales
+    });
+  } catch (error) {
+    console.error('Get employees sales summary error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy tổng hợp bán hàng của nhân viên',
       error: error.message
     });
   }
@@ -581,5 +790,7 @@ module.exports = {
   updateOrderStatus,
   cancelOrder,
   getSalesStatistics,
-  createDemoOrder
+  createDemoOrder,
+  getEmployeeSalesHistory,
+  getEmployeesSalesSummary
 };

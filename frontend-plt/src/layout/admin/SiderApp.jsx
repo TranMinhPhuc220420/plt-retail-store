@@ -76,6 +76,12 @@ const SiderApp = ({ isLoading, collapsed }) => {
           label: 'Tài khoản Bán hàng',
         },
         {
+          key: 'admin_employee_sales_history',
+          icon: <AuditOutlined />,
+          pathname: `/store/${storeCode}/admin/lich-su-ban-hang-nhan-vien`,
+          label: 'Lịch sử bán hàng NV',
+        },
+        {
           key: 'admin_supplier_management',
           pathname: `/store/${storeCode}/admin/nha-cung-cap`,
           icon: <BarChartOutlined />,

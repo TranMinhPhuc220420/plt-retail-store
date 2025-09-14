@@ -36,6 +36,7 @@ import ProfilePage from "@/pages/profile/ProfilePage";
 import ManagerEmployeePage from "@/pages/admin/manager";
 import EmployeeManagement from "@/pages/admin/EmployeeManagement";
 import SalesAccountManagement from "@/pages/admin/SalesAccountManagement";
+import EmployeeSalesHistory from "@/pages/admin/EmployeeSalesHistory";
 import DashboardEmployeePage from "@/pages/employee/DashboardPage";
 import SellManagerPage from "@/pages/employee/sell/manager";
 import ClientManagerPage from "@/pages/employee/client/manager";
@@ -188,6 +189,10 @@ const router = createBrowserRouter([
       {
         path: "tai-khoan-ban-hang",
         element: <SalesAccountManagement />,
+      },
+      {
+        path: "lich-su-ban-hang-nhan-vien",
+        element: <EmployeeSalesHistory />,
       },
     ],
   },

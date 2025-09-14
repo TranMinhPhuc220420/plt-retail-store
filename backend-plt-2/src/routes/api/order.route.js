@@ -7,7 +7,9 @@ const {
   updateOrderStatus,
   cancelOrder,
   getSalesStatistics,
-  createDemoOrder
+  createDemoOrder,
+  getEmployeeSalesHistory,
+  getEmployeesSalesSummary
 } = require('../../controllers/order.controller');
 
 // Middleware để xác thực (có thể thêm sau)
@@ -26,6 +28,20 @@ router.get('/', getOrders);
  * @access Private
  */
 router.get('/statistics', getSalesStatistics);
+
+/**
+ * @route GET /api/orders/employee-sales-history
+ * @desc Get employee sales history for admin
+ * @access Private (Admin only)
+ */
+router.get('/employee-sales-history', getEmployeeSalesHistory);
+
+/**
+ * @route GET /api/orders/employees-sales-summary
+ * @desc Get all employees sales summary for admin
+ * @access Private (Admin only)
+ */
+router.get('/employees-sales-summary', getEmployeesSalesSummary);
 
 /**
  * @route GET /api/orders/:id
