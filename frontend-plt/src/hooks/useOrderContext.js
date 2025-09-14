@@ -1,4 +1,4 @@
-import useAuth from './useAuth';
+import useSalesAuth from './useSalesAuth';
 import useStoreApp from '@/store/app';
 
 /**
@@ -6,11 +6,11 @@ import useStoreApp from '@/store/app';
  * @returns {Object} User and store information for order processing
  */
 const useOrderContext = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { employee, isAuthenticated } = useSalesAuth();
   const { storeActive } = useStoreApp();
 
   const getOrderContext = () => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated || !employee) {
       throw new Error('User must be authenticated to create orders');
     }
 
@@ -19,22 +19,22 @@ const useOrderContext = () => {
     }
 
     return {
-      employeeId: user._id || user.id,
-      employeeName: user.displayName || user.username,
+      employeeId: employee._id || employee.id,
+      employeeName: employee.displayName || employee.username,
       storeId: storeActive._id || storeActive.id,
       storeCode: storeActive.storeCode || storeActive.code,
       storeName: storeActive.name,
-      userId: user._id || user.id,
-      userRole: user.role
+      userId: employee._id || employee.id,
+      userRole: employee.role
     };
   };
 
   return {
-    user,
+    employee,
     storeActive,
     isAuthenticated,
     getOrderContext,
-    isReady: isAuthenticated && user && storeActive
+    isReady: isAuthenticated && employee && storeActive
   };
 };
 

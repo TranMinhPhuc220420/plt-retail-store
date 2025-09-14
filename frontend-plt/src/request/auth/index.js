@@ -52,6 +52,26 @@ export const getMe = async () => {
   }
 }
 
+export const salesLogin = async (data) => {
+  try {
+    const response = await post('/sales-auth/login', data);
+    return response.data;
+  } catch (error) {
+    console.error('Sales login failed:', error);
+    throw error;
+  }
+}
+
+export const getSalesMe = async () => {
+  try {
+    const response = await get('/sales-auth/me');
+    return response.data;
+  } catch (error) {
+    console.error('Sales auth verification failed:', error);
+    throw error;
+  }
+}
+
 export const openPopupLoginWithGoogle = async () => {
   const loginUrl = `${SERVER_URL}/auth/google`;
 

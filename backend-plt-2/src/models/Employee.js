@@ -107,6 +107,46 @@ const employeeSchema = new mongoose.Schema({
     actions: [String] // 'read', 'create', 'update', 'delete'
   }],
 
+  // Sales Account - chỉ thêm khi tạo tài khoản bán hàng
+  salesCredentials: {
+    username: { 
+      type: String, 
+      unique: true, 
+      sparse: true,  // Cho phép null, unique nếu có giá trị
+      trim: true,
+      minlength: 3,
+      maxlength: 50
+    },
+    passwordHash: { 
+      type: String, 
+      select: false  // Không select mặc định vì bảo mật
+    },
+    isActive: { 
+      type: Boolean, 
+      default: false 
+    },
+    hasSalesAccess: {
+      type: Boolean,
+      default: false
+    },
+    lastSalesLogin: Date,
+    failedLoginAttempts: { 
+      type: Number, 
+      default: 0 
+    },
+    lockedUntil: Date
+  },
+
+  // POS Permissions
+  posPermissions: {
+    canAccessPOS: { type: Boolean, default: false },
+    canApplyDiscount: { type: Boolean, default: false },
+    maxDiscountPercent: { type: Number, default: 0, min: 0, max: 100 },
+    canProcessReturn: { type: Boolean, default: false },
+    canVoidTransaction: { type: Boolean, default: false },
+    canOpenCashDrawer: { type: Boolean, default: false }
+  },
+
   // Status fields
   isActive: { 
     type: Boolean, 

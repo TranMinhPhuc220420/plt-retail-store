@@ -4,7 +4,7 @@ import { Routes, Route, createBrowserRouter } from "react-router";
 // Layouts
 import LayoutOverview from "@/layout/overview";
 import LayoutAdmin from "@/layout/admin";
-import LayoutEmployee from "@/layout/employee";
+import LayoutSalesEmployee from "@/layout/employee/LayoutSalesEmployee";
 
 // Pages
 import StoreManagerPage from "@/pages/admin/store/manager";
@@ -35,6 +35,7 @@ import ProfilePage from "@/pages/profile/ProfilePage";
 
 import ManagerEmployeePage from "@/pages/admin/manager";
 import EmployeeManagement from "@/pages/admin/EmployeeManagement";
+import SalesAccountManagement from "@/pages/admin/SalesAccountManagement";
 import DashboardEmployeePage from "@/pages/employee/DashboardPage";
 import SellManagerPage from "@/pages/employee/sell/manager";
 import ClientManagerPage from "@/pages/employee/client/manager";
@@ -42,9 +43,13 @@ import InvoiceManagerPage from "@/pages/employee/invoice/manager";
 import ShiftHandoverManagerPage from "@/pages/employee/shiftHandover/manager";
 
 import LoginPage from "@/pages/login";
+import SalesLoginPage from "@/pages/sales/SalesLoginPage";
 import LandingPage from "@/pages/landing/LandingPage";
 
 import AuthProvider from "@/provider/AuthProvider";
+import SalesAuthProvider from "@/provider/SalesAuthProvider";
+import SalesLoginProvider from "@/provider/SalesLoginProvider";
+import ProtectedSalesRoute from "@/components/auth/ProtectedSalesRoute";
 
 // Higher-Order Component for protected routes
 const ProtectedRoute = ({ element }) => {
@@ -64,7 +69,17 @@ const router = createBrowserRouter([
       />
     ),
   },
-  
+
+  // Sales login route
+  {
+    path: "/store/:storeCode/sales-login",
+    element: (
+      <SalesLoginProvider>
+        <SalesLoginPage />
+      </SalesLoginProvider>
+    ),
+  },
+
   {
     path: "/profile",
     element: (
@@ -170,16 +185,22 @@ const router = createBrowserRouter([
           },
         ],
       },
+      {
+        path: "tai-khoan-ban-hang",
+        element: <SalesAccountManagement />,
+      },
     ],
   },
 
-  // Client routes
+  // Sales routes (Employee interface with sales authentication)
   {
     path: "/store/:storeCode",
     element: (
-      <ProtectedRoute
-        element={<LayoutEmployee />}
-      />
+      <SalesAuthProvider>
+        <ProtectedSalesRoute>
+          <LayoutSalesEmployee />
+        </ProtectedSalesRoute>
+      </SalesAuthProvider>
     ),
     children: [
       {

@@ -70,6 +70,12 @@ const SiderApp = ({ isLoading, collapsed }) => {
           label: t('TXT_EMPLOYEE'),
         },
         {
+          key: 'admin_sales_accounts',
+          icon: <UserOutlined />,
+          pathname: `/store/${storeCode}/admin/tai-khoan-ban-hang`,
+          label: 'Tài khoản Bán hàng',
+        },
+        {
           key: 'admin_supplier_management',
           pathname: `/store/${storeCode}/admin/nha-cung-cap`,
           icon: <BarChartOutlined />,

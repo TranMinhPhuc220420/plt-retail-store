@@ -23,6 +23,7 @@ const costAnalysisRouter = require('./costAnalysis'); // ✅ THÊM COST ANALYSIS
 const employeeRouter = require('./employee.route'); // ✅ THÊM EMPLOYEE ROUTER
 const orderRouter = require('./order.route'); // ✅ THÊM ORDER ROUTER
 const demoRouter = require('./demo.route'); // ✅ THÊM DEMO ROUTER
+const salesAccountRouter = require('./salesAccount.route'); // ✅ THÊM SALES ACCOUNT ROUTER
 
 const router = Router();
 
@@ -44,6 +45,7 @@ router.use('/composite-products', verifyJWT, isAdminOrStaff, compositeProductRou
 router.use('/cost-analysis', verifyJWT, isAdmin, costAnalysisRouter); // Admin only
 router.use('/employees', verifyJWT, isAdminOrStaff, employeeRouter); // ✅ Employee management routes
 router.use('/orders', verifyJWT, isAdminOrStaff, orderRouter); // ✅ Order management routes - Staff can create and view orders
+router.use('/sales-accounts', verifyJWT, isAdminOrStaff, salesAccountRouter); // ✅ Sales Account management routes
 
 // Demo routes (no authentication required)
 router.use('/demo', demoRouter); // ✅ Demo routes for testing

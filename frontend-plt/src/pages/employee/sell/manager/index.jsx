@@ -43,14 +43,14 @@ const SellManagerPage = () => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const { storeCode } = useParams();
-  const { getOrderContext, isReady, user, storeActive } = useOrderContext();
+  const { getOrderContext, isReady, employee, storeActive } = useOrderContext();
   
   // Check if user context is ready
   useEffect(() => {
-    if (!isReady) {
+    if (!employee) {
       message.warning('Vui lòng đăng nhập và chọn cửa hàng để sử dụng tính năng bán hàng');
     }
-  }, [isReady]);
+  }, [employee]);
   
   // Utility function to parse Decimal128 from MongoDB
   const parseDecimal = (value) => {

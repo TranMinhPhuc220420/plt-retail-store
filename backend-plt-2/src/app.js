@@ -16,6 +16,7 @@ const apiRoutes = require('./routes/api/index');
 const uploadRoutes = require('./routes/upload/index');
 const pictureRoutes = require('./routes/picture/index');
 const authRoutes = require('./routes/auth/auth.route');
+const salesAuthRoutes = require('./routes/salesAuth.route');
 
 const app = express();
 
@@ -77,6 +78,7 @@ app.use('/api', apiRoutes);
 app.use('/upload', uploadRoutes);
 app.use('/p', pictureRoutes);
 app.use('/auth', authRoutes);
+app.use('/sales-auth', salesAuthRoutes);
 
 // Html test login page
 app.get('/login', (req, res) => {
