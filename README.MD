@@ -57,46 +57,6 @@ PLT Retail Store là một giải pháp quản lý bán lẻ toàn diện, đư�
     *   Frontend: [http://localhost:5173](http://localhost:5173)
     *   Backend API: [http://localhost:5000](http://localhost:5000)
 
-### Triển khai Production
-
-#### Option 1: Standard Build (VPS có >= 2GB RAM + Swap)
-```bash
-make prod-build-clean
-```
-
-#### Option 2: Low-Memory Build (VPS có 1-2GB RAM)
-```bash
-# Check resources first
-chmod +x check-vps-resources.sh
-./check-vps-resources.sh
-
-# Build with low-memory strategy
-make prod-build-low-memory
-```
-
-#### Option 3: Build Locally (VPS < 1GB RAM hoặc build fail)
-```bash
-# On Windows machine
-build-production-local.bat
-
-# Copy to VPS
-scp -r frontend-plt/dist/ user@vps:/path/to/project/frontend-plt/
-
-# On VPS
-docker compose -f docker-compose.prebuilt.yml up -d
-```
-
-### 🚨 Troubleshooting
-
-**Gặp lỗi "SIGKILL" hoặc "Out of Memory" khi build?**
-
-👉 Xem hướng dẫn chi tiết: [QUICK-FIX-OOM.md](./QUICK-FIX-OOM.md)
-
-Hoặc chạy script kiểm tra:
-```bash
-./check-vps-resources.sh
-```
-
 ## 📁 Cấu trúc thư mục
 
 ```

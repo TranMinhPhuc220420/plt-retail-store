@@ -14,37 +14,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  build: {
-    // Tối ưu hóa cho môi trường low-memory
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // Split vendor chunks để giảm memory peak
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@mui') || id.includes('@emotion')) {
-              return 'mui-vendor';
-            }
-            if (id.includes('firebase')) {
-              return 'firebase-vendor';
-            }
-            return 'vendor';
-          }
-        },
-      },
-      // Giảm số lượng workers để tiết kiệm memory
-      maxParallelFileOps: 2,
-    },
-    // Disable source maps trong production để giảm memory
-    sourcemap: false,
-    // Giảm minification để tiết kiệm memory
-    minify: 'esbuild',
-    // Giảm size của assets inline
-    assetsInlineLimit: 4096,
-  },
   server: {
     host: '0.0.0.0',
     port: 5173,

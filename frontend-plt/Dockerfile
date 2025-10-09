@@ -11,13 +11,11 @@ RUN npm ci && npm cache clean --force
 # Copy source code
 COPY . .
 
-# Set Node options for build optimization - Giảm memory footprint
-# Sử dụng 2GB thay vì 4GB để tránh OOM trên VPS
-ENV NODE_OPTIONS="--max-old-space-size=2048 --max-semi-space-size=256"
+# Set Node options for build optimization
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Build the app với Vite - Thêm memory constraints
-# Giới hạn số lượng workers để giảm memory usage
-RUN npm run build -- --logLevel=warn
+# Build the app với Vite
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine
