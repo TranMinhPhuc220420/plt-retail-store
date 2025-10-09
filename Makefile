@@ -37,11 +37,9 @@ prod-build-clean:
 	docker compose down --remove-orphans
 	docker system prune -f
 	docker image prune -f
-	@echo "Building with BuildKit and memory optimization..."
-	DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose build --no-cache
-	@echo "Build completed!"
-	@echo "Image sizes:"
-	@docker images | grep plt- || echo "Images not found"
+	docker compose -f docker-compose.yml down --rmi all
+	@echo "Building with no-cache and memory optimization..."
+	docker compose build --no-cache
 	@echo "Production build completed!"
 
 # Full production deployment with cleanup
