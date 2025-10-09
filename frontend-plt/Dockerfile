@@ -11,6 +11,9 @@ RUN npm ci && npm cache clean --force
 # Copy source code
 COPY . .
 
+# Set Node options for build optimization
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # Build the app với Vite
 RUN npm run build
 
