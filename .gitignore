@@ -58,3 +58,4 @@ frontend-plt/*.md
 !README.md
 !DOCKER_BUILD_OPTIMIZATION.md
 !TROUBLESHOOTING.md
+!frontend-plt/BUILD.md
