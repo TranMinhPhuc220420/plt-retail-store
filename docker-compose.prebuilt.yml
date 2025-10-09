@@ -1,0 +1,90 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: plt-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - plt-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend-plt-2
+      dockerfile: Dockerfile
+    container_name: plt-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT}
+      MONGODB_URI: ${MONGODB_URI}
+      BASE_URL: ${BASE_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      SESSION_SECRET: ${SESSION_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./backend-plt-2:/app
+      - /app/node_modules
+      - plt_storage:/app/storage
+    networks:
+      - plt-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend-plt
+      dockerfile: Dockerfile.prebuilt
+    container_name: plt-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      VITE_VERCEL_BASE_URL: ${VITE_VERCEL_BASE_URL}
+      VITE_VERCEL_SERVER_URL: ${VITE_VERCEL_SERVER_URL}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - plt-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mongodb_data:
+    driver: local
+  plt_storage:
+    driver: local
+
+networks:
+  plt-network:
+    driver: bridge

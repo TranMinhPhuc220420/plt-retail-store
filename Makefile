@@ -33,13 +33,17 @@ prod-build-clean:
 	@echo "Starting optimized production build with cleanup..."
 	@echo "Checking system resources..."
 	@free -h || echo "Memory check not available"
+	@df -h || echo "Disk check not available"
 	@echo "Cleaning Docker resources..."
 	docker compose down --remove-orphans
 	docker system prune -f
 	docker image prune -f
 	docker compose -f docker-compose.yml down --rmi all
-	@echo "Building with no-cache and memory optimization..."
-	docker compose build --no-cache
+	@echo "Building with memory optimization..."
+	@echo "Building backend first (uses less memory)..."
+	docker compose build --no-cache backend mongodb
+	@echo "Building frontend with memory constraints..."
+	docker compose build --no-cache --memory=2g --memory-swap=4g frontend
 	@echo "Production build completed!"
 
 # Full production deployment with cleanup
@@ -48,6 +52,31 @@ prod-deploy-clean: prod-build-clean up
 	@echo "Waiting for services to be healthy..."
 	@sleep 30
 	@make health
+
+# Alternative build for low-memory VPS (build services separately)
+prod-build-low-memory:
+	@echo "Starting low-memory build strategy..."
+	@echo "This builds one service at a time to minimize memory usage"
+	@echo "Checking system resources..."
+	@free -h || echo "Memory check not available"
+	@df -h || echo "Disk check not available"
+	@echo "Cleaning Docker resources..."
+	docker compose down --remove-orphans
+	docker system prune -f
+	docker image prune -f
+	@echo "Step 1/3: Building MongoDB..."
+	docker compose build --no-cache mongodb
+	@echo "Step 2/3: Building Backend..."
+	docker compose build --no-cache backend
+	@echo "Step 3/3: Building Frontend with constraints..."
+	docker compose build --no-cache --memory=2g --memory-swap=4g frontend || \
+	(echo "ERROR: Frontend build failed due to memory constraints" && \
+	 echo "Please use one of these alternatives:" && \
+	 echo "1. Build locally using: build-production-local.bat" && \
+	 echo "2. Add swap memory: sudo fallocate -l 4G /swapfile && sudo swapon /swapfile" && \
+	 echo "3. Use pre-built dist: docker compose -f docker-compose.prebuilt.yml up -d" && \
+	 exit 1)
+	@echo "All services built successfully!"
 
 health:
 	@echo "Checking service health..."
