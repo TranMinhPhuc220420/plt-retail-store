@@ -11,7 +11,13 @@ RUN npm ci && npm cache clean --force
 # Copy source code
 COPY . .
 
-# Build the app với Vite
+# Set Node options for build optimization
+# Increased to 8GB for large-scale applications with 4,753+ modules
+# Additional flags for garbage collection optimization
+ENV NODE_OPTIONS="--max-old-space-size=8192 --max-semi-space-size=512"
+
+# Build the app with Vite
+# The optimized vite.config.js will handle chunking and code splitting
 RUN npm run build
 
 # Production stage

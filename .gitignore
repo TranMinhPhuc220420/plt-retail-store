@@ -51,8 +51,13 @@ temp/
 
 storage/
 
-# Ignore file .md but not README.md
+# Ignore file .md but not README.md and documentation files in root
 *.md
 backend-plt-2/*.md
 frontend-plt/*.md
 !README.md
+!DOCKER_BUILD_OPTIMIZATION.md
+!TROUBLESHOOTING.md
+!CHANGES.md
+!SOLUTION_SUMMARY.md
+!frontend-plt/BUILD.md

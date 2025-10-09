@@ -1,5 +1,7 @@
 # PLT Retail Store
 
+> **⚠️ Important**: This is a large-scale application (4,753+ modules). Please review the [Docker Build Optimization Guide](DOCKER_BUILD_OPTIMIZATION.md) for production build requirements.
+
 ## 📖 Giới thiệu
 
 PLT Retail Store là một giải pháp quản lý bán lẻ toàn diện, được thiết kế để giúp các doanh nghiệp tối ưu hóa hoạt động, từ quản lý kho, bán hàng, nhân sự đến phân tích chi phí. Hệ thống bao gồm một giao diện frontend được xây dựng bằng React và một backend mạnh mẽ sử dụng Express.js, kết nối với cơ sở dữ liệu MongoDB.
@@ -35,6 +37,10 @@ PLT Retail Store là một giải pháp quản lý bán lẻ toàn diện, đư�
 
 *   [Node.js](https://nodejs.org/) (phiên bản 16.x trở lên)
 *   [Docker](https://www.docker.com/) và [Docker Compose](https://docs.docker.com/compose/)
+*   **Minimum RAM: 12 GB** (Recommended: 16 GB) for production builds
+*   **Docker Desktop Memory Limit**: Set to 12-16 GB in Settings → Resources
+
+> **📚 Build Documentation**: See [DOCKER_BUILD_OPTIMIZATION.md](DOCKER_BUILD_OPTIMIZATION.md) for detailed build configuration and troubleshooting.
 
 ### Cài đặt và Chạy (Môi trường Development)
 
@@ -56,6 +62,44 @@ PLT Retail Store là một giải pháp quản lý bán lẻ toàn diện, đư�
 4.  **Truy cập ứng dụng:**
     *   Frontend: [http://localhost:5173](http://localhost:5173)
     *   Backend API: [http://localhost:5000](http://localhost:5000)
+
+### Production Build
+
+**Recommended Method** (with resource monitoring and retry logic):
+```bash
+./build-production.sh
+```
+
+**Manual Method**:
+```bash
+# Enable BuildKit for better performance
+DOCKER_BUILDKIT=1 docker compose build --no-cache
+docker compose up -d
+```
+
+**Expected Build Time**: 2-4 minutes
+
+**Troubleshooting**:
+- If build fails with SIGKILL: Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- For detailed optimization guide: See [DOCKER_BUILD_OPTIMIZATION.md](DOCKER_BUILD_OPTIMIZATION.md)
+- For visual reference: See [VISUAL_GUIDE.md](VISUAL_GUIDE.md)
+
+## 📚 Documentation
+
+### Build & Deployment
+- **[SOLUTION_SUMMARY.md](SOLUTION_SUMMARY.md)** - Executive summary of Docker build optimization
+- **[DOCKER_BUILD_OPTIMIZATION.md](DOCKER_BUILD_OPTIMIZATION.md)** - Complete technical guide (7.5KB)
+- **[VISUAL_GUIDE.md](VISUAL_GUIDE.md)** - Visual diagrams and quick reference (16KB)
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Quick fixes for common issues (4.9KB)
+- **[CHANGES.md](CHANGES.md)** - Detailed change log (7.6KB)
+- **[frontend-plt/BUILD.md](frontend-plt/BUILD.md)** - Frontend-specific build guide (5KB)
+
+### Key Highlights
+- ✅ Optimized for large-scale applications (4,753+ modules)
+- ✅ Memory-efficient build configuration (8GB heap)
+- ✅ Intelligent code chunking for performance
+- ✅ Cross-platform build scripts (Linux/Windows)
+- ✅ Comprehensive monitoring and error handling
 
 ## 📁 Cấu trúc thư mục
 
