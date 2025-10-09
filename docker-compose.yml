@@ -62,8 +62,16 @@ services:
     build:
       context: ./frontend-plt
       dockerfile: Dockerfile
+      args:
+        # Build arguments for optimization
+        NODE_ENV: production
+      # Increased resources for large-scale Vite build (4,753+ modules)
+      shm_size: '2gb'
     container_name: plt-frontend
     restart: unless-stopped
+    # Memory limits for production deployment
+    mem_limit: 512m
+    mem_reservation: 256m
     ports:
       - "8080:80"
     environment:
