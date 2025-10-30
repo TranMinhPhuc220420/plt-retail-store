@@ -2,7 +2,7 @@
 
 # PLT Retail Store Production Deployment Script
 # Server: retail-store-plt-ceca (103.90.227.74)
-# Domain: https://lionking.vn
+# Domain: https://retail-store.plt.pro.vn
 
 set -e
 
@@ -103,8 +103,8 @@ echo "   - Backend API: http://localhost:5000"
 echo "   - MongoDB: localhost:27017"
 echo ""
 echo "🌐 Public URLs (after nginx setup):"
-echo "   - Website: https://lionking.vn"
-echo "   - API: https://lionking.vn/api"
+echo "   - Website: https://retail-store.plt.pro.vn"
+echo "   - API: https://retail-store.plt.pro.vn/api"
 echo ""
 echo "📊 Check status with:"
 echo "   docker-compose ps"
